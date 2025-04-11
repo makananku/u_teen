@@ -1,0 +1,54 @@
+name: u_teen
+description: "A new Flutter project."
+
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_keyboard_visibility: ^6.0.0
+  shared_preferences: ^2.2.2
+  lottie: ^3.3.1
+  intl: ^0.20.2
+  image_picker: ^1.1.2
+  path_provider: ^2.1.1
+  path: ^1.8.3
+  provider: ^6.0.5
+  flutter_plugin_android_lifecycle: ^2.0.27
+
+  # External dependencies
+  cached_network_image: ^3.3.0
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/asset/profile_picture.jpg
+
+    - assets/animation/empty_cart.json
+    - assets/animation/empty_order.json
+    - assets/animation/success_checkmark.json
+
+    - assets/payment/gopay.png
+    - assets/payment/ovo.png
+
+    - assets/food/mie_ayam.jpg
+    - assets/food/bakso.jpg
+    - assets/food/soto_ayam.jpg
+    - assets/food/nasi_pecel.jpg
+
+    - assets/drink/matcha_latte.jpg
+    - assets/drink/cappucino.jpg
+
+    - assets/snack/burger.jpg
+    - assets/snack/french_fries.jpg
