@@ -26,14 +26,14 @@ class SearchData {
   // Menambahkan search query ke recent searches
   static Future<void> addRecentSearch(String query) async {
     try {
-      if (!recentSearches.contains(query)) {
-        recentSearches.insert(0, query); // Tambahkan di awal list
-        // Batasi jumlah recent searches (misalnya, maksimal 10)
-        if (recentSearches.length > 10) {
-          recentSearches.removeLast();
-        }
-        await saveRecentSearches(); // Simpan ke SharedPreferences
+      // Hapus duplikat jika ada
+      recentSearches.remove(query);
+      recentSearches.insert(0, query); // Tambahkan di awal list
+      // Batasi jumlah recent searches (misalnya, maksimal 10)
+      if (recentSearches.length > 10) {
+        recentSearches.removeLast();
       }
+      await saveRecentSearches(); // Simpan ke SharedPreferences
     } catch (e) {
       print("Error adding recent search: $e");
     }
