@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
-import '../../widgets/custom_bottom_navigation.dart';
+import '../../widgets/customer/custom_bottom_navigation.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import '../../auth/logout_service.dart';
 import '../login_screen.dart';

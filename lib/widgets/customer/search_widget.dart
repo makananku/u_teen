@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:u_teen/widgets/food_list.dart';
-import '../data/food_data.dart';
-import '../data/search_data.dart';
+import '../../data/food_data.dart';
+import '../../data/search_data.dart';
 
 class SearchWidget extends StatefulWidget {
   final TextEditingController searchController;

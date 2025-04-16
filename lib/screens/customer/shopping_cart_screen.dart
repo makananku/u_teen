@@ -6,7 +6,7 @@ import '../../providers/cart_provider.dart';
 import '../../models/cart_item.dart';
 import 'home_screen.dart';
 import 'payment_screen.dart'; // Import the payment screen
-import '../../widgets/custom_bottom_navigation.dart';
+import '../../widgets/customer/custom_bottom_navigation.dart';
 
 class ShoppingCartScreen extends StatefulWidget {
   const ShoppingCartScreen({super.key});

@@ -11,15 +11,19 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
   flutter_keyboard_visibility: ^6.0.0
   shared_preferences: ^2.2.2
   lottie: ^3.3.1
-  intl: ^0.20.2
+  intl: ^0.19.0
   image_picker: ^1.1.2
   path_provider: ^2.1.1
   path: ^1.8.3
   provider: ^6.0.5
   flutter_plugin_android_lifecycle: ^2.0.27
+  http: ^1.1.0
 
   # External dependencies
   cached_network_image: ^3.3.0

@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:u_teen/auth/auth_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:lottie/lottie.dart';
-import '../../widgets/custom_bottom_navigation.dart';
+import '../../widgets/customer/custom_bottom_navigation.dart';
 import '../../providers/order_provider.dart';
 import '../../models/order_model.dart';
 import 'home_screen.dart';

@@ -4,15 +4,15 @@ import 'package:u_teen/data/food_data.dart';
 import 'package:provider/provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/favorite_provider.dart';
-import '../../widgets/custom_bottom_navigation.dart';
+import '../../widgets/customer/custom_bottom_navigation.dart';
 import '../../models/cart_item.dart';
 import '../../models/favorite_item.dart';
 import 'favorite_screen.dart';
 import '../../data/search_data.dart';
-import '../../widgets/search_widget.dart';
-import '../../widgets/category_selector.dart';
+import '../../widgets/customer/search_widget.dart';
+import '../../widgets/customer/category_selector.dart';
 import '../../widgets/food_list.dart';
-import '../../widgets/detail_box.dart';
+import '../../widgets/customer/detail_box.dart';
 
 class HomeScreen extends StatefulWidget {
   final String? initialFoodItem;

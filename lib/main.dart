@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:u_teen/providers/order_provider.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'auth/auth_provider.dart';
@@ -7,12 +8,17 @@ import 'auth/auth_service.dart';
 import 'providers/cart_provider.dart';
 import 'providers/favorite_provider.dart';
 import 'providers/food_provider.dart';
+import 'providers/order_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/customer/home_screen.dart';
 import 'screens/seller/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Inisialisasi format tanggal untuk bahasa Indonesia
+  await initializeDateFormatting('id_ID', null);
+  
   final prefs = await SharedPreferences.getInstance();
 
   runApp(
@@ -23,8 +29,7 @@ void main() async {
         ChangeNotifierProvider(create: (context) => CartProvider()),
         ChangeNotifierProvider(create: (context) => FavoriteProvider()),
         ChangeNotifierProvider(create: (context) => FoodProvider()),
-        ChangeNotifierProvider(create: (_) => OrderProvider(prefs)),
-        ChangeNotifierProvider(create: (_) => AuthProvider(prefs)),
+        ChangeNotifierProvider(create: (context) => OrderProvider(prefs)),
       ],
       child: const MyApp(),
     ),
@@ -38,7 +43,17 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.blue, fontFamily: 'Poppins'),
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        fontFamily: 'Poppins',
+      ),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('id', 'ID'), // Bahasa Indonesia
+      ],
       home: const AuthWrapper(),
     );
   }
@@ -57,7 +72,11 @@ class AuthWrapper extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.done) {
           return const SplashScreen();
         }
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        return const Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
       },
     );
   }
@@ -174,9 +193,15 @@ class _SplashScreenState extends State<SplashScreen>
     if (auth.isLoggedIn) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder:
-              (context) =>
-                  auth.isSeller ? const SellerHomeScreen() : const HomeScreen(),
+          builder: (context) =>
+              auth.isSeller ? const SellerHomeScreen() : const HomeScreen(),
+        ),
+      );
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const LoginScreen(),
+          settings: const RouteSettings(name: '/login'),
         ),
       );
     }
@@ -230,10 +255,9 @@ class _SplashScreenState extends State<SplashScreen>
                           style: TextStyle(
                             fontSize: 36,
                             fontWeight: FontWeight.bold,
-                            color:
-                                _bgController.value < 0.5
-                                    ? Colors.white
-                                    : Colors.blue[800],
+                            color: _bgController.value < 0.5
+                                ? Colors.white
+                                : Colors.blue[800],
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -241,10 +265,9 @@ class _SplashScreenState extends State<SplashScreen>
                           'UMN Canteen',
                           style: TextStyle(
                             fontSize: 16,
-                            color:
-                                _bgController.value < 0.5
-                                    ? Colors.white70
-                                    : Colors.grey,
+                            color: _bgController.value < 0.5
+                                ? Colors.white70
+                                : Colors.grey,
                           ),
                         ),
                       ],
@@ -309,16 +332,18 @@ class _SplashScreenState extends State<SplashScreen>
                   Navigator.push(
                     context,
                     PageRouteBuilder(
-                      pageBuilder:
-                          (context, animation, secondaryAnimation) =>
-                              const LoginScreen(),
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          const LoginScreen(),
                       transitionsBuilder: (
                         context,
                         animation,
                         secondaryAnimation,
                         child,
                       ) {
-                        return FadeTransition(opacity: animation, child: child);
+                        return FadeTransition(
+                          opacity: animation,
+                          child: child,
+                        );
                       },
                       transitionDuration: const Duration(milliseconds: 800),
                     ),

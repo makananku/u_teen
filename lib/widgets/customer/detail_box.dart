@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/favorite_provider.dart';
-import '../models/favorite_item.dart';
+import '../../providers/favorite_provider.dart';
+import '../../models/favorite_item.dart';
 
 class DetailBox extends StatelessWidget {
   final String selectedFoodItem;
