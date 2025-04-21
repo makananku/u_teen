@@ -108,6 +108,22 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
     final cancelledCount = orderProvider.getCancelledOrdersForMerchant(sellerEmail).length;
     final completedCount = orderProvider.getCompletedOrdersForMerchant(sellerEmail).length;
 
+    // Calculate sales metrics for completed orders
+    final now = DateTime.now();
+    final startOfToday = DateTime(now.year, now.month, now.day);
+    final startOfWeek = DateTime(now.year, now.month, now.day - (now.weekday - 1)).copyWith(hour: 0, minute: 0, second: 0, millisecond: 0);
+    final startOfMonth = DateTime(now.year, now.month, 1);
+
+    final todayCount = orderProvider.getCompletedOrdersForMerchant(sellerEmail)
+        .where((order) => order.completedTime != null && order.completedTime!.isAfter(startOfToday))
+        .length;
+    final weekCount = orderProvider.getCompletedOrdersForMerchant(sellerEmail)
+        .where((order) => order.completedTime != null && order.completedTime!.isAfter(startOfWeek))
+        .length;
+    final monthCount = orderProvider.getCompletedOrdersForMerchant(sellerEmail)
+        .where((order) => order.completedTime != null && order.completedTime!.isAfter(startOfMonth))
+        .length;
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -156,11 +172,23 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                         children: [
                           SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
-                            child: const Row(
+                            child: Row(
                               children: [
-                                SalesMetricCard(value: '24', label: 'Today', icon: Icons.today),
-                                SalesMetricCard(value: '156', label: 'This Week', icon: Icons.calendar_view_week),
-                                SalesMetricCard(value: '624', label: 'This Month', icon: Icons.calendar_today),
+                                SalesMetricCard(
+                                  value: todayCount.toString(),
+                                  label: 'Today',
+                                  icon: Icons.today,
+                                ),
+                                SalesMetricCard(
+                                  value: weekCount.toString(),
+                                  label: 'This Week',
+                                  icon: Icons.calendar_view_week,
+                                ),
+                                SalesMetricCard(
+                                  value: monthCount.toString(),
+                                  label: 'This Month',
+                                  icon: Icons.calendar_today,
+                                ),
                               ],
                             ),
                           ),
@@ -336,7 +364,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                                             event.description,
                                             style: TextStyle(
                                               fontSize: 13,
-                                              color: Colors.grey[700],
+                                              color: Colors.grey[600],
                                             ),
                                           ),
                                         ),
