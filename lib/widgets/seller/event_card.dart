@@ -13,7 +13,7 @@ class EventCard extends StatelessWidget {
     required this.event,
     required this.description,
     required this.icon,
-    required this.color,
+    required this.color, required Null Function() onPressed, required String title,
   });
 
   @override

@@ -24,7 +24,8 @@ class CalendarService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final items = data['items'] as List? ?? [];
-        return items.map((item) => CalendarEvent.fromGoogleCalendar(item)).toList();
+        final events = items.map((item) => CalendarEvent.fromGoogleCalendar(item)).toList();
+        return _mergeConsecutiveEvents(events);
       }
       return _getFallbackEvents();
     } catch (e) {
@@ -33,9 +34,9 @@ class CalendarService {
     }
   }
 
-  Future<List<CalendarEvent>> getPublicEvents() async {
+  Future<List<CalendarEvent>> getPublicEvents([int months = 6]) async {
     final now = DateTime.now();
-    return getEventsInRange(now, DateTime(now.year, now.month + 6, now.day));
+    return getEventsInRange(now, DateTime(now.year, now.month + months, now.day));
   }
 
   List<CalendarEvent> _getFallbackEvents() {
@@ -63,6 +64,72 @@ class CalendarService {
   // Helper method for card colors
   Color _getCardColor(Color baseColor) {
     return baseColor.withOpacity(0.2); // Semi-transparent version
+  }
+
+  // Updated method to merge consecutive events with the same summary
+  List<CalendarEvent> _mergeConsecutiveEvents(List<CalendarEvent> events) {
+    if (events.isEmpty) return events;
+
+    // Sort events by start date
+    events.sort((a, b) => a.start.compareTo(b.start));
+
+    List<CalendarEvent> mergedEvents = [];
+    Map<String, List<CalendarEvent>> groupedEvents = {};
+
+    // Group events by summary
+    for (var event in events) {
+      final summary = event.summary.toLowerCase();
+      if (!groupedEvents.containsKey(summary)) {
+        groupedEvents[summary] = [];
+      }
+      groupedEvents[summary]!.add(event);
+    }
+
+    // Process each group to merge consecutive events
+    for (var summary in groupedEvents.keys) {
+      var group = groupedEvents[summary]!;
+      group.sort((a, b) => a.start.compareTo(b.start));
+
+      CalendarEvent? currentEvent = null;
+
+      for (var event in group) {
+        if (currentEvent == null) {
+          currentEvent = event;
+          continue;
+        }
+
+        // Check if the event is consecutive or overlapping
+        final daysDifference = event.start.difference(currentEvent.end).inDays;
+        if (daysDifference <= 1) {
+          // Merge by extending the end date and combining descriptions if different
+          final mergedDescription = currentEvent.description == event.description
+              ? currentEvent.description
+              : '${currentEvent.description}\n${event.description}'.trim();
+          currentEvent = CalendarEvent(
+            id: currentEvent.id,
+            summary: currentEvent.summary,
+            description: mergedDescription,
+            start: currentEvent.start,
+            end: event.end.isAfter(currentEvent.end) ? event.end : currentEvent.end,
+            color: currentEvent.color,
+            cardColor: currentEvent.cardColor,
+            textColor: currentEvent.textColor,
+          );
+        } else {
+          mergedEvents.add(currentEvent);
+          currentEvent = event;
+        }
+      }
+
+      // Add the last event in the group
+      if (currentEvent != null) {
+        mergedEvents.add(currentEvent);
+      }
+    }
+
+    // Sort merged events by start date
+    mergedEvents.sort((a, b) => a.start.compareTo(b.start));
+    return mergedEvents;
   }
 }
 
@@ -113,12 +180,20 @@ class CalendarEvent {
 
   static Color _determineEventColor(String summary) {
     final lowerSummary = summary.toLowerCase();
-    if (lowerSummary.contains('holiday')) return Colors.red[400]!;
+    if (lowerSummary.contains('holiday')) return Colors.indigo[400]!;
     if (lowerSummary.contains('natal')) return Colors.green[400]!;
     if (lowerSummary.contains('idul') || lowerSummary.contains('fitri')) 
-      return Colors.green[700]!;
+      return Colors.teal[600]!;
     if (lowerSummary.contains('exam')) return Colors.orange[400]!;
-    return Colors.blue[400]!;
+    if (lowerSummary.contains('buruh') || lowerSummary.contains('labor') || lowerSummary.contains('labour')) return Colors.purple[400]!;
+    if (lowerSummary.contains('paskah') || lowerSummary.contains('easter')) return Colors.pink[400]!;
+    if (lowerSummary.contains('imlek') || lowerSummary.contains('chinese new year')) return Colors.red[400]!;
+    if (lowerSummary.contains('nyepi')) return Colors.amber[400]!;
+    if (lowerSummary.contains('waisak') || lowerSummary.contains('vesak')) return Colors.yellow[600]!;
+    if (lowerSummary.contains('maulid') || lowerSummary.contains('mawlid')) return Colors.cyan[400]!;
+    if (lowerSummary.contains('kemerdekaan') || lowerSummary.contains('independence')) return Colors.red[400]!;
+    if (lowerSummary.contains('kurban') || lowerSummary.contains('adha')) return Colors.teal[400]!;
+    return Colors.blueGrey[400]!; // Default color
   }
 
   static Color _getCardBackgroundColor(Color baseColor) {
@@ -130,8 +205,13 @@ class CalendarEvent {
   }
 
   String get formattedDateRange {
-    final dateFormat = DateFormat('d MMM', 'id_ID');
-    if (start.year == end.year && start.month == end.month && start.day == end.day) {
+    final dateFormat = DateFormat('d MMM yyyy', 'id_ID');
+    final isSameDay = start.year == end.year &&
+                      start.month == end.month &&
+                      (start.day == end.day || 
+                       (end.difference(start).inDays <= 1 && end.hour == 0 && end.minute == 0));
+
+    if (isSameDay) {
       return dateFormat.format(start);
     }
     return '${dateFormat.format(start)} - ${dateFormat.format(end)}';
