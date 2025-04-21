@@ -6,6 +6,7 @@ import 'package:lottie/lottie.dart';
 import '../../widgets/customer/custom_bottom_navigation.dart';
 import '../../providers/order_provider.dart';
 import '../../models/order_model.dart';
+import '../../widgets/order_card.dart';
 import 'home_screen.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 
@@ -37,13 +38,25 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
     final orderProvider = Provider.of<OrderProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
     final customerName = authProvider.user?.name ?? '';
-    
+
     // Get orders for this customer
-    final ongoingOrders = orderProvider.orders.where((order) =>
-      order.status != 'completed' && order.customerName == customerName).toList();
-    
-    final completedOrders = orderProvider.orders.where((order) =>
-      order.status == 'completed' && order.customerName == customerName).toList();
+    final ongoingOrders = orderProvider.orders
+        .where((order) =>
+            (order.status == 'pending' || order.status == 'ready') &&
+            order.customerName == customerName)
+        .toList()
+      ..sort((a, b) {
+        // Prioritize 'ready' over 'pending'
+        if (a.status == 'ready' && b.status == 'pending') return -1;
+        if (a.status == 'pending' && b.status == 'ready') return 1;
+        return 0;
+      });
+
+    final historyOrders = orderProvider.orders
+        .where((order) =>
+            (order.status == 'completed' || order.status == 'cancelled') &&
+            order.customerName == customerName)
+        .toList();
 
     return WillPopScope(
       onWillPop: () async {
@@ -88,7 +101,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
           controller: _tabController,
           children: [
             _buildOrderList(ongoingOrders, "Ongoing"),
-            _buildOrderList(completedOrders, "History"),
+            _buildOrderList(historyOrders, "History"),
           ],
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -151,7 +164,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
                 child: Text(
                   type == "Ongoing"
                       ? "Your ongoing orders will appear here once you place an order"
-                      : "Your completed orders will appear here for future reference",
+                      : "Your completed or cancelled orders will appear here for future reference",
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 16,
@@ -188,244 +201,5 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
         ),
       ),
     );
-  }
-}
-
-class OrderCard extends StatelessWidget {
-  final Order order;
-  final bool isSellerView;
-
-  const OrderCard({
-    super.key, 
-    required this.order,
-    this.isSellerView = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final currencyFormat = NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: 'Rp ',
-      decimalDigits: 0,
-    );
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Order #${order.id}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                Chip(
-                  label: Text(
-                    order.status.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: _getStatusTextColor(order.status),
-                    ),
-                  ),
-                  backgroundColor: _getStatusColor(order.status),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            
-            // Merchant name (always shown for customer)
-            Text(
-              'Merchant: ${order.merchantName}',
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-            
-            Text(
-              'Pickup: ${DateFormat('dd MMM yyyy, HH:mm').format(order.pickupTime)}',
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-            
-            // Payment method (only for customer view)
-            if (!isSellerView) Text(
-              'Paid with ${order.paymentMethod}',
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-            
-            // Customer notes section
-            if (order.notes != null && order.notes!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue[100]!),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.notes, size: 18, color: Colors.blue),
-                        const SizedBox(width: 8),
-                        Text(
-                          isSellerView ? 'Customer Notes:' : 'Your Notes:',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      order.notes!,
-                      style: TextStyle(
-                        color: Colors.grey[800],
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
-            // Cancellation reason section
-            if (order.status == 'cancelled' && order.cancellationReason != null) ...[
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.red[50],
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red[100]!),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.cancel, size: 18, color: Colors.red),
-                        const SizedBox(width: 8),
-                        Text(
-                          isSellerView ? 'Cancellation Reason:' : 'Order Cancelled:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.red[800],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      order.cancellationReason!,
-                      style: TextStyle(
-                        color: Colors.grey[800],
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
-            const Divider(height: 24),
-            ...order.items.map((item) => _buildOrderItem(item, currencyFormat)).toList(),
-            const Divider(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('TOTAL', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(
-                  currencyFormat.format(order.totalPrice),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOrderItem(OrderItem item, NumberFormat currencyFormat) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.asset(
-              item.image,
-              width: 50,
-              height: 50,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                color: Colors.grey[200],
-                width: 50,
-                height: 50,
-                child: const Icon(Icons.fastfood, color: Colors.grey),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                if (item.subtitle.isNotEmpty)
-                  Text(
-                    item.subtitle,
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-              ],
-            ),
-          ),
-          Text('${item.quantity}x'),
-          const SizedBox(width: 12),
-          Text(currencyFormat.format(item.price)),
-        ],
-      ),
-    );
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'completed':
-        return Colors.green[100]!;
-      case 'cancelled':
-        return Colors.red[100]!;
-      case 'ready':
-        return Colors.blue[100]!;
-      default: // pending, processing
-        return Colors.orange[100]!;
-    }
-  }
-
-  Color _getStatusTextColor(String status) {
-    switch (status) {
-      case 'completed':
-        return Colors.green[800]!;
-      case 'cancelled':
-        return Colors.red[800]!;
-      case 'ready':
-        return Colors.blue[800]!;
-      default: // pending, processing
-        return Colors.orange[800]!;
-    }
   }
 }

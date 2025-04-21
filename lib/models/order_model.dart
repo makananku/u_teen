@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class Order {
   final String id;
   final DateTime orderTime;
@@ -12,6 +14,10 @@ class Order {
   final String? notes;
   final DateTime? completedTime;
   final DateTime? cancelledTime;
+  final int? _foodRating; // 1–5 stars
+  final int? _appRating;  // 1–5 stars
+  final String? _foodNotes; // Food feedback
+  final String? _appNotes;  // App feedback
 
   Order({
     required this.id,
@@ -27,7 +33,20 @@ class Order {
     this.notes,
     this.completedTime,
     this.cancelledTime,
-  });
+    int? foodRating,
+    int? appRating,
+    String? foodNotes,
+    String? appNotes,
+  })  : _foodRating = foodRating,
+        _appRating = appRating,
+        _foodNotes = foodNotes,
+        _appNotes = appNotes;
+
+  // Getters for ratings and notes
+  int? get foodRating => _foodRating;
+  int? get appRating => _appRating;
+  String? get foodNotes => _foodNotes;
+  String? get appNotes => _appNotes;
 
   double get totalPrice {
     return items.fold(0, (sum, item) => sum + (item.price * item.quantity));
@@ -48,6 +67,10 @@ class Order {
       'notes': notes,
       'completedTime': completedTime?.toIso8601String(),
       'cancelledTime': cancelledTime?.toIso8601String(),
+      'foodRating': _foodRating,
+      'appRating': _appRating,
+      'foodNotes': _foodNotes,
+      'appNotes': _appNotes,
     };
   }
 
@@ -66,6 +89,10 @@ class Order {
       notes: map['notes'],
       completedTime: map['completedTime'] != null ? DateTime.parse(map['completedTime']) : null,
       cancelledTime: map['cancelledTime'] != null ? DateTime.parse(map['cancelledTime']) : null,
+      foodRating: map['foodRating'],
+      appRating: map['appRating'],
+      foodNotes: map['foodNotes'],
+      appNotes: map['appNotes'],
     );
   }
 }

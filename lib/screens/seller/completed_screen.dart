@@ -26,7 +26,9 @@ class CompletedScreen extends StatelessWidget {
     debugPrint('Filtered Completed Orders: ${completedOrders.length}');
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: const Text('Completed Orders'),
         centerTitle: true,
         leading: IconButton(
@@ -58,12 +60,15 @@ class CompletedScreen extends StatelessWidget {
       );
     }
 
-    return ListView.builder(
+      return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: orders.length,
       itemBuilder: (context, index) {
         debugPrint('Showing order: ${orders[index].id}');
-        return OrderCard(order: orders[index]);
+        return OrderCard(
+          order: orders[index],
+          isSellerView: true,
+        );
       },
     );
   }

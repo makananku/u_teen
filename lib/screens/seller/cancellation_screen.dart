@@ -18,7 +18,9 @@ class CancellationScreen extends StatelessWidget {
     final cancelledOrders = orderProvider.getCancelledOrdersForMerchant(sellerEmail);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: const Text('Cancelled Orders'),
         centerTitle: true,
         leading: IconButton(
@@ -57,7 +59,10 @@ class CancellationScreen extends StatelessWidget {
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: orders.length,
-        itemBuilder: (context, index) => OrderCard(order: orders[index]),
+        itemBuilder: (context, index) => OrderCard(
+          order: orders[index],
+          isSellerView: true,
+        ),
       ),
     );
   }

@@ -7,6 +7,8 @@ import 'package:u_teen/providers/order_provider.dart';
 import 'package:u_teen/models/order_model.dart';
 import 'package:u_teen/screens/seller/home_screen.dart';
 
+import '../../widgets/order_card.dart';
+
 class OnProcessScreen extends StatelessWidget {
   const OnProcessScreen({super.key});
 
@@ -66,18 +68,19 @@ class OnProcessScreen extends StatelessWidget {
       );
     }
 
-    return RefreshIndicator(
-      onRefresh: () async {
-        // Add refresh logic if needed
-        await Future.delayed(const Duration(seconds: 1));
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: orders.length,
+      itemBuilder: (context, index) {
+        debugPrint('Showing order: ${orders[index].id}');
+        return OrderCard(
+          order: orders[index],
+          isSellerView: true,
+        );
       },
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: orders.length,
-        itemBuilder: (context, index) => _buildOrderCard(context, orders[index]),
-      ),
     );
   }
+}
 
   Widget _buildOrderCard(BuildContext context, Order order) {
     final currencyFormat = NumberFormat.currency(
@@ -585,4 +588,3 @@ class OnProcessScreen extends StatelessWidget {
       ),
     );
   }
-}

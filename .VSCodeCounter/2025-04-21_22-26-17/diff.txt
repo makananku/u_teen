@@ -1,0 +1,40 @@
+Date : 2025-04-21 22:26:17
+Directory : c:\Users\Acer\u_teen
+Total : 9 files,  188 codes, 19 comments, 20 blanks, all 227 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| Dart     |          9 |        188 |         19 |         20 |        227 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                             | files      | code       | comment    | blank      | total      |
++------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                |          9 |        188 |         19 |         20 |        227 |
+| lib                                                              |          9 |        188 |         19 |         20 |        227 |
+| lib\models                                                       |          1 |         24 |          1 |          2 |         27 |
+| lib\providers                                                    |          2 |         70 |          3 |          6 |         79 |
+| lib\screens                                                      |          5 |       -165 |          7 |         -3 |       -161 |
+| lib\screens\customer                                             |          2 |       -214 |          1 |         -8 |       -221 |
+| lib\screens\seller                                               |          3 |         49 |          6 |          5 |         60 |
+| lib\widgets                                                      |          1 |        259 |          8 |         15 |        282 |
++------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                         | language | code       | comment    | blank      | total      |
++------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| c:\Users\Acer\u_teen\lib\models\order_model.dart                 | Dart     |         24 |          1 |          2 |         27 |
+| c:\Users\Acer\u_teen\lib\providers\order_provider.dart           | Dart     |         41 |          0 |          1 |         42 |
+| c:\Users\Acer\u_teen\lib\providers\ratings_provider.dart         | Dart     |         29 |          3 |          5 |         37 |
+| c:\Users\Acer\u_teen\lib\screens\customer\my_orders_screen.dart  | Dart     |       -161 |          1 |         -7 |       -167 |
+| c:\Users\Acer\u_teen\lib\screens\customer\payment_screen.dart    | Dart     |        -53 |          0 |         -1 |        -54 |
+| c:\Users\Acer\u_teen\lib\screens\seller\cancellation_screen.dart | Dart     |          5 |          0 |          0 |          5 |
+| c:\Users\Acer\u_teen\lib\screens\seller\completed_screen.dart    | Dart     |          5 |          0 |          0 |          5 |
+| c:\Users\Acer\u_teen\lib\screens\seller\on_process_screen.dart   | Dart     |         39 |          6 |          5 |         50 |
+| c:\Users\Acer\u_teen\lib\widgets\order_card.dart                 | Dart     |        259 |          8 |         15 |        282 |
+| Total                                                            |          |        188 |         19 |         20 |        227 |
++------------------------------------------------------------------+----------+------------+------------+------------+------------+

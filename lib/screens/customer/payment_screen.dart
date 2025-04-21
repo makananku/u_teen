@@ -185,65 +185,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
             const SizedBox(height: 12),
           ],
-        )).toList(),
-        if (showPhoneInput) _buildPhoneNumberInput(),
+        ))
       ],
     );
   }
 
-  Widget _buildPhoneNumberInput() {
-    final borderColor = _getBorderColor();
-    final methodName = selectedPaymentMethod == 'ovo' ? 'OVO' : 'GoPay';
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 8),
-        Text(
-          'Enter your $methodName registered phone number',
-          style: TextStyle(fontSize: 14, color: borderColor.withOpacity(0.8)),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          keyboardType: TextInputType.phone,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          decoration: InputDecoration(
-            hintText: 'e.g. 08123456789',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: borderColor, width: 1.5),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: borderColor, width: 1.5),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: borderColor, width: 2.0),
-            ),
-            filled: true,
-            fillColor: borderColor.withOpacity(0.05),
-            prefixIcon: Icon(Icons.phone, color: borderColor),
-            contentPadding: const EdgeInsets.symmetric(
-              vertical: 14,
-              horizontal: 16,
-            ),
-          ),
-          validator: (value) {
-            if (showPhoneInput && (value == null || value.isEmpty)) {
-              return 'Please enter your phone number';
-            }
-            if (value != null && value.length < 10) {
-              return 'Phone number must be at least 10 digits';
-            }
-            return null;
-          },
-          onChanged: (value) => setState(() => phoneNumber = value),
-        ),
-        const SizedBox(height: 16),
-      ],
-    );
-  }
 
   Widget _buildPlaceOrderButton(BuildContext context) {
     return SizedBox(
