@@ -38,6 +38,7 @@ class StatusButton extends StatelessWidget {
           elevation: 0,
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               text,
@@ -48,15 +49,18 @@ class StatusButton extends StatelessWidget {
             if (count > 0) ...[
               const SizedBox(width: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                width: 20,
+                height: 20,
                 decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(10),
+                  color: Colors.red[600],
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 1),
                 ),
+                alignment: Alignment.center,
                 child: Text(
                   count.toString(),
-                  style: TextStyle(
-                    color: Colors.blue[700],
+                  style: const TextStyle(
+                    color: Colors.white,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),

@@ -103,13 +103,10 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
     final tenantName = user?.name ?? 'Tenant';
     final sellerEmail = user?.email ?? '';
 
-    // Get order counts
-    final onProcessCount = orderProvider.processingOrders
-        .where((order) => order.merchantName == sellerEmail).length;
-    final cancelledCount = orderProvider.cancelledOrders
-        .where((order) => order.merchantName == sellerEmail).length;
-    final completedCount = orderProvider.completedOrders
-        .where((order) => order.merchantName == sellerEmail).length;
+    // Get order counts using OrderProvider methods
+    final onProcessCount = orderProvider.getProcessingOrdersForMerchant(sellerEmail).length;
+    final cancelledCount = orderProvider.getCancelledOrdersForMerchant(sellerEmail).length;
+    final completedCount = orderProvider.getCompletedOrdersForMerchant(sellerEmail).length;
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
