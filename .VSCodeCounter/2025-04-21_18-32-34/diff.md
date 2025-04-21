@@ -1,0 +1,24 @@
+# Diff Summary
+
+Date : 2025-04-21 18:32:34
+
+Directory c:\\Users\\Acer\\u_teen
+
+Total : 1 files,  135 codes, 3 comments, 6 blanks, all 144 lines
+
+[Summary](results.md) / [Details](details.md) / Diff Summary / [Diff Details](diff-details.md)
+
+## Languages
+| language | files | code | comment | blank | total |
+| :--- | ---: | ---: | ---: | ---: | ---: |
+| Dart | 1 | 135 | 3 | 6 | 144 |
+
+## Directories
+| path | files | code | comment | blank | total |
+| :--- | ---: | ---: | ---: | ---: | ---: |
+| . | 1 | 135 | 3 | 6 | 144 |
+| lib | 1 | 135 | 3 | 6 | 144 |
+| lib\\screens | 1 | 135 | 3 | 6 | 144 |
+| lib\\screens\\seller | 1 | 135 | 3 | 6 | 144 |
+
+[Summary](results.md) / [Details](details.md) / Diff Summary / [Diff Details](diff-details.md)

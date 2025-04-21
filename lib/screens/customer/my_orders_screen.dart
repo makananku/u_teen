@@ -113,12 +113,96 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: orders.length,
-        itemBuilder: (context, index) => _buildOrderCard(orders[index]),
+        itemBuilder: (context, index) => OrderCard(
+          order: orders[index],
+          // isSellerView defaults to false for customer
+        ),
       ),
     );
   }
 
-  Widget _buildOrderCard(Order order) {
+  Widget _buildEmptyOrderView(String type) {
+    return Center(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Lottie.asset(
+                'assets/animation/empty_order.json',
+                width: 250,
+                height: 250,
+                fit: BoxFit.contain,
+              ),
+              const SizedBox(height: 20),
+              Text(
+                type == "Ongoing" ? "No Active Orders" : "No Order History",
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  type == "Ongoing"
+                      ? "Your ongoing orders will appear here once you place an order"
+                      : "Your completed orders will appear here for future reference",
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.black54,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 30),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+                icon: const Icon(Icons.shopping_bag, color: Colors.white),
+                label: const Text(
+                  "Order Now",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class OrderCard extends StatelessWidget {
+  final Order order;
+  final bool isSellerView;
+
+  const OrderCard({
+    super.key, 
+    required this.order,
+    this.isSellerView = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final currencyFormat = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp ',
@@ -159,20 +243,25 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
               ],
             ),
             const SizedBox(height: 8),
+            
+            // Merchant name (always shown for customer)
             Text(
               'Merchant: ${order.merchantName}',
               style: TextStyle(color: Colors.grey[600]),
             ),
+            
             Text(
               'Pickup: ${DateFormat('dd MMM yyyy, HH:mm').format(order.pickupTime)}',
               style: TextStyle(color: Colors.grey[600]),
             ),
-            Text(
+            
+            // Payment method (only for customer view)
+            if (!isSellerView) Text(
               'Paid with ${order.paymentMethod}',
               style: TextStyle(color: Colors.grey[600]),
             ),
             
-            // Display customer notes if available
+            // Customer notes section
             if (order.notes != null && order.notes!.isNotEmpty) ...[
               const SizedBox(height: 8),
               Container(
@@ -189,9 +278,9 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
                       children: [
                         const Icon(Icons.notes, size: 18, color: Colors.blue),
                         const SizedBox(width: 8),
-                        const Text(
-                          'Your Notes:',
-                          style: TextStyle(
+                        Text(
+                          isSellerView ? 'Customer Notes:' : 'Your Notes:',
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.blue,
                           ),
@@ -201,6 +290,45 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
                     const SizedBox(height: 6),
                     Text(
                       order.notes!,
+                      style: TextStyle(
+                        color: Colors.grey[800],
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            // Cancellation reason section
+            if (order.status == 'cancelled' && order.cancellationReason != null) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red[100]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.cancel, size: 18, color: Colors.red),
+                        const SizedBox(width: 8),
+                        Text(
+                          isSellerView ? 'Cancellation Reason:' : 'Order Cancelled:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red[800],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      order.cancellationReason!,
                       style: TextStyle(
                         color: Colors.grey[800],
                         fontSize: 14,
@@ -299,74 +427,5 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
       default: // pending, processing
         return Colors.orange[800]!;
     }
-  }
-
-  Widget _buildEmptyOrderView(String type) {
-    return Center(
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Lottie.asset(
-                'assets/animation/empty_order.json',
-                width: 250,
-                height: 250,
-                fit: BoxFit.contain,
-              ),
-              const SizedBox(height: 20),
-              Text(
-                type == "Ongoing" ? "No Active Orders" : "No Order History",
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  type == "Ongoing"
-                      ? "Your ongoing orders will appear here once you place an order"
-                      : "Your completed orders will appear here for future reference",
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.black54,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 30),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HomeScreen()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                ),
-                icon: const Icon(Icons.shopping_bag, color: Colors.white),
-                label: const Text(
-                  "Order Now",
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }

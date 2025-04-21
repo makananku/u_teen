@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:u_teen/auth/auth_provider.dart';
+import 'package:provider/provider.dart';
 import '../models/order_model.dart';
 
 class OrderCard extends StatelessWidget {
   final Order order;
+  final bool isSellerView;
 
-  const OrderCard({super.key, required this.order});
+  const OrderCard({
+    super.key, 
+    required this.order,
+    this.isSellerView = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -51,15 +58,24 @@ class OrderCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              'Merchant: ${order.merchantName}',
-              style: TextStyle(color: Colors.grey[600]),
-            ),
+            
+            // Show customer name for seller, merchant name for customer
+            isSellerView
+                ? Text(
+                    'Customer: ${order.customerName}',
+                    style: TextStyle(color: Colors.grey[600]),
+                  )
+                : Text(
+                    'Merchant: ${order.merchantName}',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+            
             Text(
               'Pickup: ${DateFormat('dd MMM yyyy, HH:mm').format(order.pickupTime)}',
               style: TextStyle(color: Colors.grey[600]),
             ),
-            Text(
+            
+            if (!isSellerView) Text(
               'Paid with ${order.paymentMethod}',
               style: TextStyle(color: Colors.grey[600]),
             ),
@@ -76,9 +92,9 @@ class OrderCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Your Notes:',
-                      style: TextStyle(
+                    Text(
+                      isSellerView ? 'Customer Notes:' : 'Your Notes:',
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.blue,
                       ),
@@ -86,6 +102,35 @@ class OrderCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       order.notes!,
+                      style: TextStyle(color: Colors.grey[700]),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            // Display cancellation reason if order is cancelled
+            if (order.status == 'cancelled' && order.cancellationReason != null) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.red[50],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isSellerView ? 'Cancellation Reason:' : 'Order Cancelled:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red[800],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      order.cancellationReason!,
                       style: TextStyle(color: Colors.grey[700]),
                     ),
                   ],
