@@ -1,20 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.blue, fontFamily: 'Poppins'),
-      home: TransactionHistoryScreen(),
-    );
-  }
-}
+import 'package:provider/provider.dart';
+import 'package:u_teen/providers/order_provider.dart';
+import 'package:u_teen/auth/auth_provider.dart';
 
 class TransactionHistoryScreen extends StatefulWidget {
   @override
@@ -24,56 +12,48 @@ class TransactionHistoryScreen extends StatefulWidget {
 class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
   String selectedTab = 'All';
   bool _isLoading = false;
-
-  // Enhanced transaction data with more details
-  final List<Map<String, dynamic>> transactions = [
-    {
-      'id': '1',
-      'title': 'Payment by Theo56',
-      'date': DateTime(2022, 11, 1, 14, 30),
-      'amount': '15000', // Amount as String here
-      'type': 'Money In',
-      'status': 'Completed',
-      'customerImage': 'assets/users/user1.jpg',
-    },
-    {
-      'id': '2',
-      'title': 'Payment by Javier M',
-      'date': DateTime(2022, 11, 23, 9, 15),
-      'amount': '20000', // Amount as String here
-      'type': 'Money In',
-      'status': 'Completed',
-      'customerImage': 'assets/users/user2.jpg',
-    },
-    {
-      'id': '3',
-      'title': 'Withdrawal to Bank',
-      'date': DateTime(2022, 11, 15, 16, 45),
-      'amount': 50000, // Amount as int here
-      'type': 'Money Out',
-      'status': 'Processed',
-      'customerImage': 'assets/users/bank.png',
-    },
-  ];
+  List<Map<String, dynamic>> transactions = [];
 
   @override
   void initState() {
     super.initState();
-    _simulateLoading();
+    _loadTransactions();
   }
 
-  void _simulateLoading() async {
+  void _loadTransactions() async {
     setState(() => _isLoading = true);
-    await Future.delayed(Duration(seconds: 1));
+    
+    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final sellerEmail = authProvider.user?.email ?? '';
+    
+    final allTransactions = orderProvider.getTransactionsForMerchant(sellerEmail);
+    
+    transactions = allTransactions.map((order) {
+      final isWithdrawal = order.customerName == 'Withdrawal';
+      return {
+        'id': order.id,
+        'title': isWithdrawal 
+            ? 'Withdrawal to ${order.paymentMethod}'
+            : 'Payment by ${order.customerName}',
+        'date': isWithdrawal ? order.orderTime : (order.completedTime ?? order.orderTime),
+        'amount': order.totalPrice,
+        'type': isWithdrawal ? 'Money Out' : 'Money In',
+        'status': isWithdrawal 
+            ? (order.status == 'processed' ? 'Processed' : 'Completed')
+            : (order.status == 'completed' ? 'Completed' : 'Processing'),
+        'order': order,
+      };
+    }).toList();
+    
     setState(() => _isLoading = false);
   }
 
   @override
   Widget build(BuildContext context) {
-    final filteredTransactions =
-        transactions.where((transaction) {
-          return selectedTab == 'All' || transaction['type'] == selectedTab;
-        }).toList();
+    final filteredTransactions = transactions.where((transaction) {
+      return selectedTab == 'All' || transaction['type'] == selectedTab;
+    }).toList();
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -103,25 +83,24 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
           // Summary Card
           _buildSummaryCard(),
 
-          // Tab buttons with better styling
+          // Tab buttons
           _buildTabBar(),
 
-          // Transaction list with enhanced UI
+          // Transaction list
           Expanded(
-            child:
-                _isLoading
-                    ? Center(child: CircularProgressIndicator())
-                    : filteredTransactions.isEmpty
+            child: _isLoading
+                ? Center(child: CircularProgressIndicator())
+                : filteredTransactions.isEmpty
                     ? _buildEmptyState()
                     : ListView.builder(
-                      padding: EdgeInsets.only(top: 8),
-                      itemCount: filteredTransactions.length,
-                      itemBuilder: (context, index) {
-                        return _buildTransactionCard(
-                          filteredTransactions[index],
-                        );
-                      },
-                    ),
+                        padding: EdgeInsets.only(top: 8),
+                        itemCount: filteredTransactions.length,
+                        itemBuilder: (context, index) {
+                          return _buildTransactionCard(
+                            filteredTransactions[index],
+                          );
+                        },
+                      ),
           ),
         ],
       ),
@@ -129,21 +108,13 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
   }
 
   Widget _buildSummaryCard() {
-    final int totalIn = transactions
+    final totalIn = transactions
         .where((t) => t['type'] == 'Money In')
-        .fold(
-          0,
-          (int sum, t) => sum + _parseAmount(t['amount']),
-        ); // Use _parseAmount
-
-    final int totalOut = transactions
-        .where(
-          (t) => t['type'] == 'Money Out',
-        ) // Corrected from 'Money In' to 'Money Out'
-        .fold(
-          0,
-          (int sum, t) => sum + _parseAmount(t['amount']),
-        ); // Use _parseAmount
+        .fold(0.0, (sum, t) => sum + (t['amount'] as double));
+    
+    final totalOut = transactions
+        .where((t) => t['type'] == 'Money Out')
+        .fold(0.0, (sum, t) => sum + (t['amount'] as double));
 
     return Container(
       margin: EdgeInsets.all(16),
@@ -179,15 +150,15 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
             children: [
               _buildSummaryItem(
                 'Total In',
-                '+Rp${NumberFormat('#,###').format(totalIn)}',
+                '+Rp${NumberFormat('#,###').format(totalIn.round())}',
               ),
               _buildSummaryItem(
                 'Total Out',
-                '-Rp${NumberFormat('#,###').format(totalOut)}',
+                '-Rp${NumberFormat('#,###').format(totalOut.round())}',
               ),
               _buildSummaryItem(
                 'Balance',
-                'Rp${NumberFormat('#,###').format(totalIn - totalOut)}',
+                'Rp${NumberFormat('#,###').format((totalIn - totalOut).round())}',
               ),
             ],
           ),
@@ -275,7 +246,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
   Widget _buildTransactionCard(Map<String, dynamic> transaction) {
     final isMoneyIn = transaction['type'] == 'Money In';
     final dateFormat = DateFormat('dd MMM yyyy • HH:mm');
-    final amount = _parseAmount(transaction['amount']); // Use _parseAmount
+    final amount = transaction['amount'] as double;
 
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -283,10 +254,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          // Show transaction details
-          _showTransactionDetails(transaction);
-        },
+        onTap: () => _showTransactionDetails(transaction),
         child: Padding(
           padding: EdgeInsets.all(12),
           child: Row(
@@ -328,7 +296,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '${isMoneyIn ? '+' : '-'}Rp${NumberFormat('#,###').format(amount)}',
+                    '${isMoneyIn ? '+' : '-'}Rp${NumberFormat('#,###').format(amount.round())}',
                     style: TextStyle(
                       color: isMoneyIn ? Colors.green : Colors.red,
                       fontWeight: FontWeight.bold,
@@ -339,9 +307,8 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: _getStatusColor(
-                        transaction['status'],
-                      ).withOpacity(0.1),
+                      color: _getStatusColor(transaction['status'])
+                          .withOpacity(0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
@@ -397,9 +364,8 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
 
   void _showTransactionDetails(Map<String, dynamic> transaction) {
     showModalBottomSheet(
-      context: context, // Add this required parameter
+      context: context,
       builder: (context) {
-        // Add this required parameter
         return Container(
           padding: EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -434,7 +400,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
               ),
               _buildDetailRow(
                 'Amount',
-                '${transaction['type'] == 'Money In' ? '+' : '-'}Rp${NumberFormat('#,###').format(_parseAmount(transaction['amount']))}',
+                '${transaction['type'] == 'Money In' ? '+' : '-'}Rp${NumberFormat('#,###').format((transaction['amount'] as double).round())}',
               ),
               _buildDetailRow('Status', transaction['status']),
               SizedBox(height: 30),
@@ -455,7 +421,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
           ),
         );
       },
-      isScrollControlled: true, // This is optional
+      isScrollControlled: true,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -478,14 +444,5 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
         ],
       ),
     );
-  }
-
-  int _parseAmount(dynamic amount) {
-    if (amount is int) {
-      return amount;
-    } else if (amount is String) {
-      return int.tryParse(amount.replaceAll('Rp', '').replaceAll('.', '')) ?? 0;
-    }
-    return 0; // default value if the amount is invalid
   }
 }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import 'package:u_teen/screens/seller/home_screen.dart';
 import 'package:u_teen/models/payment_method.dart';
 import 'package:u_teen/data/payment_methods_data.dart';
@@ -6,6 +8,8 @@ import 'package:u_teen/screens/seller/transaction_history_screen.dart';
 import 'package:u_teen/widgets/payment_method_card.dart';
 import 'package:u_teen/widgets/seller/seller_custom_bottom_navigation.dart';
 import 'package:flutter/services.dart';
+import 'package:u_teen/providers/order_provider.dart';
+import 'package:u_teen/auth/auth_provider.dart';
 
 class SellerBalanceScreen extends StatefulWidget {
   const SellerBalanceScreen({super.key});
@@ -17,6 +21,7 @@ class SellerBalanceScreen extends StatefulWidget {
 class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
   PaymentMethod? _selectedMethod;
   final String _userGopayNumber = '0812-3456-7890';
+  int _balance = 0;
 
   @override
   void initState() {
@@ -25,6 +30,17 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
       (method) => method.id == 'gopay',
       orElse: () => paymentMethods.first,
     );
+    _calculateBalance();
+  }
+
+  void _calculateBalance() {
+    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final sellerEmail = authProvider.user?.email ?? '';
+    
+    setState(() {
+      _balance = orderProvider.getAvailableBalanceForMerchant(sellerEmail);
+    });
   }
 
   @override
@@ -99,10 +115,8 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
                         children: [
                           Row(
                             children: [
-                              Icon(
-                                Icons.account_balance_wallet,
-                                color: Colors.white70,
-                              ),
+                              Icon(Icons.account_balance_wallet, 
+                                  color: Colors.white70),
                               SizedBox(width: 8),
                               Text(
                                 'Balance Available',
@@ -115,7 +129,7 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
                           ),
                           SizedBox(height: 12),
                           Text(
-                            'Rp35.000',
+                            'Rp${NumberFormat('#,###').format(_balance)}',
                             style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
@@ -171,7 +185,7 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
                           isSelected: _selectedMethod?.id == method.id,
                           onTap: () {
                             setState(() => _selectedMethod = method);
-                            HapticFeedback.lightImpact(); // Add haptic feedback
+                            HapticFeedback.lightImpact();
                           },
                         ),
                       );
@@ -234,13 +248,14 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
     );
   }
 
-  void _printBalanceSummary() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Printing balance summary...')),
-    );
-  }
+  void _withdrawFunds(BuildContext context) async {
+    if (_balance <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Balance is insufficient for withdrawal')),
+      );
+      return;
+    }
 
-  void _withdrawFunds(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -261,7 +276,7 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
               ),
               SizedBox(height: 16),
               Text(
-                'Rp35.000 to ${_selectedMethod!.name}',
+                'Rp${NumberFormat('#,###').format(_balance)} to ${_selectedMethod!.name}',
                 style: TextStyle(fontSize: 16),
               ),
               SizedBox(height: 8),
@@ -290,9 +305,22 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
                   SizedBox(width: 10),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         Navigator.pop(context);
+                        final orderProvider = Provider.of<OrderProvider>(
+                            context, listen: false);
+                        final authProvider = Provider.of<AuthProvider>(
+                            context, listen: false);
+                        final sellerEmail = authProvider.user?.email ?? '';
+                        
+                        await orderProvider.addWithdrawal(
+                          merchantEmail: sellerEmail,
+                          amount: _balance.toDouble(),
+                          method: _selectedMethod!.name,
+                        );
+                        
                         _showWithdrawalSuccess();
+                        _calculateBalance();
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,

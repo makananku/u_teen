@@ -110,28 +110,28 @@ class OrderProvider with ChangeNotifier {
   }
 
   Future<void> updateOrderStatus(String orderId, String newStatus, {String? reason}) async {
-  final index = _orders.indexWhere((o) => o.id == orderId);
-  if (index != -1) {
-    final now = DateTime.now();
-    _orders[index] = Order(
-      id: _orders[index].id,
-      orderTime: _orders[index].orderTime,
-      pickupTime: _orders[index].pickupTime,
-      items: _orders[index].items,
-      paymentMethod: _orders[index].paymentMethod,
-      merchantName: _orders[index].merchantName,
-      merchantEmail: _orders[index].merchantEmail,
-      customerName: _orders[index].customerName,
-      status: newStatus,
-      cancellationReason: reason,
-      notes: _orders[index].notes,
-      completedTime: newStatus == 'completed' ? now : _orders[index].completedTime,
-      cancelledTime: newStatus == 'cancelled' ? now : _orders[index].cancelledTime,
-    );
-    notifyListeners();
-    await _saveOrders();
+    final index = _orders.indexWhere((o) => o.id == orderId);
+    if (index != -1) {
+      final now = DateTime.now();
+      _orders[index] = Order(
+        id: _orders[index].id,
+        orderTime: _orders[index].orderTime,
+        pickupTime: _orders[index].pickupTime,
+        items: _orders[index].items,
+        paymentMethod: _orders[index].paymentMethod,
+        merchantName: _orders[index].merchantName,
+        merchantEmail: _orders[index].merchantEmail,
+        customerName: _orders[index].customerName,
+        status: newStatus,
+        cancellationReason: reason,
+        notes: _orders[index].notes,
+        completedTime: newStatus == 'completed' ? now : _orders[index].completedTime,
+        cancelledTime: newStatus == 'cancelled' ? now : _orders[index].cancelledTime,
+      );
+      notifyListeners();
+      await _saveOrders();
+    }
   }
-}
 
   Order createOrderFromCart({
     required List<OrderItem> items,
@@ -156,9 +156,77 @@ class OrderProvider with ChangeNotifier {
     );
   }
 
+  // Withdrawal operations
+  Future<void> addWithdrawal({
+    required String merchantEmail,
+    required double amount,
+    required String method,
+  }) async {
+    final withdrawal = Order(
+      id: _generateOrderId(),
+      orderTime: DateTime.now(),
+      pickupTime: DateTime.now(),
+      items: [
+        OrderItem(
+          name: 'Withdrawal',
+          image: 'assets/withdrawal.png',
+          subtitle: 'Withdrawal to $method',
+          price: amount.round(),
+          quantity: 1,
+          sellerEmail: merchantEmail,
+        )
+      ],
+      paymentMethod: method,
+      merchantName: 'System',
+      merchantEmail: merchantEmail,
+      customerName: 'Withdrawal',
+      status: 'processed',
+      notes: 'Withdrawal to $method',
+    );
+
+    _orders.insert(0, withdrawal);
+    notifyListeners();
+    await _saveOrders();
+  }
+
+  // Transaction history
+  List<Order> getTransactionsForMerchant(String merchantEmail) {
+    return _orders.where((order) => 
+      order.merchantEmail == merchantEmail && 
+      (order.status == 'completed' || order.customerName == 'Withdrawal')
+    ).toList();
+  }
+
+  // Balance calculation
+  int getAvailableBalanceForMerchant(String merchantEmail) {
+    double earnings = 0;
+    double withdrawals = 0;
+    
+    for (var order in _orders) {
+      if (order.merchantEmail == merchantEmail) {
+        if (order.status == 'completed' && order.customerName != 'Withdrawal') {
+          earnings += order.totalPrice;
+        } else if (order.customerName == 'Withdrawal') {
+          withdrawals += order.totalPrice;
+        }
+      }
+    }
+    
+    return (earnings - withdrawals).round();
+  }
+
+  // Helper methods
   String _generateOrderId() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final random = Random();
     return List.generate(6, (i) => chars[random.nextInt(chars.length)]).join();
+  }
+
+  int getTotalEarningsForMerchant(String merchantEmail) {
+    return _orders
+        .where((order) => 
+            order.merchantEmail == merchantEmail && 
+            order.status == 'completed')
+        .fold(0, (int sum, order) => sum + order.totalPrice.round());
   }
 }
