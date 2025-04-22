@@ -1,10 +1,10 @@
 # Details
 
-Date : 2025-04-21 18:29:49
+Date : 2025-04-21 22:45:59
 
 Directory c:\\Users\\Acer\\u_teen
 
-Total : 102 files,  9586 codes, 350 comments, 890 blanks, all 10826 lines
+Total : 103 files,  10039 codes, 375 comments, 915 blanks, all 11329 lines
 
 [Summary](results.md) / Details / [Diff Summary](diff.md) / [Diff Details](diff-details.md)
 
@@ -44,30 +44,31 @@ Total : 102 files,  9586 codes, 350 comments, 890 blanks, all 10826 lines
 | [lib/models/balance\_model.dart](/lib/models/balance_model.dart) | Dart | 59 | 0 | 7 | 66 |
 | [lib/models/cart\_item.dart](/lib/models/cart_item.dart) | Dart | 25 | 0 | 4 | 29 |
 | [lib/models/favorite\_item.dart](/lib/models/favorite_item.dart) | Dart | 34 | 2 | 5 | 41 |
-| [lib/models/order\_model.dart](/lib/models/order_model.dart) | Dart | 103 | 0 | 8 | 111 |
+| [lib/models/order\_model.dart](/lib/models/order_model.dart) | Dart | 127 | 1 | 10 | 138 |
 | [lib/models/payment\_method.dart](/lib/models/payment_method.dart) | Dart | 19 | 0 | 3 | 22 |
 | [lib/models/product\_model.dart](/lib/models/product_model.dart) | Dart | 40 | 0 | 3 | 43 |
 | [lib/providers/balance\_provider.dart](/lib/providers/balance_provider.dart) | Dart | 101 | 0 | 20 | 121 |
 | [lib/providers/cart\_provider.dart](/lib/providers/cart_provider.dart) | Dart | 58 | 0 | 12 | 70 |
 | [lib/providers/favorite\_provider.dart](/lib/providers/favorite_provider.dart) | Dart | 61 | 6 | 11 | 78 |
 | [lib/providers/food\_provider.dart](/lib/providers/food_provider.dart) | Dart | 65 | 1 | 18 | 84 |
-| [lib/providers/order\_provider.dart](/lib/providers/order_provider.dart) | Dart | 197 | 9 | 26 | 232 |
+| [lib/providers/order\_provider.dart](/lib/providers/order_provider.dart) | Dart | 247 | 9 | 27 | 283 |
+| [lib/providers/ratings\_provider.dart](/lib/providers/ratings_provider.dart) | Dart | 29 | 3 | 5 | 37 |
 | [lib/repositories/order\_repository.dart](/lib/repositories/order_repository.dart) | Dart | 40 | 0 | 7 | 47 |
 | [lib/screens/customer/favorite\_screen.dart](/lib/screens/customer/favorite_screen.dart) | Dart | 198 | 0 | 4 | 202 |
 | [lib/screens/customer/home\_screen.dart](/lib/screens/customer/home_screen.dart) | Dart | 487 | 3 | 28 | 518 |
-| [lib/screens/customer/my\_orders\_screen.dart](/lib/screens/customer/my_orders_screen.dart) | Dart | 350 | 3 | 19 | 372 |
-| [lib/screens/customer/payment\_screen.dart](/lib/screens/customer/payment_screen.dart) | Dart | 343 | 4 | 25 | 372 |
+| [lib/screens/customer/my\_orders\_screen.dart](/lib/screens/customer/my_orders_screen.dart) | Dart | 189 | 4 | 12 | 205 |
+| [lib/screens/customer/payment\_screen.dart](/lib/screens/customer/payment_screen.dart) | Dart | 290 | 4 | 24 | 318 |
 | [lib/screens/customer/payment\_success\_screen.dart](/lib/screens/customer/payment_success_screen.dart) | Dart | 107 | 0 | 5 | 112 |
 | [lib/screens/customer/profile\_screen.dart](/lib/screens/customer/profile_screen.dart) | Dart | 184 | 0 | 4 | 188 |
 | [lib/screens/customer/shopping\_cart\_screen.dart](/lib/screens/customer/shopping_cart_screen.dart) | Dart | 396 | 0 | 32 | 428 |
 | [lib/screens/login\_screen.dart](/lib/screens/login_screen.dart) | Dart | 265 | 1 | 21 | 287 |
-| [lib/screens/seller/cancellation\_screen.dart](/lib/screens/seller/cancellation_screen.dart) | Dart | 58 | 0 | 6 | 64 |
-| [lib/screens/seller/completed\_screen.dart](/lib/screens/seller/completed_screen.dart) | Dart | 61 | 1 | 8 | 70 |
+| [lib/screens/seller/cancellation\_screen.dart](/lib/screens/seller/cancellation_screen.dart) | Dart | 63 | 0 | 6 | 69 |
+| [lib/screens/seller/completed\_screen.dart](/lib/screens/seller/completed_screen.dart) | Dart | 66 | 1 | 8 | 75 |
 | [lib/screens/seller/edit\_product\_screen.dart](/lib/screens/seller/edit_product_screen.dart) | Dart | 322 | 7 | 30 | 359 |
 | [lib/screens/seller/home\_screen.dart](/lib/screens/seller/home_screen.dart) | Dart | 372 | 7 | 15 | 394 |
 | [lib/screens/seller/my\_balance\_screen.dart](/lib/screens/seller/my_balance_screen.dart) | Dart | 375 | 4 | 16 | 395 |
 | [lib/screens/seller/my\_product\_screen.dart](/lib/screens/seller/my_product_screen.dart) | Dart | 245 | 4 | 11 | 260 |
-| [lib/screens/seller/on\_process\_screen.dart](/lib/screens/seller/on_process_screen.dart) | Dart | 360 | 11 | 26 | 397 |
+| [lib/screens/seller/on\_process\_screen.dart](/lib/screens/seller/on_process_screen.dart) | Dart | 347 | 12 | 21 | 380 |
 | [lib/screens/seller/transaction\_history\_screen.dart](/lib/screens/seller/transaction_history_screen.dart) | Dart | 421 | 3 | 24 | 448 |
 | [lib/services/calendar\_service.dart](/lib/services/calendar_service.dart) | Dart | 189 | 11 | 29 | 229 |
 | [lib/services/email\_service.dart](/lib/services/email_service.dart) | Dart | 27 | 8 | 5 | 40 |
@@ -81,7 +82,7 @@ Total : 102 files,  9586 codes, 350 comments, 890 blanks, all 10826 lines
 | [lib/widgets/customer/search\_widget.dart](/lib/widgets/customer/search_widget.dart) | Dart | 305 | 3 | 19 | 327 |
 | [lib/widgets/food\_list.dart](/lib/widgets/food_list.dart) | Dart | 114 | 0 | 7 | 121 |
 | [lib/widgets/notes\_field.dart](/lib/widgets/notes_field.dart) | Dart | 34 | 0 | 3 | 37 |
-| [lib/widgets/order\_card.dart](/lib/widgets/order_card.dart) | Dart | 178 | 1 | 9 | 188 |
+| [lib/widgets/order\_card.dart](/lib/widgets/order_card.dart) | Dart | 745 | 20 | 39 | 804 |
 | [lib/widgets/payment\_method\_card.dart](/lib/widgets/payment_method_card.dart) | Dart | 140 | 2 | 8 | 150 |
 | [lib/widgets/seller/event\_card.dart](/lib/widgets/seller/event_card.dart) | Dart | 84 | 0 | 3 | 87 |
 | [lib/widgets/seller/sales\_metric\_card.dart](/lib/widgets/seller/sales_metric_card.dart) | Dart | 62 | 0 | 3 | 65 |

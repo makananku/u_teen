@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:u_teen/auth/auth_provider.dart';
-import 'package:u_teen/screens/seller/completed_screen.dart';
 import 'package:provider/provider.dart';
-import 'package:u_teen/providers/order_provider.dart';
+import 'package:u_teen/auth/auth_provider.dart';
 import 'package:u_teen/models/order_model.dart';
+import 'package:u_teen/providers/order_provider.dart';
 import 'package:u_teen/screens/seller/home_screen.dart';
-
-import '../../widgets/order_card.dart';
+import 'package:u_teen/widgets/order_card.dart';
 
 class OnProcessScreen extends StatelessWidget {
   const OnProcessScreen({super.key});
@@ -23,9 +20,19 @@ class OnProcessScreen extends StatelessWidget {
         .where(
           (order) =>
               order.merchantEmail == sellerEmail &&
-              (order.status == 'pending' || order.status == 'processing'),
+              (order.status == 'pending' || order.status == 'processing' || order.status == 'ready'),
         )
         .toList();
+
+    // Sort orders: pending > processing > ready
+    processingOrders.sort((a, b) {
+      const statusPriority = {
+        'pending': 1,
+        'processing': 2,
+        'ready': 3,
+      };
+      return statusPriority[a.status]!.compareTo(statusPriority[b.status]!);
+    });
 
     return Scaffold(
       backgroundColor: Colors.white, // Set white background
@@ -79,224 +86,6 @@ class OnProcessScreen extends StatelessWidget {
         );
       },
     );
-  }
-}
-
-  Widget _buildOrderCard(BuildContext context, Order order) {
-    final currencyFormat = NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: 'Rp ',
-      decimalDigits: 0,
-    );
-
-    return Card(
-      color: Colors.white, // Set card background to white
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Order header with ID and status
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Order #${order.id}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
-                ),
-                Chip(
-                  label: Text(
-                    order.status.toUpperCase(),
-                    style: TextStyle(color: _getStatusTextColor(order.status)),
-                  ),
-                  backgroundColor: _getStatusColor(order.status),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Order details
-            Text(
-              'Customer: ${order.customerName}',
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-            Text(
-              'Pickup: ${DateFormat('dd MMM yyyy, HH:mm').format(order.pickupTime)}',
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-
-            // Display customer notes if available
-            if (order.notes != null && order.notes!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Customer Notes:',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      order.notes!,
-                      style: TextStyle(color: Colors.grey[700]),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
-            const Divider(height: 24),
-
-            // Order items
-            ...order.items.map((item) => _buildOrderItem(item)).toList(),
-
-            const Divider(height: 24),
-
-            // Order total
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'TOTAL',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  currencyFormat.format(order.totalPrice),
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            // Action buttons
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    onPressed: () => _markAsReady(context, order),
-                    child: const Text('MARK AS READY'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      side: const BorderSide(color: Colors.red),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    onPressed: () => _cancelOrder(context, order),
-                    child: const Text('CANCEL ORDER'),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOrderItem(OrderItem item) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          // Item image
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.asset(
-              item.image,
-              width: 50,
-              height: 50,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                width: 50,
-                height: 50,
-                color: Colors.grey[200],
-                child: const Icon(Icons.fastfood, color: Colors.grey),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-
-          // Item details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                if (item.subtitle.isNotEmpty)
-                  Text(
-                    item.subtitle,
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                  ),
-              ],
-            ),
-          ),
-
-          // Item quantity and price
-          Text('${item.quantity}x'),
-          const SizedBox(width: 12),
-          Text(
-            NumberFormat.currency(
-              symbol: 'Rp ',
-              decimalDigits: 0,
-            ).format(item.price),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'ready':
-        return Colors.green[100]!;
-      case 'cancelled':
-        return Colors.red[100]!;
-      case 'pending':
-      case 'processing':
-      default:
-        return Colors.orange[100]!;
-    }
-  }
-
-  Color _getStatusTextColor(String status) {
-    switch (status) {
-      case 'ready':
-        return Colors.green[800]!;
-      case 'cancelled':
-        return Colors.red[800]!;
-      case 'pending':
-      case 'processing':
-      default:
-        return Colors.orange[800]!;
-    }
   }
 
   void _markAsReady(BuildContext context, Order order) {
@@ -372,9 +161,9 @@ class OnProcessScreen extends StatelessWidget {
                         ),
                       );
 
-                      // Update order status
+                      // Update order status to 'ready'
                       await Provider.of<OrderProvider>(context, listen: false)
-                          .updateOrderStatus(order.id, 'completed');
+                          .updateOrderStatus(order.id, 'ready');
 
                       // Close processing dialog
                       if (context.mounted) {
@@ -588,3 +377,4 @@ class OnProcessScreen extends StatelessWidget {
       ),
     );
   }
+}

@@ -89,16 +89,25 @@ class OrderProvider with ChangeNotifier {
   }
 
   List<Order> getOngoingOrdersForCustomer(String customerEmail) {
-    return _orders.where((o) => 
-      o.status != 'completed' && 
-      o.customerName == customerEmail
-    ).toList();
+    final orders = _orders
+        .where(
+          (o) => o.status != 'completed' && o.customerName == customerEmail,
+        )
+        .toList();
+    orders.sort((a, b) {
+      const statusPriority = {
+        'ready': 1,
+        'pending': 2,
+        'processing': 3,
+      };
+      return statusPriority[a.status]!.compareTo(statusPriority[b.status]!);
+    });
+    return orders;
   }
 
   List<Order> getCompletedOrdersForCustomer(String customerEmail) {
     return _orders.where((o) => 
-      o.status == 'completed' && 
-      o.customerName == customerEmail
+      o.status == 'completed' && o.customerName == customerEmail
     ).toList();
   }
 

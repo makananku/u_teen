@@ -22,6 +22,253 @@ class OrderCard extends StatelessWidget {
       decimalDigits: 0,
     );
 
+    // Build the children list for the Column
+    final List<Widget> children = [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Order #${order.id}',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          Chip(
+            label: Text(
+              order.status.toUpperCase(),
+              style: TextStyle(
+                fontSize: 12,
+                color: _getStatusTextColor(order.status),
+              ),
+            ),
+            backgroundColor: _getStatusColor(order.status),
+          ),
+        ],
+      ),
+      const SizedBox(height: 8),
+      // Show customer name for seller, merchant name for customer
+      isSellerView
+          ? Text(
+              'Customer: ${order.customerName}',
+              style: TextStyle(color: Colors.grey[600]),
+            )
+          : Text(
+              'Merchant: ${order.merchantName}',
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+      Text(
+        'Pickup: ${DateFormat('dd MMM yyyy, HH:mm').format(order.pickupTime)}',
+        style: TextStyle(color: Colors.grey[600]),
+      ),
+      if (!isSellerView)
+        Text(
+          'Paid with ${order.paymentMethod}',
+          style: TextStyle(color: Colors.grey[600]),
+        ),
+      // Display customer notes if available
+      if (order.notes != null && order.notes!.isNotEmpty) ...[
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.blue[50],
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isSellerView ? 'Customer Notes:' : 'Your Notes:',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                order.notes!,
+                style: TextStyle(color: Colors.grey[700]),
+              ),
+            ],
+          ),
+        ),
+      ],
+      // Display cancellation reason if order is cancelled
+      if (order.status == 'cancelled' && order.cancellationReason != null) ...[
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.red[50],
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isSellerView ? 'Cancellation Reason:' : 'Order Cancelled:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red[800],
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                order.cancellationReason!,
+                style: TextStyle(color: Colors.grey[700]),
+              ),
+            ],
+          ),
+        ),
+      ],
+      // Display ratings if available (for completed orders)
+      if (order.status == 'completed' &&
+          (order.foodRating != null || order.appRating != null)) ...[
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.green[50],
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Your Rating:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green,
+                ),
+              ),
+              const SizedBox(height: 4),
+              if (order.foodRating != null)
+                Row(
+                  children: [
+                    const Text('Food: '),
+                    ...List.generate(
+                      order.foodRating!,
+                      (index) => const Icon(Icons.star, color: Colors.amber, size: 16),
+                    ),
+                    ...List.generate(
+                      5 - order.foodRating!,
+                      (index) => const Icon(Icons.star_border, color: Colors.amber, size: 16),
+                    ),
+                  ],
+                ),
+              if (order.foodNotes != null && order.foodNotes!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    'Food Notes: ${order.foodNotes}',
+                    style: TextStyle(color: Colors.grey[700]),
+                  ),
+                ),
+              if (order.appRating != null)
+                Row(
+                  children: [
+                    const Text('App Experience: '),
+                    ...List.generate(
+                      order.appRating!,
+                      (index) => const Icon(Icons.star, color: Colors.amber, size: 16),
+                    ),
+                    ...List.generate(
+                      5 - order.appRating!,
+                      (index) => const Icon(Icons.star_border, color: Colors.amber, size: 16),
+                    ),
+                  ],
+                ),
+              if (order.appNotes != null && order.appNotes!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    'App Notes: ${order.appNotes}',
+                    style: TextStyle(color: Colors.grey[700]),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+      const Divider(height: 24),
+      ...order.items.map((item) => _buildOrderItem(item, currencyFormat)).toList(),
+      const Divider(height: 24),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            'TOTAL',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          Text(
+            currencyFormat.format(order.totalPrice),
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    ];
+
+    // Add seller buttons for pending/processing orders only
+    if (isSellerView && (order.status == 'pending' || order.status == 'processing')) {
+      children.addAll([
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onPressed: () => _markAsReady(context, order),
+                child: const Text('MARK AS READY'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.red,
+                  side: const BorderSide(color: Colors.red),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onPressed: () => _cancelOrder(context, order),
+                child: const Text('CANCEL ORDER'),
+              ),
+            ),
+          ],
+        ),
+      ]);
+    }
+
+    // Add Confirm Pickup button for ready orders (customer view only)
+    if (!isSellerView && order.status == 'ready') {
+      children.addAll([
+        const SizedBox(height: 16),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          onPressed: () => _showRatingDialog(context, order),
+          child: const Text('Confirm Pickup'),
+        ),
+      ]);
+    }
+
     return Card(
       color: Colors.white,
       elevation: 2,
@@ -33,254 +280,7 @@ class OrderCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Order #${order.id}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                Chip(
-                  label: Text(
-                    order.status.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: _getStatusTextColor(order.status),
-                    ),
-                  ),
-                  backgroundColor: _getStatusColor(order.status),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // Show customer name for seller, merchant name for customer
-            isSellerView
-                ? Text(
-                    'Customer: ${order.customerName}',
-                    style: TextStyle(color: Colors.grey[600]),
-                  )
-                : Text(
-                    'Merchant: ${order.merchantName}',
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-
-            Text(
-              'Pickup: ${DateFormat('dd MMM yyyy, HH:mm').format(order.pickupTime)}',
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-
-            if (!isSellerView)
-              Text(
-                'Paid with ${order.paymentMethod}',
-                style: TextStyle(color: Colors.grey[600]),
-              ),
-
-            // Display customer notes if available
-            if (order.notes != null && order.notes!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      isSellerView ? 'Customer Notes:' : 'Your Notes:',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      order.notes!,
-                      style: TextStyle(color: Colors.grey[700]),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
-            // Display cancellation reason if order is cancelled
-            if (order.status == 'cancelled' && order.cancellationReason != null) ...[
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.red[50],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      isSellerView ? 'Cancellation Reason:' : 'Order Cancelled:',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red[800],
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      order.cancellationReason!,
-                      style: TextStyle(color: Colors.grey[700]),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
-            // Display ratings if available (for completed orders)
-            if (order.status == 'completed' &&
-                (order.foodRating != null || order.appRating != null)) ...[
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.green[50],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Your Rating:',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    if (order.foodRating != null)
-                      Row(
-                        children: [
-                          const Text('Food: '),
-                          ...List.generate(
-                            order.foodRating!,
-                            (index) => const Icon(Icons.star, color: Colors.amber, size: 16),
-                          ),
-                          ...List.generate(
-                            5 - order.foodRating!,
-                            (index) => const Icon(Icons.star_border, color: Colors.amber, size: 16),
-                          ),
-                        ],
-                      ),
-                    if (order.foodNotes != null && order.foodNotes!.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          'Food Notes: ${order.foodNotes}',
-                          style: TextStyle(color: Colors.grey[700]),
-                        ),
-                      ),
-                    if (order.appRating != null)
-                      Row(
-                        children: [
-                          const Text('App Experience: '),
-                          ...List.generate(
-                            order.appRating!,
-                            (index) => const Icon(Icons.star, color: Colors.amber, size: 16),
-                          ),
-                          ...List.generate(
-                            5 - order.appRating!,
-                            (index) => const Icon(Icons.star_border, color: Colors.amber, size: 16),
-                          ),
-                        ],
-                      ),
-                    if (order.appNotes != null && order.appNotes!.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          'App Notes: ${order.appNotes}',
-                          style: TextStyle(color: Colors.grey[700]),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ],
-
-            const Divider(height: 24),
-            ...order.items.map((item) => _buildOrderItem(item, currencyFormat)).toList(),
-            const Divider(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'TOTAL',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  currencyFormat.format(order.totalPrice),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-
-            // Seller buttons for pending/processing orders
-            if (isSellerView && (order.status == 'pending' || order.status == 'processing')) ...[
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onPressed: () => _markAsReady(context, order),
-                      child: const Text('MARK AS READY'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.red),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onPressed: () => _cancelOrder(context, order),
-                      child: const Text('CANCEL ORDER'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-
-            // Confirm Pickup button for ready orders (customer view only)
-            if (!isSellerView && order.status == 'ready') ...[
-              const SizedBox(height: 16),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                onPressed: () => _showRatingDialog(context, order),
-                child: const Text('Confirm Pickup'),
-              ),
-            ],
-          ],
+          children: children,
         ),
       ),
     );
@@ -334,151 +334,7 @@ class OrderCard extends StatelessWidget {
   void _showRatingDialog(BuildContext context, Order order) {
     showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) {
-          int foodRating = 0;
-          int appRating = 0;
-          final foodNotesController = TextEditingController();
-          final appNotesController = TextEditingController();
-          final formKey = GlobalKey<FormState>();
-
-          return Dialog(
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Form(
-                key: formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        'Rate Your Experience',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Food Rating
-                      const Text('Food Quality', style: TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(5, (index) {
-                          return IconButton(
-                            icon: Icon(
-                              index < foodRating ? Icons.star : Icons.star_border,
-                              color: Colors.amber,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                foodRating = index + 1;
-                              });
-                            },
-                          );
-                        }),
-                      ),
-                      TextFormField(
-                        controller: foodNotesController,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Food Feedback (Optional)',
-                          hintText: 'E.g. Taste, portion size',
-                        ),
-                        maxLines: 3,
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // App Rating
-                      const Text('App Experience', style: TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(5, (index) {
-                          return IconButton(
-                            icon: Icon(
-                              index < appRating ? Icons.star : Icons.star_border,
-                              color: Colors.amber,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                appRating = index + 1;
-                              });
-                            },
-                          );
-                        }),
-                      ),
-                      TextFormField(
-                        controller: appNotesController,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'App Feedback (Optional)',
-                          hintText: 'E.g. Usability, features',
-                        ),
-                        maxLines: 3,
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // Buttons
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('CANCEL'),
-                          ),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                            ),
-                            onPressed: () {
-                              if (foodRating == 0 || appRating == 0) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Please provide both food and app ratings'),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
-                                return;
-                              }
-
-                              // Submit ratings and update status
-                              Provider.of<OrderProvider>(context, listen: false)
-                                  .submitRatingAndCompleteOrder(
-                                orderId: order.id,
-                                foodRating: foodRating,
-                                appRating: appRating,
-                                foodNotes: foodNotesController.text.isNotEmpty
-                                    ? foodNotesController.text
-                                    : null,
-                                appNotes: appNotesController.text.isNotEmpty
-                                    ? appNotesController.text
-                                    : null,
-                              );
-
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Thank you for your feedback!'),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                            },
-                            child: const Text('SUBMIT', style: TextStyle(color: Colors.white)),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
+      builder: (context) => RatingDialog(order: order),
     );
   }
 
@@ -800,5 +656,182 @@ class OrderCard extends StatelessWidget {
       default:
         return Colors.orange[800]!;
     }
+  }
+}
+
+class RatingDialog extends StatefulWidget {
+  final Order order;
+
+  const RatingDialog({super.key, required this.order});
+
+  @override
+  _RatingDialogState createState() => _RatingDialogState();
+}
+
+class _RatingDialogState extends State<RatingDialog> {
+  int foodRating = 0;
+  int appRating = 0;
+  final foodNotesController = TextEditingController();
+  final appNotesController = TextEditingController();
+  final formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    foodNotesController.dispose();
+    appNotesController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Rate Your Experience',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+
+                // Food Rating
+                const Text('Food Quality', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(5, (index) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: IconButton(
+                        key: ValueKey('food_star_$index'),
+                        iconSize: 24,
+                        icon: Icon(
+                          index < foodRating ? Icons.star : Icons.star_border,
+                          color: Colors.amber,
+                        ),
+                        onPressed: () {
+                          print('Food rating tapped: ${index + 1}');
+                          setState(() {
+                            foodRating = index + 1;
+                            print('Food rating updated to: $foodRating');
+                          });
+                        },
+                      ),
+                    );
+                  }),
+                ),
+                TextFormField(
+                  controller: foodNotesController,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Food Feedback (Optional)',
+                    hintText: 'E.g. Taste, portion size',
+                  ),
+                  maxLines: 3,
+                ),
+
+                const SizedBox(height: 16),
+
+                // App Rating
+                const Text('App Experience', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(5, (index) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: IconButton(
+                        key: ValueKey('app_star_$index'),
+                        iconSize: 24,
+                        icon: Icon(
+                          index < appRating ? Icons.star : Icons.star_border,
+                          color: Colors.amber,
+                        ),
+                        onPressed: () {
+                          print('App rating tapped: ${index + 1}');
+                          setState(() {
+                            appRating = index + 1;
+                            print('App rating updated to: $appRating');
+                          });
+                        },
+                      ),
+                    );
+                  }),
+                ),
+                TextFormField(
+                  controller: appNotesController,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'App Feedback (Optional)',
+                    hintText: 'E.g. Usability, features',
+                  ),
+                  maxLines: 3,
+                ),
+
+                const SizedBox(height: 24),
+
+                // Buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('CANCEL'),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      ),
+                      onPressed: () {
+                        if (foodRating == 0 || appRating == 0) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Please provide both food and app ratings'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          return;
+                        }
+
+                        // Submit ratings and update status
+                        Provider.of<OrderProvider>(context, listen: false)
+                            .submitRatingAndCompleteOrder(
+                          orderId: widget.order.id,
+                          foodRating: foodRating,
+                          appRating: appRating,
+                          foodNotes: foodNotesController.text.isNotEmpty
+                              ? foodNotesController.text
+                              : null,
+                          appNotes: appNotesController.text.isNotEmpty
+                              ? appNotesController.text
+                              : null,
+                        );
+
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Thank you for your feedback!'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      },
+                      child: const Text('SUBMIT', style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
