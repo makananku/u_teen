@@ -19,18 +19,39 @@ class CustomBottomNavigation extends StatefulWidget {
   _CustomBottomNavigationState createState() => _CustomBottomNavigationState();
 }
 
-class _CustomBottomNavigationState extends State<CustomBottomNavigation> {
+class _CustomBottomNavigationState extends State<CustomBottomNavigation> 
+    with TickerProviderStateMixin {
   late int _currentIndex;
   final Duration _animationDuration = const Duration(milliseconds: 300);
   final Curve _animationCurve = Curves.easeOutQuad;
+  late AnimationController _scaleController;
+  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.selectedIndex;
+    _scaleController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 150),
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+      CurvedAnimation(parent: _scaleController, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _scaleController.dispose();
+    super.dispose();
   }
 
   void _navigateWithDirectionalSlide(int newIndex) {
+    if (_currentIndex == newIndex) return;
+
+    // Trigger tap animation
+    _scaleController.forward().then((_) => _scaleController.reverse());
+
     final currentIndex = _currentIndex;
     setState(() {
       _currentIndex = newIndex;
@@ -39,7 +60,6 @@ class _CustomBottomNavigationState extends State<CustomBottomNavigation> {
     Future.delayed(Duration.zero, () {
       if (!mounted) return;
 
-      // Determine slide direction
       final Offset begin = newIndex > currentIndex 
           ? const Offset(1.0, 0.0)  // Slide from right to left
           : const Offset(-1.0, 0.0); // Slide from left to right
@@ -66,22 +86,39 @@ class _CustomBottomNavigationState extends State<CustomBottomNavigation> {
       Navigator.pushReplacement(
         widget.context,
         PageRouteBuilder(
-          transitionDuration: const Duration(milliseconds: 400),
+          transitionDuration: const Duration(milliseconds: 500),
+          reverseTransitionDuration: const Duration(milliseconds: 400),
           pageBuilder: (context, animation, secondaryAnimation) => nextPage,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            final positionAnimation = Tween<Offset>(
+              begin: begin,
+              end: Offset.zero,
+            ).animate(CurvedAnimation(
+              parent: animation,
+              curve: Curves.fastOutSlowIn,
+            ));
+
+            final fadeAnimation = Tween<double>(
+              begin: 0.4,
+              end: 1.0,
+            ).animate(CurvedAnimation(
+              parent: animation,
+              curve: Interval(0.3, 1.0, curve: Curves.easeOut),
+            ));
+
             return SlideTransition(
-              position: Tween<Offset>(
-                begin: begin,
-                end: Offset.zero,
-              ).animate(CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeInOutQuart,
-              )),
+              position: positionAnimation,
               child: FadeTransition(
-                opacity: Tween<double>(begin: 0.5, end: 1.0).animate(
-                  CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+                opacity: fadeAnimation,
+                child: ScaleTransition(
+                  scale: Tween<double>(begin: 0.98, end: 1.0).animate(
+                    CurvedAnimation(
+                      parent: animation,
+                      curve: Curves.easeOut,
+                    ),
+                  ),
+                  child: child,
                 ),
-                child: child,
               ),
             );
           },
@@ -149,14 +186,19 @@ class _CustomBottomNavigationState extends State<CustomBottomNavigation> {
   }
 
   Widget _buildNavItem(IconData icon, int index) {
+    final isSelected = _currentIndex == index;
+    
     return GestureDetector(
       onTap: () => _navigateWithDirectionalSlide(index),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        child: Icon(
-          icon,
-          color: _currentIndex == index ? Colors.white : Colors.white70,
-          size: 28,
+      child: ScaleTransition(
+        scale: isSelected ? _scaleAnimation : AlwaysStoppedAnimation(1.0),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          child: Icon(
+            icon,
+            color: isSelected ? Colors.white : Colors.white70,
+            size: 28,
+          ),
         ),
       ),
     );

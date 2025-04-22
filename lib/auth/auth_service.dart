@@ -3,7 +3,7 @@ class AuthService {
     User(
       email: '123@student.umn.ac.id',
       password: '123',
-      name: 'Nicholas Soesilo',
+      name: 'Javier Matthew',
       userType: 'customer',
     ),
     User(

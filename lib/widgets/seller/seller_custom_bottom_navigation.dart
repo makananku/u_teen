@@ -25,7 +25,7 @@ class SellerCustomBottomNavigation extends StatefulWidget {
 }
 
 class _SellerCustomBottomNavigationState
-    extends State<SellerCustomBottomNavigation> {
+    extends State<SellerCustomBottomNavigation> with TickerProviderStateMixin {
   late int _currentIndex;
   final Duration _animationDuration = const Duration(milliseconds: 300);
   final Curve _animationCurve = Curves.easeOutQuad;
@@ -70,18 +70,41 @@ class _SellerCustomBottomNavigationState
       Navigator.pushReplacement(
         widget.context,
         PageRouteBuilder(
-          transitionDuration: const Duration(milliseconds: 400),
+          transitionDuration: const Duration(milliseconds: 500), // Slightly longer duration
+          reverseTransitionDuration: const Duration(milliseconds: 400), // Added reverse duration
           pageBuilder: (context, animation, secondaryAnimation) => nextPage,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return SlideTransition(
-              position: Tween<Offset>(begin: begin, end: Offset.zero).animate(
-                CurvedAnimation(parent: animation, curve: Curves.easeInOutQuart),
+            final positionAnimation = Tween<Offset>(begin: begin, end: Offset.zero).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Curves.fastOutSlowIn, // Smoother curve
               ),
-              child: FadeTransition(
-                opacity: Tween<double>(begin: 0.5, end: 1.0).animate(
-                  CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+            );
+
+            final fadeAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Interval(
+                  0.3, 
+                  1.0,
+                  curve: Curves.easeOut,
                 ),
-                child: child,
+              ),
+            );
+
+            return SlideTransition(
+              position: positionAnimation,
+              child: FadeTransition(
+                opacity: fadeAnimation,
+                child: ScaleTransition(
+                  scale: Tween<double>(begin: 0.98, end: 1.0).animate( // Subtle scale effect
+                    CurvedAnimation(
+                      parent: animation,
+                      curve: Curves.easeOut,
+                    ),
+                  ),
+                  child: child,
+                ),
               ),
             );
           },
@@ -93,7 +116,7 @@ class _SellerCustomBottomNavigationState
   @override
   Widget build(BuildContext context) {
     return Material(
-      type: MaterialType.transparency, // Key change here
+      type: MaterialType.transparency,
       child: AnimatedContainer(
         duration: _animationDuration,
         curve: _animationCurve,

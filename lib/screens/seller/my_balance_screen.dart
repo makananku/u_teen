@@ -196,10 +196,6 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
                   if (_selectedMethod?.id == 'gopay')
                     Padding(
                       padding: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        'Related to number: $_userGopayNumber',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                      ),
                     ),
                   const SizedBox(height: 16),
                   Column(
