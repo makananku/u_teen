@@ -4,6 +4,7 @@ import '../../widgets/customer/custom_bottom_navigation.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import '../../auth/logout_service.dart';
 import '../login_screen.dart';
+import '../customer/favorite_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -56,7 +57,14 @@ class ProfileScreen extends StatelessWidget {
                         _buildProfileOption(
                           icon: Icons.bookmark_border,
                           title: "My Favorites",
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const FavoritesScreen(),
+                              ),
+                            );
+                          },
                         ),
                         _buildProfileOption(
                           icon: Icons.thumb_up_alt_outlined,
@@ -81,7 +89,9 @@ class ProfileScreen extends StatelessWidget {
                         _buildProfileOption(
                           icon: Icons.logout,
                           title: "Logout",
-                          onTap: () => LogoutService.showLogoutConfirmation(context),
+                          onTap:
+                              () =>
+                                  LogoutService.showLogoutConfirmation(context),
                         ),
                       ],
                     ),
@@ -89,7 +99,8 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
-            floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerDocked,
             floatingActionButton: CustomBottomNavigation(
               selectedIndex: 3,
               context: context,
@@ -117,7 +128,11 @@ class ProfileScreen extends StatelessWidget {
                   height: 60,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
-                    return const Icon(Icons.person, size: 30, color: Colors.grey);
+                    return const Icon(
+                      Icons.person,
+                      size: 30,
+                      color: Colors.grey,
+                    );
                   },
                 ),
               ),
@@ -139,10 +154,7 @@ class ProfileScreen extends StatelessWidget {
                     onTap: () {},
                     child: const Text(
                       "Edit Profile  >",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                   ),
                 ],
@@ -172,13 +184,14 @@ class ProfileScreen extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.black,
-                  ),
+                  style: const TextStyle(fontSize: 16, color: Colors.black),
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.black),
+              const Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: Colors.black,
+              ),
             ],
           ),
         ),

@@ -1,0 +1,33 @@
+# Diff Details
+
+Date : 2025-04-22 18:02:44
+
+Directory c:\\Users\\Acer\\u_teen
+
+Total : 18 files,  -337 codes, 28 comments, -10 blanks, all -319 lines
+
+[Summary](results.md) / [Details](details.md) / [Diff Summary](diff.md) / Diff Details
+
+## Files
+| filename | language | code | comment | blank | total |
+| :--- | :--- | ---: | ---: | ---: | ---: |
+| [backend/package-lock.json](/backend/package-lock.json) | JSON | -862 | 0 | -1 | -863 |
+| [backend/package.json](/backend/package.json) | JSON | -17 | 0 | -1 | -18 |
+| [backend/server.js](/backend/server.js) | JavaScript | -78 | -12 | -16 | -106 |
+| [lib/models/balance\_model.dart](/lib/models/balance_model.dart) | Dart | -6 | 0 | -1 | -7 |
+| [lib/models/order\_model.dart](/lib/models/order_model.dart) | Dart | -66 | 1 | 0 | -65 |
+| [lib/providers/balance\_provider.dart](/lib/providers/balance_provider.dart) | Dart | -21 | -1 | -3 | -25 |
+| [lib/providers/order\_provider.dart](/lib/providers/order_provider.dart) | Dart | 1 | 8 | -5 | 4 |
+| [lib/repositories/order\_repository.dart](/lib/repositories/order_repository.dart) | Dart | -12 | 0 | -1 | -13 |
+| [lib/screens/customer/payment\_screen.dart](/lib/screens/customer/payment_screen.dart) | Dart | -54 | 4 | -1 | -51 |
+| [lib/screens/seller/my\_balance\_screen.dart](/lib/screens/seller/my_balance_screen.dart) | Dart | -51 | 4 | 0 | -47 |
+| [lib/services/payment\_service.dart](/lib/services/payment_service.dart) | Dart | -122 | 0 | -10 | -132 |
+| [lib/widgets/customer/custom\_bottom\_navigation.dart](/lib/widgets/customer/custom_bottom_navigation.dart) | Dart | 36 | 0 | 6 | 42 |
+| [lib/widgets/order\_card.dart](/lib/widgets/order_card.dart) | Dart | 7 | 21 | 10 | 38 |
+| [lib/widgets/payment\_method\_card.dart](/lib/widgets/payment_method_card.dart) | Dart | 0 | 2 | 1 | 3 |
+| [lib/widgets/seller/seller\_custom\_bottom\_navigation.dart](/lib/widgets/seller/seller_custom_bottom_navigation.dart) | Dart | 21 | 0 | 2 | 23 |
+| [package-lock.json](/package-lock.json) | JSON | 862 | 0 | 1 | 863 |
+| [package.json](/package.json) | JSON | 28 | 0 | 1 | 29 |
+| [pubspec.yaml](/pubspec.yaml) | YAML | -3 | 1 | 8 | 6 |
+
+[Summary](results.md) / [Details](details.md) / [Diff Summary](diff.md) / Diff Details

@@ -1,10 +1,10 @@
 # Details
 
-Date : 2025-04-21 22:26:17
+Date : 2025-04-22 18:02:44
 
 Directory c:\\Users\\Acer\\u_teen
 
-Total : 103 files,  9909 codes, 372 comments, 916 blanks, all 11197 lines
+Total : 107 files,  11017 codes, 376 comments, 924 blanks, all 12317 lines
 
 [Summary](results.md) / Details / [Diff Summary](diff.md) / [Diff Details](diff-details.md)
 
@@ -24,7 +24,9 @@ Total : 103 files,  9909 codes, 372 comments, 916 blanks, all 11197 lines
 | [android/gradle/wrapper/gradle-wrapper.properties](/android/gradle/wrapper/gradle-wrapper.properties) | Java Properties | 7 | 0 | 1 | 8 |
 | [assets/animation/empty\_cart.json](/assets/animation/empty_cart.json) | JSON | 1 | 0 | 0 | 1 |
 | [assets/animation/empty\_order.json](/assets/animation/empty_order.json) | JSON | 1 | 0 | 0 | 1 |
+| [assets/animation/empty\_payment.json](/assets/animation/empty_payment.json) | JSON | 1 | 0 | 0 | 1 |
 | [assets/animation/success\_checkmark.json](/assets/animation/success_checkmark.json) | JSON | 1 | 0 | 0 | 1 |
+| [assets/animation/withdrawal.json](/assets/animation/withdrawal.json) | JSON | 1 | 0 | 0 | 1 |
 | [ios/RunnerTests/RunnerTests.swift](/ios/RunnerTests/RunnerTests.swift) | Swift | 7 | 2 | 4 | 13 |
 | [ios/Runner/AppDelegate.swift](/ios/Runner/AppDelegate.swift) | Swift | 12 | 0 | 2 | 14 |
 | [ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json](/ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json) | JSON | 122 | 0 | 1 | 123 |
@@ -51,7 +53,7 @@ Total : 103 files,  9909 codes, 372 comments, 916 blanks, all 11197 lines
 | [lib/providers/cart\_provider.dart](/lib/providers/cart_provider.dart) | Dart | 58 | 0 | 12 | 70 |
 | [lib/providers/favorite\_provider.dart](/lib/providers/favorite_provider.dart) | Dart | 61 | 6 | 11 | 78 |
 | [lib/providers/food\_provider.dart](/lib/providers/food_provider.dart) | Dart | 65 | 1 | 18 | 84 |
-| [lib/providers/order\_provider.dart](/lib/providers/order_provider.dart) | Dart | 238 | 9 | 27 | 274 |
+| [lib/providers/order\_provider.dart](/lib/providers/order_provider.dart) | Dart | 247 | 9 | 27 | 283 |
 | [lib/providers/ratings\_provider.dart](/lib/providers/ratings_provider.dart) | Dart | 29 | 3 | 5 | 37 |
 | [lib/repositories/order\_repository.dart](/lib/repositories/order_repository.dart) | Dart | 40 | 0 | 7 | 47 |
 | [lib/screens/customer/favorite\_screen.dart](/lib/screens/customer/favorite_screen.dart) | Dart | 198 | 0 | 4 | 202 |
@@ -66,9 +68,9 @@ Total : 103 files,  9909 codes, 372 comments, 916 blanks, all 11197 lines
 | [lib/screens/seller/completed\_screen.dart](/lib/screens/seller/completed_screen.dart) | Dart | 66 | 1 | 8 | 75 |
 | [lib/screens/seller/edit\_product\_screen.dart](/lib/screens/seller/edit_product_screen.dart) | Dart | 322 | 7 | 30 | 359 |
 | [lib/screens/seller/home\_screen.dart](/lib/screens/seller/home_screen.dart) | Dart | 372 | 7 | 15 | 394 |
-| [lib/screens/seller/my\_balance\_screen.dart](/lib/screens/seller/my_balance_screen.dart) | Dart | 375 | 4 | 16 | 395 |
+| [lib/screens/seller/my\_balance\_screen.dart](/lib/screens/seller/my_balance_screen.dart) | Dart | 371 | 4 | 16 | 391 |
 | [lib/screens/seller/my\_product\_screen.dart](/lib/screens/seller/my_product_screen.dart) | Dart | 245 | 4 | 11 | 260 |
-| [lib/screens/seller/on\_process\_screen.dart](/lib/screens/seller/on_process_screen.dart) | Dart | 534 | 20 | 37 | 591 |
+| [lib/screens/seller/on\_process\_screen.dart](/lib/screens/seller/on_process_screen.dart) | Dart | 347 | 12 | 21 | 380 |
 | [lib/screens/seller/transaction\_history\_screen.dart](/lib/screens/seller/transaction_history_screen.dart) | Dart | 421 | 3 | 24 | 448 |
 | [lib/services/calendar\_service.dart](/lib/services/calendar_service.dart) | Dart | 189 | 11 | 29 | 229 |
 | [lib/services/email\_service.dart](/lib/services/email_service.dart) | Dart | 27 | 8 | 5 | 40 |
@@ -77,16 +79,16 @@ Total : 103 files,  9909 codes, 372 comments, 916 blanks, all 11197 lines
 | [lib/widgets/customer/cart\_item\_widget.dart](/lib/widgets/customer/cart_item_widget.dart) | Dart | 134 | 0 | 4 | 138 |
 | [lib/widgets/customer/cart\_summary\_widget.dart](/lib/widgets/customer/cart_summary_widget.dart) | Dart | 49 | 0 | 2 | 51 |
 | [lib/widgets/customer/category\_selector.dart](/lib/widgets/customer/category_selector.dart) | Dart | 51 | 0 | 4 | 55 |
-| [lib/widgets/customer/custom\_bottom\_navigation.dart](/lib/widgets/customer/custom_bottom_navigation.dart) | Dart | 151 | 1 | 12 | 164 |
+| [lib/widgets/customer/custom\_bottom\_navigation.dart](/lib/widgets/customer/custom_bottom_navigation.dart) | Dart | 187 | 1 | 18 | 206 |
 | [lib/widgets/customer/detail\_box.dart](/lib/widgets/customer/detail_box.dart) | Dart | 191 | 2 | 5 | 198 |
 | [lib/widgets/customer/search\_widget.dart](/lib/widgets/customer/search_widget.dart) | Dart | 305 | 3 | 19 | 327 |
 | [lib/widgets/food\_list.dart](/lib/widgets/food_list.dart) | Dart | 114 | 0 | 7 | 121 |
 | [lib/widgets/notes\_field.dart](/lib/widgets/notes_field.dart) | Dart | 34 | 0 | 3 | 37 |
-| [lib/widgets/order\_card.dart](/lib/widgets/order_card.dart) | Dart | 437 | 9 | 24 | 470 |
+| [lib/widgets/order\_card.dart](/lib/widgets/order_card.dart) | Dart | 778 | 21 | 38 | 837 |
 | [lib/widgets/payment\_method\_card.dart](/lib/widgets/payment_method_card.dart) | Dart | 140 | 2 | 8 | 150 |
 | [lib/widgets/seller/event\_card.dart](/lib/widgets/seller/event_card.dart) | Dart | 84 | 0 | 3 | 87 |
 | [lib/widgets/seller/sales\_metric\_card.dart](/lib/widgets/seller/sales_metric_card.dart) | Dart | 62 | 0 | 3 | 65 |
-| [lib/widgets/seller/seller\_custom\_bottom\_navigation.dart](/lib/widgets/seller/seller_custom_bottom_navigation.dart) | Dart | 143 | 0 | 14 | 157 |
+| [lib/widgets/seller/seller\_custom\_bottom\_navigation.dart](/lib/widgets/seller/seller_custom_bottom_navigation.dart) | Dart | 164 | 0 | 16 | 180 |
 | [lib/widgets/seller/status\_button.dart](/lib/widgets/seller/status_button.dart) | Dart | 72 | 0 | 3 | 75 |
 | [lib/widgets/time\_picker\_widget.dart](/lib/widgets/time_picker_widget.dart) | Dart | 112 | 2 | 15 | 129 |
 | [linux/flutter/generated\_plugin\_registrant.cc](/linux/flutter/generated_plugin_registrant.cc) | C++ | 7 | 4 | 5 | 16 |
@@ -100,6 +102,8 @@ Total : 103 files,  9909 codes, 372 comments, 916 blanks, all 11197 lines
 | [macos/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json](/macos/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json) | JSON | 68 | 0 | 1 | 69 |
 | [macos/Runner/Base.lproj/MainMenu.xib](/macos/Runner/Base.lproj/MainMenu.xib) | XML | 343 | 0 | 1 | 344 |
 | [macos/Runner/MainFlutterWindow.swift](/macos/Runner/MainFlutterWindow.swift) | Swift | 12 | 0 | 4 | 16 |
+| [package-lock.json](/package-lock.json) | JSON | 862 | 0 | 1 | 863 |
+| [package.json](/package.json) | JSON | 28 | 0 | 1 | 29 |
 | [pubspec.yaml](/pubspec.yaml) | YAML | 44 | 1 | 14 | 59 |
 | [test/widget\_test.dart](/test/widget_test.dart) | Dart | 14 | 10 | 7 | 31 |
 | [web/index.html](/web/index.html) | HTML | 19 | 15 | 5 | 39 |
