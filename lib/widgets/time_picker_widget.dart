@@ -15,9 +15,16 @@ class TimePickerWidget extends StatefulWidget {
 
 class _TimePickerWidgetState extends State<TimePickerWidget> {
   DateTime selectedTime = DateTime.now().add(const Duration(hours: 1));
-  final DateFormat timeFormat = DateFormat('HH:mm');
+  final DateFormat timeFormat = DateFormat('hh:mm a');
   bool isTimeValid = true;
   String? errorMessage;
+  bool isPM = false;
+
+  @override
+  void initState() {
+    super.initState();
+    isPM = selectedTime.hour >= 12;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,57 +80,149 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
   bool _validateTime(DateTime time) {
     final now = DateTime.now();
     final hour = time.hour;
-    
-    // Check if time is in the past
+
     if (time.isBefore(now)) {
       errorMessage = 'Pickup time cannot be in the past';
       return false;
     }
-    
-    // Check business hours (8 AM - 5 PM)
+
     if (hour < 8 || hour >= 17) {
-      errorMessage = 'Pickup available only between 08:00-17:00';
+      errorMessage = 'Pickup available only between 08:00 AM - 05:00 PM';
       return false;
     }
-    
+
     return true;
   }
 
   Future<void> _showTimePicker() async {
-    final TimeOfDay? pickedTime = await showTimePicker(
+    final initialTime = TimeOfDay.fromDateTime(selectedTime);
+    int hour12 = initialTime.hourOfPeriod == 0 ? 12 : initialTime.hourOfPeriod;
+    int minute = initialTime.minute;
+    bool tempIsPM = initialTime.hour >= 12;
+
+    await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.fromDateTime(selectedTime),
+      initialTime: TimeOfDay(hour: hour12, minute: minute),
       builder: (BuildContext context, Widget? child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Colors.blue,
+        return Localizations.override(
+          context: context,
+          locale: const Locale('en', 'US'), // Set locale to US for 12-hour format
+          child: MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              alwaysUse24HourFormat: false, // Enforce 12-hour format
+            ),
+            child: Theme(
+              data: ThemeData.light().copyWith(
+                colorScheme: const ColorScheme.light(
+                  primary: Colors.blue,
+                ),
+                timePickerTheme: TimePickerThemeData(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  hourMinuteTextStyle: const TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  // Hide default AM/PM text
+                  dayPeriodTextStyle: const TextStyle(
+                    fontSize: 0,
+                    color: Colors.transparent,
+                  ),
+                  dayPeriodBorderSide: const BorderSide(
+                    color: Colors.transparent,
+                  ),
+                  dialTextColor: MaterialStateColor.resolveWith(
+                    (states) => states.contains(MaterialState.selected)
+                        ? Colors.white
+                        : Colors.black,
+                  ),
+                  dialHandColor: Colors.blue,
+                  hourMinuteShape: const CircleBorder(),
+                ),
+              ),
+              child: StatefulBuilder(
+                builder: (BuildContext context, StateSetter setState) {
+                  return Stack(
+                    children: [
+                      if (child != null) child,
+                      Positioned(
+                        right: 50,
+                        top: 180,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _buildAmPmButton('AM', !tempIsPM, () {
+                              setState(() {
+                                tempIsPM = false;
+                              });
+                            }),
+                            const SizedBox(width: 8),
+                            _buildAmPmButton('PM', tempIsPM, () {
+                              setState(() {
+                                tempIsPM = true;
+                              });
+                            }),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
           ),
-          child: child!,
         );
       },
-    );
+    ).then((pickedTime) {
+      if (pickedTime != null) {
+        // Convert selected time to 24-hour format for DateTime
+        int pickedHour = pickedTime.hourOfPeriod == 0 ? 12 : pickedTime.hourOfPeriod;
+        final hour24 = tempIsPM
+            ? (pickedHour == 12 ? 12 : pickedHour + 12)
+            : (pickedHour == 12 ? 0 : pickedHour);
 
-    if (pickedTime != null) {
-      final newTime = DateTime(
-        DateTime.now().year,
-        DateTime.now().month,
-        DateTime.now().day,
-        pickedTime.hour,
-        pickedTime.minute,
-      );
-      
-      final isValid = _validateTime(newTime);
-      
-      setState(() {
-        selectedTime = newTime;
-        isTimeValid = isValid;
-      });
+        final newTime = DateTime(
+          DateTime.now().year,
+          DateTime.now().month,
+          DateTime.now().day,
+          hour24,
+          pickedTime.minute,
+        );
 
-      if (isValid) {
-        widget.onTimeSelected(newTime);
+        final isValid = _validateTime(newTime);
+
+        setState(() {
+          selectedTime = newTime;
+          isTimeValid = isValid;
+          isPM = tempIsPM;
+        });
+
+        if (isValid) {
+          widget.onTimeSelected(newTime);
+        }
       }
-    }
+    });
+  }
+
+  Widget _buildAmPmButton(String label, bool isSelected, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue : Colors.grey[200],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+          ),
+        ),
+      ),
+    );
   }
 }

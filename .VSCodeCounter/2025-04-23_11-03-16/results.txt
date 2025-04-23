@@ -1,17 +1,17 @@
-Date : 2025-04-22 18:02:44
+Date : 2025-04-23 11:03:16
 Directory : c:\Users\Acer\u_teen
-Total : 107 files,  11017 codes, 376 comments, 924 blanks, all 12317 lines
+Total : 106 files,  11265 codes, 379 comments, 930 blanks, all 12574 lines
 
 Languages
 +-----------------+------------+------------+------------+------------+------------+
 | language        | files      | code       | comment    | blank      | total      |
 +-----------------+------------+------------+------------+------------+------------+
-| Dart            |         57 |      8,706 |        147 |        662 |      9,515 |
-| JSON            |         11 |      1,143 |          0 |          6 |      1,149 |
+| Dart            |         57 |      8,841 |        150 |        668 |      9,659 |
+| JSON            |         10 |      1,255 |          0 |          6 |      1,261 |
 | C++             |         16 |        547 |        131 |        189 |        867 |
 | XML             |         10 |        471 |         53 |         12 |        536 |
 | Swift           |          6 |         61 |          7 |         21 |         89 |
-| YAML            |          2 |         47 |         23 |         18 |         88 |
+| YAML            |          2 |         48 |         23 |         18 |         89 |
 | HTML            |          1 |         19 |         15 |          5 |         39 |
 | Markdown        |          2 |         13 |          0 |          9 |         22 |
 | Java Properties |          2 |         10 |          0 |          2 |         12 |
@@ -21,8 +21,8 @@ Directories
 +------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
 | path                                                                               | files      | code       | comment    | blank      | total      |
 +------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
-| .                                                                                  |        107 |     11,017 |        376 |        924 |     12,317 |
-| . (Files)                                                                          |          5 |        947 |         23 |         27 |        997 |
+| .                                                                                  |        106 |     11,265 |        379 |        930 |     12,574 |
+| . (Files)                                                                          |          5 |        948 |         23 |         27 |        998 |
 | android                                                                            |          9 |         77 |         51 |         11 |        139 |
 | android (Files)                                                                    |          1 |          3 |          0 |          1 |          4 |
 | android\app                                                                        |          7 |         67 |         51 |          9 |        127 |
@@ -38,8 +38,9 @@ Directories
 | android\app\src\profile                                                            |          1 |          3 |          4 |          1 |          8 |
 | android\gradle                                                                     |          1 |          7 |          0 |          1 |          8 |
 | android\gradle\wrapper                                                             |          1 |          7 |          0 |          1 |          8 |
-| assets                                                                             |          5 |          5 |          0 |          0 |          5 |
-| assets\animation                                                                   |          5 |          5 |          0 |          0 |          5 |
+| assets                                                                             |          4 |        117 |          0 |          0 |        117 |
+| assets\animation                                                                   |          3 |          3 |          0 |          0 |          3 |
+| assets\logo                                                                        |          1 |        114 |          0 |          0 |        114 |
 | ios                                                                                |          8 |        229 |          4 |         13 |        246 |
 | ios\Runner                                                                         |          7 |        222 |          2 |          9 |        233 |
 | ios\Runner (Files)                                                                 |          2 |         13 |          0 |          3 |         16 |
@@ -48,21 +49,21 @@ Directories
 | ios\Runner\Assets.xcassets\AppIcon.appiconset                                      |          1 |        122 |          0 |          1 |        123 |
 | ios\Runner\Assets.xcassets\LaunchImage.imageset                                    |          2 |         26 |          0 |          3 |         29 |
 | ios\Runner\Base.lproj                                                              |          2 |         61 |          2 |          2 |         65 |
-| lib                                                                                |         56 |      8,692 |        137 |        655 |      9,484 |
-| lib (Files)                                                                        |          1 |        334 |          1 |         33 |        368 |
+| lib                                                                                |         56 |      8,827 |        140 |        661 |      9,628 |
+| lib (Files)                                                                        |          1 |        333 |          6 |         31 |        370 |
 | lib\auth                                                                           |          4 |        220 |          5 |         25 |        250 |
 | lib\data                                                                           |          3 |        144 |          8 |         14 |        166 |
 | lib\models                                                                         |          6 |        304 |          3 |         32 |        339 |
 | lib\providers                                                                      |          6 |        561 |         19 |         93 |        673 |
 | lib\repositories                                                                   |          1 |         40 |          0 |          7 |         47 |
-| lib\screens                                                                        |         16 |      4,323 |         50 |        261 |      4,634 |
+| lib\screens                                                                        |         16 |      4,367 |         50 |        266 |      4,683 |
 | lib\screens (Files)                                                                |          1 |        265 |          1 |         21 |        287 |
-| lib\screens\customer                                                               |          7 |      1,851 |         11 |        109 |      1,971 |
+| lib\screens\customer                                                               |          7 |      1,895 |         11 |        114 |      2,020 |
 | lib\screens\seller                                                                 |          8 |      2,207 |         38 |        131 |      2,376 |
 | lib\services                                                                       |          2 |        216 |         19 |         34 |        269 |
 | lib\utils                                                                          |          2 |         73 |          1 |          8 |         82 |
-| lib\widgets                                                                        |         15 |      2,477 |         31 |        148 |      2,656 |
-| lib\widgets (Files)                                                                |          5 |      1,178 |         25 |         71 |      1,274 |
+| lib\widgets                                                                        |         15 |      2,569 |         29 |        151 |      2,749 |
+| lib\widgets (Files)                                                                |          5 |      1,270 |         23 |         74 |      1,367 |
 | lib\widgets\customer                                                               |          6 |        917 |          6 |         52 |        975 |
 | lib\widgets\seller                                                                 |          4 |        382 |          0 |         25 |        407 |
 | linux                                                                              |          5 |        107 |         37 |         45 |        189 |
@@ -100,9 +101,8 @@ Files
 | c:\Users\Acer\u_teen\android\gradle\wrapper\gradle-wrapper.properties              | Java Properties |          7 |          0 |          1 |          8 |
 | c:\Users\Acer\u_teen\assets\animation\empty_cart.json                              | JSON            |          1 |          0 |          0 |          1 |
 | c:\Users\Acer\u_teen\assets\animation\empty_order.json                             | JSON            |          1 |          0 |          0 |          1 |
-| c:\Users\Acer\u_teen\assets\animation\empty_payment.json                           | JSON            |          1 |          0 |          0 |          1 |
 | c:\Users\Acer\u_teen\assets\animation\success_checkmark.json                       | JSON            |          1 |          0 |          0 |          1 |
-| c:\Users\Acer\u_teen\assets\animation\withdrawal.json                              | JSON            |          1 |          0 |          0 |          1 |
+| c:\Users\Acer\u_teen\assets\logo\u.json                                            | JSON            |        114 |          0 |          0 |        114 |
 | c:\Users\Acer\u_teen\ios\RunnerTests\RunnerTests.swift                             | Swift           |          7 |          2 |          4 |         13 |
 | c:\Users\Acer\u_teen\ios\Runner\AppDelegate.swift                                  | Swift           |         12 |          0 |          2 |         14 |
 | c:\Users\Acer\u_teen\ios\Runner\Assets.xcassets\AppIcon.appiconset\Contents.json   | JSON            |        122 |          0 |          1 |        123 |
@@ -118,7 +118,7 @@ Files
 | c:\Users\Acer\u_teen\lib\data\food_data.dart                                       | Dart            |         76 |          0 |          5 |         81 |
 | c:\Users\Acer\u_teen\lib\data\payment_methods_data.dart                            | Dart            |         22 |          0 |          2 |         24 |
 | c:\Users\Acer\u_teen\lib\data\search_data.dart                                     | Dart            |         46 |          8 |          7 |         61 |
-| c:\Users\Acer\u_teen\lib\main.dart                                                 | Dart            |        334 |          1 |         33 |        368 |
+| c:\Users\Acer\u_teen\lib\main.dart                                                 | Dart            |        333 |          6 |         31 |        370 |
 | c:\Users\Acer\u_teen\lib\models\balance_model.dart                                 | Dart            |         59 |          0 |          7 |         66 |
 | c:\Users\Acer\u_teen\lib\models\cart_item.dart                                     | Dart            |         25 |          0 |          4 |         29 |
 | c:\Users\Acer\u_teen\lib\models\favorite_item.dart                                 | Dart            |         34 |          2 |          5 |         41 |
@@ -135,9 +135,9 @@ Files
 | c:\Users\Acer\u_teen\lib\screens\customer\favorite_screen.dart                     | Dart            |        198 |          0 |          4 |        202 |
 | c:\Users\Acer\u_teen\lib\screens\customer\home_screen.dart                         | Dart            |        487 |          3 |         28 |        518 |
 | c:\Users\Acer\u_teen\lib\screens\customer\my_orders_screen.dart                    | Dart            |        189 |          4 |         12 |        205 |
-| c:\Users\Acer\u_teen\lib\screens\customer\payment_screen.dart                      | Dart            |        290 |          4 |         24 |        318 |
+| c:\Users\Acer\u_teen\lib\screens\customer\payment_screen.dart                      | Dart            |        321 |          4 |         28 |        353 |
 | c:\Users\Acer\u_teen\lib\screens\customer\payment_success_screen.dart              | Dart            |        107 |          0 |          5 |        112 |
-| c:\Users\Acer\u_teen\lib\screens\customer\profile_screen.dart                      | Dart            |        184 |          0 |          4 |        188 |
+| c:\Users\Acer\u_teen\lib\screens\customer\profile_screen.dart                      | Dart            |        197 |          0 |          5 |        202 |
 | c:\Users\Acer\u_teen\lib\screens\customer\shopping_cart_screen.dart                | Dart            |        396 |          0 |         32 |        428 |
 | c:\Users\Acer\u_teen\lib\screens\login_screen.dart                                 | Dart            |        265 |          1 |         21 |        287 |
 | c:\Users\Acer\u_teen\lib\screens\seller\cancellation_screen.dart                   | Dart            |         63 |          0 |          6 |         69 |
@@ -166,7 +166,7 @@ Files
 | c:\Users\Acer\u_teen\lib\widgets\seller\sales_metric_card.dart                     | Dart            |         62 |          0 |          3 |         65 |
 | c:\Users\Acer\u_teen\lib\widgets\seller\seller_custom_bottom_navigation.dart       | Dart            |        164 |          0 |         16 |        180 |
 | c:\Users\Acer\u_teen\lib\widgets\seller\status_button.dart                         | Dart            |         72 |          0 |          3 |         75 |
-| c:\Users\Acer\u_teen\lib\widgets\time_picker_widget.dart                           | Dart            |        112 |          2 |         15 |        129 |
+| c:\Users\Acer\u_teen\lib\widgets\time_picker_widget.dart                           | Dart            |        204 |          0 |         18 |        222 |
 | c:\Users\Acer\u_teen\linux\flutter\generated_plugin_registrant.cc                  | C++             |          7 |          4 |          5 |         16 |
 | c:\Users\Acer\u_teen\linux\flutter\generated_plugin_registrant.h                   | C++             |          5 |          5 |          6 |         16 |
 | c:\Users\Acer\u_teen\linux\runner\main.cc                                          | C++             |          5 |          0 |          2 |          7 |
@@ -180,7 +180,7 @@ Files
 | c:\Users\Acer\u_teen\macos\Runner\MainFlutterWindow.swift                          | Swift           |         12 |          0 |          4 |         16 |
 | c:\Users\Acer\u_teen\package-lock.json                                             | JSON            |        862 |          0 |          1 |        863 |
 | c:\Users\Acer\u_teen\package.json                                                  | JSON            |         28 |          0 |          1 |         29 |
-| c:\Users\Acer\u_teen\pubspec.yaml                                                  | YAML            |         44 |          1 |         14 |         59 |
+| c:\Users\Acer\u_teen\pubspec.yaml                                                  | YAML            |         45 |          1 |         14 |         60 |
 | c:\Users\Acer\u_teen\test\widget_test.dart                                         | Dart            |         14 |         10 |          7 |         31 |
 | c:\Users\Acer\u_teen\web\index.html                                                | HTML            |         19 |         15 |          5 |         39 |
 | c:\Users\Acer\u_teen\web\manifest.json                                             | JSON            |         35 |          0 |          1 |         36 |
@@ -194,5 +194,5 @@ Files
 | c:\Users\Acer\u_teen\windows\runner\utils.h                                        | C++             |          8 |          6 |          6 |         20 |
 | c:\Users\Acer\u_teen\windows\runner\win32_window.cpp                               | C++             |        210 |         24 |         55 |        289 |
 | c:\Users\Acer\u_teen\windows\runner\win32_window.h                                 | C++             |         48 |         31 |         24 |        103 |
-| Total                                                                              |                 |     11,017 |        376 |        924 |     12,317 |
+| Total                                                                              |                 |     11,265 |        379 |        930 |     12,574 |
 +------------------------------------------------------------------------------------+-----------------+------------+------------+------------+------------+

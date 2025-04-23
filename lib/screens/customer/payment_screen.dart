@@ -1,9 +1,9 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:u_teen/auth/auth_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
+import '../../auth/auth_provider.dart';
 import '../../models/payment_method.dart';
 import '../../data/payment_methods_data.dart';
 import '../../widgets/payment_method_card.dart';
@@ -14,14 +14,13 @@ import '../../providers/cart_provider.dart';
 import '../../providers/order_provider.dart';
 import '../../models/cart_item.dart';
 import '../../models/order_model.dart';
-import '../../models/product_model.dart';
 
 class PaymentScreen extends StatefulWidget {
   final List<CartItem> items;
   final int totalPrice;
 
   const PaymentScreen({Key? key, required this.items, required this.totalPrice})
-    : super(key: key);
+      : super(key: key);
 
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();
@@ -60,7 +59,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     final merchantName = widget.items.isNotEmpty
         ? widget.items.first.subtitle
         : 'Unknown Merchant';
-        
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -122,28 +121,28 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 const Text('Order for', style: TextStyle(color: Colors.grey)),
                 const SizedBox(width: 4),
                 Text(
-                  'Today, ${DateFormat('HH:mm').format(pickupTime)}',
+                  'Today, ${DateFormat('hh:mm a').format(pickupTime)}',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
             const Divider(height: 24),
             ...widget.items.map((item) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(
-                    child: Text(
-                      '${item.name} (${item.quantity}x)',
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 2,
-                    ),
+                  padding: const EdgeInsets.symmetric(vertical: 6.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          '${item.name} (${item.quantity}x)',
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
+                        ),
+                      ),
+                      Text('${currencyFormat.format(item.price)} x ${item.quantity}'),
+                    ],
                   ),
-                  Text('${currencyFormat.format(item.price)} x ${item.quantity}'),
-                ],
-              ),
-            )).toList(),
+                )),
             const Divider(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -171,148 +170,166 @@ class _PaymentScreenState extends State<PaymentScreen> {
         ),
         const SizedBox(height: 12),
         ...paymentMethods.map((method) => Column(
-          children: [
-            PaymentMethodCard(
-              method: method,
-              isSelected: selectedPaymentMethod == method.id,
-              onTap: () {
-                setState(() {
-                  selectedPaymentMethod = method.id;
-                  showPhoneInput = method.requiresPhoneNumber;
-                  if (!method.requiresPhoneNumber) phoneNumber = '';
-                });
-              },
-            ),
-            const SizedBox(height: 12),
-          ],
-        ))
+              children: [
+                PaymentMethodCard(
+                  method: method,
+                  isSelected: selectedPaymentMethod == method.id,
+                  onTap: () {
+                    setState(() {
+                      selectedPaymentMethod = method.id;
+                      showPhoneInput = method.requiresPhoneNumber;
+                      if (!method.requiresPhoneNumber) phoneNumber = '';
+                    });
+                  },
+                ),
+                const SizedBox(height: 12),
+              ],
+            )),
       ],
     );
   }
 
+  bool _isTimeValid() {
+  final now = DateTime.now();
+  final hour = pickupTime.hour;
 
-  Widget _buildPlaceOrderButton(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: isProcessing ? null : () => _processPayment(context),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: isProcessing
-              ? Colors.grey[400]
-              : (selectedPaymentMethod != null ? _getBorderColor() : Colors.blue),
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+  // Check if time is in the past
+  if (pickupTime.isBefore(now)) {
+    return false;
+  }
+
+  // Check if time is within business hours (8 AM - 5 PM)
+  if (hour < 8 || hour >= 17) {
+    return false;
+  }
+
+  return true;
+}
+
+// Update the button building method
+Widget _buildPlaceOrderButton(BuildContext context) {
+  final isTimeValid = _isTimeValid();
+  final isButtonEnabled = selectedPaymentMethod != null && isTimeValid && !isProcessing;
+
+  return SizedBox(
+    width: double.infinity,
+    child: ElevatedButton(
+      onPressed: isButtonEnabled ? () => _processPayment(context) : null,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isButtonEnabled
+            ? (selectedPaymentMethod != null ? _getBorderColor() : Colors.blue)
+            : Colors.grey[400],
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            AnimatedOpacity(
-              opacity: isProcessing ? 0 : 1,
-              duration: const Duration(milliseconds: 200),
-              child: const Text(
-                'Place Order',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          AnimatedOpacity(
+            opacity: isProcessing ? 0 : 1,
+            duration: const Duration(milliseconds: 200),
+            child: Text(
+              isButtonEnabled ? 'Place Order' : 
+                (selectedPaymentMethod == null ? 'Select Payment Method' : 'Invalid Pickup Time'),
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            if (isProcessing)
-              const SizedBox(
-                height: 24,
-                width: 24,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 3,
-                ),
+          ),
+          if (isProcessing)
+            const SizedBox(
+              height: 24,
+              width: 24,
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 3,
               ),
-          ],
-        ),
+            ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Future<void> _processPayment(BuildContext context) async {
-  if (!_formKey.currentState!.validate()) return;
-  if (selectedPaymentMethod == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Please select a payment method')),
-    );
-    return;
-  }
-
-  setState(() => isProcessing = true);
-
-  try {
-    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
-    final cartProvider = Provider.of<CartProvider>(context, listen: false);
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    
-    // Get seller email from the first item in cart
-    final sellerEmail = widget.items.isNotEmpty 
-        ? widget.items.first.sellerEmail 
-        : null;
-
-    if (sellerEmail == null) {
-      throw Exception('Seller information not available');
+    if (!_formKey.currentState!.validate()) return;
+    if (selectedPaymentMethod == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a payment method')),
+      );
+      return;
     }
 
-    // Get merchant name from first item's subtitle
-    final merchantName = widget.items.isNotEmpty 
-        ? widget.items.first.subtitle 
-        : 'Unknown Merchant';
-    
-    final customerName = authProvider.user?.name ?? 'Customer';
+    setState(() => isProcessing = true);
 
-    final newOrder = Order(
-      id: _generateOrderId(),
-      orderTime: DateTime.now(),
-      pickupTime: pickupTime,
-      items: widget.items.map((item) => OrderItem(
-        name: item.name,
-        image: item.image,
-        subtitle: item.subtitle,
-        price: item.price,
-        quantity: item.quantity,
-        sellerEmail: item.sellerEmail, // Add seller email to each item
-      )).toList(),
-      paymentMethod: paymentMethods
-          .firstWhere((m) => m.id == selectedPaymentMethod)
-          .name,
-      merchantName: merchantName,
-      merchantEmail: sellerEmail, // Set seller email for the order
-      customerName: customerName,
-      notes: notes.isNotEmpty ? notes : null,
-    );
+    try {
+      final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+      final cartProvider = Provider.of<CartProvider>(context, listen: false);
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    await orderProvider.addOrder(newOrder);
-    cartProvider.removeItems(widget.items);
+      // Get seller email from the first item in cart
+      final sellerEmail = widget.items.isNotEmpty ? widget.items.first.sellerEmail : null;
 
-    // Here you would typically send the order to the seller's email
-    // For now we'll just log it
-    debugPrint('Order sent to seller: $sellerEmail');
-    
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PaymentSuccessScreen(order: newOrder),
-      ),
-    );
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error: ${e.toString()}')),
-    );
-  } finally {
-    if (mounted) setState(() => isProcessing = false);
+      if (sellerEmail == null) {
+        throw Exception('Seller information not available');
+      }
+
+      // Get merchant name from first item's subtitle
+      final merchantName = widget.items.isNotEmpty ? widget.items.first.subtitle : 'Unknown Merchant';
+
+      final customerName = authProvider.user?.name ?? 'Customer';
+
+      final newOrder = Order(
+        id: _generateOrderId(),
+        orderTime: DateTime.now(),
+        pickupTime: pickupTime,
+        items: widget.items
+            .map((item) => OrderItem(
+                  name: item.name,
+                  image: item.image,
+                  subtitle: item.subtitle,
+                  price: item.price,
+                  quantity: item.quantity,
+                  sellerEmail: item.sellerEmail,
+                ))
+            .toList(),
+        paymentMethod: paymentMethods.firstWhere((m) => m.id == selectedPaymentMethod).name,
+        merchantName: merchantName,
+        merchantEmail: sellerEmail,
+        customerName: customerName,
+        notes: notes.isNotEmpty ? notes : null,
+      );
+
+      await orderProvider.addOrder(newOrder);
+      cartProvider.removeItems(widget.items);
+
+      // Here you would typically send the order to the seller's email
+      // For now we'll just log it
+      debugPrint('Order sent to seller: $sellerEmail');
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PaymentSuccessScreen(order: newOrder),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    } finally {
+      if (mounted) setState(() => isProcessing = false);
+    }
   }
-}
 
   String _generateOrderId() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final random = Random();
     return List.generate(6, (index) => chars[random.nextInt(chars.length)]).join();
   }
+  
 }
