@@ -70,6 +70,7 @@ class AuthWrapper extends StatelessWidget {
       future: auth.initialize(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
+          // Selalu tampilkan SplashScreen terlebih dahulu
           return const SplashScreen();
         }
         return const Scaffold(
@@ -182,29 +183,22 @@ class _SplashScreenState extends State<SplashScreen>
 
     await Future.delayed(const Duration(milliseconds: 800));
     _bgController.forward().then((_) {
-      _buttonController.forward().then((_) {
-        _navigateBasedOnAuthStatus();
-      });
+      // Periksa status login setelah animasi logo, teks, dan latar belakang selesai
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      if (auth.isLoggedIn) {
+        // Jika sudah login, langsung navigasi ke HomeScreen atau SellerHomeScreen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                auth.isSeller ? const SellerHomeScreen() : const HomeScreen(),
+          ),
+        );
+      } else {
+        // Jika belum login, jalankan animasi tombol
+        _buttonController.forward();
+      }
     });
-  }
-
-  void _navigateBasedOnAuthStatus() {
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-    if (auth.isLoggedIn) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) =>
-              auth.isSeller ? const SellerHomeScreen() : const HomeScreen(),
-        ),
-      );
-    } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => const LoginScreen(),
-          settings: const RouteSettings(name: '/login'),
-        ),
-      );
-    }
   }
 
   @override
@@ -218,8 +212,6 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
-
     return AnimatedBuilder(
       animation: Listenable.merge([
         _logoController,
@@ -238,7 +230,16 @@ class _SplashScreenState extends State<SplashScreen>
                   scale: _logoScale,
                   child: FadeTransition(
                     opacity: _logoOpacity,
-                    child: const FlutterLogo(size: 100),
+                    child: Image.asset(
+                      'assets/logo/u.png',
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        // Fallback ke FlutterLogo jika gambar gagal dimuat
+                        return const FlutterLogo(size: 100);
+                      },
+                    ),
                   ),
                 ),
 
@@ -275,7 +276,7 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
 
-                if (_bgController.isCompleted && !auth.isLoggedIn) ...[
+                if (_bgController.isCompleted) ...[
                   const SizedBox(height: 100),
                   _buildAnimatedAuthButtons(),
                 ],
@@ -329,7 +330,7 @@ class _SplashScreenState extends State<SplashScreen>
                   elevation: 0,
                 ),
                 onPressed: () {
-                  Navigator.push(
+                  Navigator.pushReplacement(
                     context,
                     PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
@@ -346,6 +347,7 @@ class _SplashScreenState extends State<SplashScreen>
                         );
                       },
                       transitionDuration: const Duration(milliseconds: 800),
+                      settings: const RouteSettings(name: '/login'),
                     ),
                   );
                 },

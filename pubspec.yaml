@@ -37,6 +37,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/logo/u.png
+
     - assets/asset/profile_picture.jpg
 
     - assets/animation/empty_cart.json
