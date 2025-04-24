@@ -2,7 +2,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/services.dart';
 import '../../auth/auth_provider.dart';
 import '../../models/payment_method.dart';
 import '../../data/payment_methods_data.dart';
@@ -255,14 +254,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
       final cartProvider = Provider.of<CartProvider>(context, listen: false);
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-      // Get seller email from the first item in cart
       final sellerEmail = widget.items.isNotEmpty ? widget.items.first.sellerEmail : null;
 
       if (sellerEmail == null) {
         throw Exception('Seller information not available');
       }
 
-      // Get merchant name from first item's subtitle
       final merchantName = widget.items.isNotEmpty ? widget.items.first.subtitle : 'Unknown Merchant';
 
       final customerName = authProvider.user?.name ?? 'Customer';
@@ -286,14 +283,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
         merchantEmail: sellerEmail,
         customerName: customerName,
         notes: notes.isNotEmpty ? notes : null,
-        isRead: false, // Set untuk notifikasi
       );
 
       await orderProvider.addOrder(newOrder);
       cartProvider.removeItems(widget.items);
 
-      // Here you would typically send the order to the seller's email
-      // For now we'll just log it
       debugPrint('Order sent to seller: $sellerEmail');
 
       Navigator.pushReplacement(
@@ -314,6 +308,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
   String _generateOrderId() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final random = Random();
-    return List.generate(6, (index) => chars[random.nextInt(chars.length)]).join();
+    return List.generate(6, (_) => chars[random.nextInt(chars.length)]).join();
   }
 }

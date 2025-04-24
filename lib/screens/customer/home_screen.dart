@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:provider/provider.dart';
+import '../../auth/auth_provider.dart';
 import '../../data/food_data.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/favorite_provider.dart';
+import '../../providers/notification_provider.dart';
 import '../../providers/order_provider.dart';
 import '../../widgets/customer/custom_bottom_navigation.dart';
 import '../../models/cart_item.dart';
@@ -15,7 +17,6 @@ import '../../widgets/customer/search_widget.dart';
 import '../../widgets/customer/category_selector.dart';
 import '../../widgets/food_list.dart';
 import '../../widgets/customer/detail_box.dart';
-import '../../auth/auth_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   final String? initialFoodItem;
@@ -227,10 +228,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final favoriteProvider = Provider.of<FavoriteProvider>(context);
-    final orderProvider = Provider.of<OrderProvider>(context);
+    final notificationProvider = Provider.of<NotificationProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
     final customerName = authProvider.user?.name ?? '';
-    final unreadNotificationCount = orderProvider.getUnreadNotificationCount(customerName);
+    final unreadNotificationCount =
+        notificationProvider.getUnreadCountForCustomer(customerName);
     final theme = Theme.of(context);
 
     return WillPopScope(
@@ -395,8 +397,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             ),
                           ),
                         ),
-
-                        // Semi-transparent overlay
                         if (isDetailVisible)
                           Positioned.fill(
                             child: GestureDetector(
@@ -406,8 +406,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               ),
                             ),
                           ),
-
-                        // Improved DetailBox
                         if (isDetailVisible)
                           Positioned(
                             bottom: 0,
@@ -423,16 +421,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   context,
                                   listen: false,
                                 );
-
-                                // Get the full food item to access sellerEmail
-                                final foodItem = FoodData.getFoodItems(
-                                  'All',
-                                ).firstWhere(
+                                final foodItem = FoodData.getFoodItems('All').firstWhere(
                                   (item) =>
                                       item['title'] == selectedFoodItem &&
                                       item['imgUrl'] == selectedFoodImgUrl,
                                 );
-
                                 cartProvider.addToCart(
                                   CartItem(
                                     name: selectedFoodItem,
@@ -488,6 +481,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       ),
                                       backgroundColor: Colors.blue[800],
                                     ),
+                                 
                                   );
                                 } else {
                                   favoriteProvider.addToFavorites(

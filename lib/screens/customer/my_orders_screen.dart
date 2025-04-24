@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:u_teen/auth/auth_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:lottie/lottie.dart';
+import '../../auth/auth_provider.dart';
 import '../../widgets/customer/custom_bottom_navigation.dart';
 import '../../providers/order_provider.dart';
 import '../../models/order_model.dart';
 import '../../widgets/order_card.dart';
 import 'home_screen.dart';
-import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 
 class MyOrdersScreen extends StatefulWidget {
   const MyOrdersScreen({super.key});
@@ -42,14 +41,18 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
     // Get orders for this customer
     final ongoingOrders = orderProvider.orders
         .where((order) =>
-            (order.status == 'pending' || order.status == 'ready') &&
+            (order.status == 'pending' ||
+                order.status == 'processing' ||
+                order.status == 'ready') &&
             order.customerName == customerName)
         .toList()
       ..sort((a, b) {
-        // Prioritize 'ready' over 'pending'
-        if (a.status == 'ready' && b.status == 'pending') return -1;
-        if (a.status == 'pending' && b.status == 'ready') return 1;
-        return 0;
+        const statusPriority = {
+          'ready': 1,
+          'pending': 2,
+          'processing': 3,
+        };
+        return statusPriority[a.status]!.compareTo(statusPriority[b.status]!);
       });
 
     final historyOrders = orderProvider.orders
@@ -120,15 +123,14 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
 
     return RefreshIndicator(
       onRefresh: () async {
-        // Refresh logic here
         await Future.delayed(const Duration(seconds: 1));
       },
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: orders.length,
         itemBuilder: (context, index) => OrderCard(
-          order: orders[index], onTap: () {  },
-          // isSellerView defaults to false for customer
+          order: orders[index],
+          onTap: () {},
         ),
       ),
     );

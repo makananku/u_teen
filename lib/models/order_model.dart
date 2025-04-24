@@ -18,7 +18,6 @@ class Order {
   final int? _appRating; // 1–5 stars
   final String? _foodNotes; // Food feedback
   final String? _appNotes; // App feedback
-  final bool isRead; // Tambahkan untuk notifikasi
 
   Order({
     required this.id,
@@ -38,7 +37,6 @@ class Order {
     int? appRating,
     String? foodNotes,
     String? appNotes,
-    this.isRead = false, // Default: belum dibaca
   })  : _foodRating = foodRating,
         _appRating = appRating,
         _foodNotes = foodNotes,
@@ -73,7 +71,6 @@ class Order {
       'appRating': _appRating,
       'foodNotes': _foodNotes,
       'appNotes': _appNotes,
-      'isRead': isRead, // Tambahkan ke map
     };
   }
 
@@ -98,7 +95,6 @@ class Order {
       appRating: map['appRating'],
       foodNotes: map['foodNotes'],
       appNotes: map['appNotes'],
-      isRead: map['isRead'] ?? false, // Tambahkan untuk backward compatibility
     );
   }
 }

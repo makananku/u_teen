@@ -5,7 +5,7 @@ import 'package:lottie/lottie.dart';
 import '../../providers/cart_provider.dart';
 import '../../models/cart_item.dart';
 import 'home_screen.dart';
-import 'payment_screen.dart'; // Import the payment screen
+import 'payment_screen.dart';
 import '../../widgets/customer/custom_bottom_navigation.dart';
 
 class ShoppingCartScreen extends StatefulWidget {

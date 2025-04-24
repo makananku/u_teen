@@ -1,146 +1,112 @@
-// import 'dart:convert';
-// import 'dart:math';
-// import 'package:flutter/material.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
-// import '../models/notification_model.dart';
-// import '../models/order_model.dart';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import '../models/notification_model.dart';
+import '../models/order_model.dart';
 
-// class NotificationProvider with ChangeNotifier {
-//   final List<NotificationModel> _notifications = [];
-//   late final SharedPreferences _prefs;
-//   bool _isSaving = false;
+class NotificationProvider with ChangeNotifier {
+  final List<NotificationModel> _notifications = [];
+  late final SharedPreferences _prefs;
+  bool _isLoading = false;
 
-//   NotificationProvider(SharedPreferences prefs) : _prefs = prefs {
-//     _loadNotifications();
-//   }
+  NotificationProvider(SharedPreferences prefs) : _prefs = prefs {
+    _loadNotifications();
+  }
 
-//   Future<void> _loadNotifications() async {
-//     final notificationsJson = _prefs.getString('notifications');
-//     if (notificationsJson != null) {
-//       try {
-//         final List<dynamic> notificationsMap = json.decode(notificationsJson);
-//         _notifications
-//             .addAll(notificationsMap.map((map) => NotificationModel.fromMap(map)));
-//         notifyListeners();
-//       } catch (e) {
-//         debugPrint('Error loading notifications: $e');
-//       }
-//     }
-//   }
+  List<NotificationModel> get notifications => List.unmodifiable(_notifications);
+  List<NotificationModel> get unreadNotifications =>
+      _notifications.where((n) => !n.isRead).toList();
+  int get unreadCount => unreadNotifications.length;
 
-//   Future<void> _saveNotifications() async {
-//     if (_isSaving) return;
-//     _isSaving = true;
+  List<NotificationModel> getNotificationsForCustomer(String customerName) {
+    return _notifications
+        .where((n) =>
+            n.type == 'order' &&
+            n.payload != null &&
+            n.payload!['customerName'] == customerName)
+        .toList();
+  }
 
-//     try {
-//       final notificationsJson =
-//           json.encode(_notifications.map((n) => n.toMap()).toList());
-//       await _prefs.setString('notifications', notificationsJson);
-//     } catch (e) {
-//       debugPrint('Error saving notifications: $e');
-//     } finally {
-//       _isSaving = false;
-//     }
-//   }
+  int getUnreadCountForCustomer(String customerName) {
+    return getNotificationsForCustomer(customerName)
+        .where((n) => !n.isRead)
+        .length;
+  }
 
-//   List<NotificationModel> get notifications => List.unmodifiable(_notifications);
+  Future<void> _loadNotifications() async {
+    if (_isLoading) return;
+    _isLoading = true;
 
-//   List<NotificationModel> getNotificationsForCustomer(
-//       String customerName, List<Order> orders) {
-//     // Filter notifikasi berdasarkan pesanan milik pelanggan
-//     final customerOrderIds =
-//         orders.where((o) => o.customerName == customerName).map((o) => o.id).toSet();
-//     return _notifications
-//         .where((n) => customerOrderIds.contains(n.orderId))
-//         .toList()
-//       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-//   }
+    try {
+      final notificationsJson = _prefs.getString('notifications');
+      if (notificationsJson != null) {
+        final List<dynamic> decoded = json.decode(notificationsJson);
+        _notifications.addAll(decoded.map((item) => NotificationModel.fromMap(item)));
+      }
+    } catch (e) {
+      debugPrint('Error loading notifications: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
-//   int getUnreadNotificationCount(String customerName, List<Order> orders) {
-//     final customerOrderIds =
-//         orders.where((o) => o.customerName == customerName).map((o) => o.id).toSet();
-//     return _notifications
-//         .where((n) =>
-//             customerOrderIds.contains(n.orderId) &&
-//             !n.isRead &&
-//             ['cancelled', 'completed', 'ready'].contains(n.status))
-//         .length;
-//   }
+  Future<void> _saveNotifications() async {
+    try {
+      final notificationsJson =
+          json.encode(_notifications.map((n) => n.toMap()).toList());
+      await _prefs.setString('notifications', notificationsJson);
+    } catch (e) {
+      debugPrint('Error saving notifications: $e');
+    }
+  }
 
-//   void addNotification(NotificationModel notification) {
-//     _notifications.insert(0, notification);
-//     notifyListeners();
-//     _saveNotifications();
-//   }
+  Future<void> addNotification(NotificationModel notification) async {
+    _notifications.insert(0, notification);
+    notifyListeners();
+    await _saveNotifications();
+  }
 
-//   void markNotificationAsRead(String notificationId) {
-//     final index = _notifications.indexWhere((n) => n.id == notificationId);
-//     if (index != -1) {
-//       _notifications[index] = NotificationModel(
-//         id: _notifications[index].id,
-//         orderId: _notifications[index].orderId,
-//         message: _notifications[index].message,
-//         status: _notifications[index].status,
-//         createdAt: _notifications[index].createdAt,
-//         isRead: true,
-//       );
-//       notifyListeners();
-//       _saveNotifications();
-//     }
-//   }
+  Future<void> markAsRead(String id) async {
+    final index = _notifications.indexWhere((n) => n.id == id);
+    if (index != -1) {
+      _notifications[index] = NotificationModel(
+        id: _notifications[index].id,
+        type: _notifications[index].type,
+        title: _notifications[index].title,
+        message: _notifications[index].message,
+        timestamp: _notifications[index].timestamp,
+        isRead: true,
+        payload: _notifications[index].payload,
+      );
+      notifyListeners();
+      await _saveNotifications();
+    }
+  }
 
-//   void markAllNotificationsAsRead(String customerName, List<Order> orders) {
-//     final customerOrderIds =
-//         orders.where((o) => o.customerName == customerName).map((o) => o.id).toSet();
-//     for (var i = 0; i < _notifications.length; i++) {
-//       if (customerOrderIds.contains(_notifications[i].orderId) &&
-//           ['cancelled', 'completed', 'ready'].contains(_notifications[i].status)) {
-//         _notifications[i] = NotificationModel(
-//           id: _notifications[i].id,
-//           orderId: _notifications[i].orderId,
-//           message: _notifications[i].message,
-//           status: _notifications[i].status,
-//           createdAt: _notifications[i].createdAt,
-//           isRead: true,
-//         );
-//       }
-//     }
-//     notifyListeners();
-//     _saveNotifications();
-//   }
+  Future<void> markAllAsRead({String? customerName}) async {
+    for (int i = 0; i < _notifications.length; i++) {
+      if (!_notifications[i].isRead &&
+          (customerName == null ||
+              (_notifications[i].payload?['customerName'] == customerName))) {
+        _notifications[i] = NotificationModel(
+          id: _notifications[i].id,
+          type: _notifications[i].type,
+          title: _notifications[i].title,
+          message: _notifications[i].message,
+          timestamp: _notifications[i].timestamp,
+          isRead: true,
+          payload: _notifications[i].payload,
+        );
+      }
+    }
+    notifyListeners();
+    await _saveNotifications();
+  }
 
-//   String _generateNotificationId() {
-//     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-//     final random = Random();
-//     return List.generate(8, (i) => chars[random.nextInt(chars.length)]).join();
-//   }
-
-//   // Membuat notifikasi dari pesanan
-//   void createNotificationFromOrder(Order order) {
-//     String message;
-//     switch (order.status) {
-//       case 'ready':
-//         message = 'Your order from ${order.merchantName} is ready for pickup!';
-//         break;
-//       case 'completed':
-//         message = 'Your order from ${order.merchantName} has been completed!';
-//         break;
-//       case 'cancelled':
-//         message =
-//             'Your order from ${order.merchantName} has been cancelled${order.cancellationReason != null ? ': ${order.cancellationReason}' : '.'}';
-//         break;
-//       default:
-//         return; // Jangan buat notifikasi untuk status lain
-//     }
-
-//     final notification = NotificationModel(
-//       id: _generateNotificationId(),
-//       orderId: order.id,
-//       message: message,
-//       status: order.status,
-//       createdAt: DateTime.now(),
-//       isRead: false,
-//     );
-//     addNotification(notification);
-//   }
-// }
+  Future<void> clearAll() async {
+    _notifications.clear();
+    notifyListeners();
+    await _saveNotifications();
+  }
+}

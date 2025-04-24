@@ -44,6 +44,7 @@ flutter:
     - assets/animation/empty_cart.json
     - assets/animation/empty_order.json
     - assets/animation/success_checkmark.json
+    - assets/animation/empty_notification.json
 
     - assets/payment/gopay.png
     - assets/payment/ovo.png

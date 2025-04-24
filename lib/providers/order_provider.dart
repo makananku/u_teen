@@ -1,15 +1,18 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:u_teen/models/order_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import '../models/order_model.dart';
+import '../models/notification_model.dart';
+import './notification_provider.dart';
 
 class OrderProvider with ChangeNotifier {
   final List<Order> _orders = [];
   late final SharedPreferences _prefs;
+  final NotificationProvider _notificationProvider;
   bool _isSaving = false;
 
-  OrderProvider(SharedPreferences prefs) : _prefs = prefs {
+  OrderProvider(SharedPreferences prefs, this._notificationProvider) : _prefs = prefs {
     _loadOrders();
   }
 
@@ -138,8 +141,11 @@ class OrderProvider with ChangeNotifier {
         appRating: _orders[index].appRating,
         foodNotes: _orders[index].foodNotes,
         appNotes: _orders[index].appNotes,
-        isRead: _orders[index].isRead,
       );
+      if (['ready', 'completed', 'cancelled'].contains(newStatus)) {
+        await _notificationProvider.addNotification(
+            NotificationModel.fromOrder(_orders[index]));
+      }
       notifyListeners();
       await _saveOrders();
     }
@@ -173,8 +179,9 @@ class OrderProvider with ChangeNotifier {
         appRating: appRating,
         foodNotes: foodNotes,
         appNotes: appNotes,
-        isRead: _orders[index].isRead,
       );
+      await _notificationProvider.addNotification(
+          NotificationModel.fromOrder(_orders[index]));
       notifyListeners();
       await _saveOrders();
     }
@@ -204,7 +211,6 @@ class OrderProvider with ChangeNotifier {
       appRating: null,
       foodNotes: null,
       appNotes: null,
-      isRead: false, // Set untuk notifikasi
     );
   }
 
@@ -234,7 +240,6 @@ class OrderProvider with ChangeNotifier {
       customerName: 'Withdrawal',
       status: 'processed',
       notes: 'Withdrawal to $method',
-      isRead: false,
     );
 
     _orders.insert(0, withdrawal);
@@ -273,7 +278,7 @@ class OrderProvider with ChangeNotifier {
   String _generateOrderId() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final random = Random();
-    return List.generate(6, (i) => chars[random.nextInt(chars.length)]).join();
+    return List.generate(6, (_) => chars[random.nextInt(chars.length)]).join();
   }
 
   int getTotalEarningsForMerchant(String merchantEmail) {
@@ -281,72 +286,5 @@ class OrderProvider with ChangeNotifier {
         .where((order) =>
             order.merchantEmail == merchantEmail && order.status == 'completed')
         .fold(0, (int sum, order) => sum + order.totalPrice.round());
-  }
-
-  // Notification methods
-  void markOrderAsRead(String orderId) {
-    final index = _orders.indexWhere((order) => order.id == orderId);
-    if (index != -1) {
-      _orders[index] = Order(
-        id: _orders[index].id,
-        orderTime: _orders[index].orderTime,
-        pickupTime: _orders[index].pickupTime,
-        items: _orders[index].items,
-        paymentMethod: _orders[index].paymentMethod,
-        merchantName: _orders[index].merchantName,
-        merchantEmail: _orders[index].merchantEmail,
-        customerName: _orders[index].customerName,
-        status: _orders[index].status,
-        cancellationReason: _orders[index].cancellationReason,
-        notes: _orders[index].notes,
-        completedTime: _orders[index].completedTime,
-        cancelledTime: _orders[index].cancelledTime,
-        foodRating: _orders[index].foodRating,
-        appRating: _orders[index].appRating,
-        foodNotes: _orders[index].foodNotes,
-        appNotes: _orders[index].appNotes,
-        isRead: true,
-      );
-      notifyListeners();
-      _saveOrders();
-    }
-  }
-
-  void markAllOrdersAsRead() {
-    for (var i = 0; i < _orders.length; i++) {
-      if (['cancelled', 'completed', 'ready'].contains(_orders[i].status)) {
-        _orders[i] = Order(
-          id: _orders[i].id,
-          orderTime: _orders[i].orderTime,
-          pickupTime: _orders[i].pickupTime,
-          items: _orders[i].items,
-          paymentMethod: _orders[i].paymentMethod,
-          merchantName: _orders[i].merchantName,
-          merchantEmail: _orders[i].merchantEmail,
-          customerName: _orders[i].customerName,
-          status: _orders[i].status,
-          cancellationReason: _orders[i].cancellationReason,
-          notes: _orders[i].notes,
-          completedTime: _orders[i].completedTime,
-          cancelledTime: _orders[i].cancelledTime,
-          foodRating: _orders[i].foodRating,
-          appRating: _orders[i].appRating,
-          foodNotes: _orders[i].foodNotes,
-          appNotes: _orders[i].appNotes,
-          isRead: true,
-        );
-      }
-    }
-    notifyListeners();
-    _saveOrders();
-  }
-
-  int getUnreadNotificationCount(String customerName) {
-    return _orders
-        .where((order) =>
-            ['cancelled', 'completed', 'ready'].contains(order.status) &&
-            !order.isRead &&
-            order.customerName == customerName)
-        .length;
   }
 }

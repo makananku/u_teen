@@ -9,16 +9,16 @@ import 'providers/cart_provider.dart';
 import 'providers/favorite_provider.dart';
 import 'providers/food_provider.dart';
 import 'providers/order_provider.dart';
+import 'providers/notification_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/customer/home_screen.dart';
 import 'screens/seller/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Inisialisasi format tanggal untuk bahasa Indonesia
+
   await initializeDateFormatting('id_ID', null);
-  
+
   final prefs = await SharedPreferences.getInstance();
 
   runApp(
@@ -29,7 +29,13 @@ void main() async {
         ChangeNotifierProvider(create: (context) => CartProvider()),
         ChangeNotifierProvider(create: (context) => FavoriteProvider(prefs)),
         ChangeNotifierProvider(create: (context) => FoodProvider()),
-        ChangeNotifierProvider(create: (context) => OrderProvider(prefs)),
+        ChangeNotifierProvider(create: (context) => NotificationProvider(prefs)),
+        ChangeNotifierProvider(
+          create: (context) => OrderProvider(
+            prefs,
+            Provider.of<NotificationProvider>(context, listen: false),
+          ),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -52,7 +58,7 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
       ],
       supportedLocales: const [
-        Locale('id', 'ID'), // Bahasa Indonesia
+        Locale('id', 'ID'),
       ],
       home: const AuthWrapper(),
     );
@@ -70,7 +76,6 @@ class AuthWrapper extends StatelessWidget {
       future: auth.initialize(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
-          // Selalu tampilkan SplashScreen terlebih dahulu
           return const SplashScreen();
         }
         return const Scaffold(
@@ -90,8 +95,7 @@ class SplashScreen extends StatefulWidget {
   _SplashScreenState createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
-    with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
   late AnimationController _logoController;
   late Animation<double> _logoScale;
   late Animation<double> _logoOpacity;
@@ -183,10 +187,8 @@ class _SplashScreenState extends State<SplashScreen>
 
     await Future.delayed(const Duration(milliseconds: 800));
     _bgController.forward().then((_) {
-      // Periksa status login setelah animasi logo, teks, dan latar belakang selesai
       final auth = Provider.of<AuthProvider>(context, listen: false);
       if (auth.isLoggedIn) {
-        // Jika sudah login, langsung navigasi ke HomeScreen atau SellerHomeScreen
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -195,7 +197,6 @@ class _SplashScreenState extends State<SplashScreen>
           ),
         );
       } else {
-        // Jika belum login, jalankan animasi tombol
         _buttonController.forward();
       }
     });
@@ -236,15 +237,12 @@ class _SplashScreenState extends State<SplashScreen>
                       height: 100,
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) {
-                        // Fallback ke FlutterLogo jika gambar gagal dimuat
                         return const FlutterLogo(size: 100);
                       },
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 30),
-
                 SlideTransition(
                   position: _textSlide,
                   child: FadeTransition(
@@ -275,7 +273,6 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                   ),
                 ),
-
                 if (_bgController.isCompleted) ...[
                   const SizedBox(height: 100),
                   _buildAnimatedAuthButtons(),
