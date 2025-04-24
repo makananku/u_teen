@@ -9,7 +9,7 @@ class FavoriteProvider with ChangeNotifier {
 
   List<FavoriteItem> get favoriteItems => _favoriteItems;
 
-  FavoriteProvider() {
+  FavoriteProvider(SharedPreferences prefs) {
     _loadFavorites();
   }
 

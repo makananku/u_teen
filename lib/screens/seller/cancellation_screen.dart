@@ -61,7 +61,7 @@ class CancellationScreen extends StatelessWidget {
         itemCount: orders.length,
         itemBuilder: (context, index) => OrderCard(
           order: orders[index],
-          isSellerView: true,
+          isSellerView: true, onTap: () {  },
         ),
       ),
     );

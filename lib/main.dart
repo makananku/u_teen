@@ -27,7 +27,7 @@ void main() async {
         ChangeNotifierProvider(create: (context) => AuthProvider(prefs)),
         Provider(create: (context) => AuthService()),
         ChangeNotifierProvider(create: (context) => CartProvider()),
-        ChangeNotifierProvider(create: (context) => FavoriteProvider()),
+        ChangeNotifierProvider(create: (context) => FavoriteProvider(prefs)),
         ChangeNotifierProvider(create: (context) => FoodProvider()),
         ChangeNotifierProvider(create: (context) => OrderProvider(prefs)),
       ],

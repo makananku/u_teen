@@ -11,7 +11,7 @@ class OrderCard extends StatelessWidget {
   const OrderCard({
     super.key,
     required this.order,
-    this.isSellerView = false,
+    this.isSellerView = false, required Null Function() onTap,
   });
 
   @override

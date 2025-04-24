@@ -67,7 +67,7 @@ class CompletedScreen extends StatelessWidget {
         debugPrint('Showing order: ${orders[index].id}');
         return OrderCard(
           order: orders[index],
-          isSellerView: true,
+          isSellerView: true, onTap: () {  },
         );
       },
     );

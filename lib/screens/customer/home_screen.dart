@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-import 'package:u_teen/data/food_data.dart';
 import 'package:provider/provider.dart';
+import '../../data/food_data.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/favorite_provider.dart';
+import '../../providers/order_provider.dart';
 import '../../widgets/customer/custom_bottom_navigation.dart';
 import '../../models/cart_item.dart';
 import '../../models/favorite_item.dart';
 import 'favorite_screen.dart';
+import 'notification_screen.dart';
 import '../../data/search_data.dart';
 import '../../widgets/customer/search_widget.dart';
 import '../../widgets/customer/category_selector.dart';
 import '../../widgets/food_list.dart';
 import '../../widgets/customer/detail_box.dart';
+import '../../auth/auth_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   final String? initialFoodItem;
@@ -224,6 +227,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final favoriteProvider = Provider.of<FavoriteProvider>(context);
+    final orderProvider = Provider.of<OrderProvider>(context);
+    final authProvider = Provider.of<AuthProvider>(context);
+    final customerName = authProvider.user?.name ?? '';
+    final unreadNotificationCount = orderProvider.getUnreadNotificationCount(customerName);
     final theme = Theme.of(context);
 
     return WillPopScope(
@@ -280,11 +287,42 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
             actions: [
               IconButton(
-                icon: const Icon(
-                  Icons.notifications_outlined,
-                  color: Colors.black,
+                icon: Stack(
+                  children: [
+                    const Icon(Icons.notifications_outlined, color: Colors.black),
+                    if (unreadNotificationCount > 0)
+                      Positioned(
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 12,
+                            minHeight: 12,
+                          ),
+                          child: Text(
+                            '$unreadNotificationCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 8,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NotificationScreen(),
+                    ),
+                  );
+                },
               ),
             ],
             elevation: 0,
@@ -403,9 +441,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     ),
                                     image: selectedFoodImgUrl,
                                     subtitle: selectedFoodSubtitle,
-                                    sellerEmail:
-                                        foodItem['sellerEmail'] ??
-                                        '', // Add sellerEmail
+                                    sellerEmail: foodItem['sellerEmail'] ?? '',
                                   ),
                                 );
                                 _closeDetailBox();
@@ -493,9 +529,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           floatingActionButton: AnimatedPositioned(
             duration: const Duration(milliseconds: 300),
             bottom:
-                isKeyboardVisible
-                    ? MediaQuery.of(context).viewInsets.bottom + 16
-                    : 0,
+                isKeyboardVisible ? MediaQuery.of(context).viewInsets.bottom + 16 : 0,
             left: 0,
             right: 0,
             child: AnimatedOpacity(

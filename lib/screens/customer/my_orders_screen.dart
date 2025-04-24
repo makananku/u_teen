@@ -127,7 +127,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
         padding: const EdgeInsets.all(16),
         itemCount: orders.length,
         itemBuilder: (context, index) => OrderCard(
-          order: orders[index],
+          order: orders[index], onTap: () {  },
           // isSellerView defaults to false for customer
         ),
       ),

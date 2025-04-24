@@ -189,71 +189,55 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  bool _isTimeValid() {
-  final now = DateTime.now();
-  final hour = pickupTime.hour;
+  Widget _buildPlaceOrderButton(BuildContext context) {
+    final now = DateTime.now();
+    final isTimeValid =
+        !pickupTime.isBefore(now) && pickupTime.hour >= 8 && pickupTime.hour < 17;
 
-  // Check if time is in the past
-  if (pickupTime.isBefore(now)) {
-    return false;
-  }
-
-  // Check if time is within business hours (8 AM - 5 PM)
-  if (hour < 8 || hour >= 17) {
-    return false;
-  }
-
-  return true;
-}
-
-// Update the button building method
-Widget _buildPlaceOrderButton(BuildContext context) {
-  final isTimeValid = _isTimeValid();
-  final isButtonEnabled = selectedPaymentMethod != null && isTimeValid && !isProcessing;
-
-  return SizedBox(
-    width: double.infinity,
-    child: ElevatedButton(
-      onPressed: isButtonEnabled ? () => _processPayment(context) : null,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isButtonEnabled
-            ? (selectedPaymentMethod != null ? _getBorderColor() : Colors.blue)
-            : Colors.grey[400],
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: isProcessing || !isTimeValid || selectedPaymentMethod == null
+            ? null
+            : () => _processPayment(context),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: isProcessing || !isTimeValid
+              ? Colors.grey[400]
+              : (selectedPaymentMethod != null ? _getBorderColor() : Colors.blue),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            AnimatedOpacity(
+              opacity: isProcessing ? 0 : 1,
+              duration: const Duration(milliseconds: 200),
+              child: const Text(
+                'Place Order',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            if (isProcessing)
+              const SizedBox(
+                height: 24,
+                width: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 3,
+                ),
+              ),
+          ],
         ),
       ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          AnimatedOpacity(
-            opacity: isProcessing ? 0 : 1,
-            duration: const Duration(milliseconds: 200),
-            child: Text(
-              isButtonEnabled ? 'Place Order' : 
-                (selectedPaymentMethod == null ? 'Select Payment Method' : 'Invalid Pickup Time'),
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          if (isProcessing)
-            const SizedBox(
-              height: 24,
-              width: 24,
-              child: CircularProgressIndicator(
-                color: Colors.white,
-                strokeWidth: 3,
-              ),
-            ),
-        ],
-      ),
-    ),
-  );
-}
+    );
+  }
 
   Future<void> _processPayment(BuildContext context) async {
     if (!_formKey.currentState!.validate()) return;
@@ -302,6 +286,7 @@ Widget _buildPlaceOrderButton(BuildContext context) {
         merchantEmail: sellerEmail,
         customerName: customerName,
         notes: notes.isNotEmpty ? notes : null,
+        isRead: false, // Set untuk notifikasi
       );
 
       await orderProvider.addOrder(newOrder);
@@ -331,5 +316,4 @@ Widget _buildPlaceOrderButton(BuildContext context) {
     final random = Random();
     return List.generate(6, (index) => chars[random.nextInt(chars.length)]).join();
   }
-  
 }
