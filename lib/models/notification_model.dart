@@ -1,50 +1,36 @@
+// notification_model.dart
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'order_model.dart';
 
 class NotificationModel {
-  final String _id;
-  final String _type; // 'order', 'system', 'promo', dll
-  final String _title;
-  final String _message;
-  final DateTime _timestamp;
-  final bool _isRead;
-  final Map<String, dynamic>? _payload; // Data tambahan
+  final String id;
+  final String type; // 'order', 'system', 'promo', etc
+  final String title;
+  final String message;
+  final DateTime timestamp;
+  final bool isRead;
+  final Map<String, dynamic>? payload; // Additional data
 
   NotificationModel({
-    required String id,
-    required String type,
-    required String title,
-    required String message,
-    required DateTime timestamp,
-    bool isRead = false,
-    Map<String, dynamic>? payload,
-  })  : _id = id,
-        _type = type,
-        _title = title,
-        _message = message,
-        _timestamp = timestamp,
-        _isRead = isRead,
-        _payload = payload;
-
-  // Getters
-  String get id => _id;
-  String get type => _type;
-  String get title => _title;
-  String get message => _message;
-  DateTime get timestamp => _timestamp;
-  bool get isRead => _isRead;
-  Map<String, dynamic>? get payload => _payload;
+    required this.id,
+    required this.type,
+    required this.title,
+    required this.message,
+    required this.timestamp,
+    this.isRead = false,
+    this.payload,
+  });
 
   Map<String, dynamic> toMap() {
     return {
-      'id': _id,
-      'type': _type,
-      'title': _title,
-      'message': _message,
-      'timestamp': _timestamp.toIso8601String(),
-      'isRead': _isRead,
-      'payload': _payload,
+      'id': id,
+      'type': type,
+      'title': title,
+      'message': message,
+      'timestamp': timestamp.toIso8601String(),
+      'isRead': isRead,
+      'payload': payload,
     };
   }
 
@@ -63,26 +49,31 @@ class NotificationModel {
   factory NotificationModel.fromOrder(Order order) {
     String title;
     String message;
+    Color? statusColor;
 
     switch (order.status) {
       case 'ready':
-        title = 'Pesanan Siap Diambil';
-        message = 'Pesanan #${order.id} sudah siap diambil di merchant';
+        title = 'Order Ready';
+        message = 'Order #${order.id} is ready for pickup';
+        statusColor = Colors.green;
         break;
       case 'completed':
-        title = 'Pesanan Selesai';
-        message = 'Pesanan #${order.id} telah selesai';
+        title = 'Order Completed';
+        message = 'Order #${order.id} has been completed';
+        statusColor = Colors.blue;
         break;
       case 'cancelled':
-        title = 'Pesanan Dibatalkan';
-        message = 'Pesanan #${order.id} telah dibatalkan';
+        title = 'Order Cancelled';
+        message = 'Order #${order.id} has been cancelled';
+        statusColor = Colors.red;
         if (order.cancellationReason != null) {
-          message += '\nAlasan: ${order.cancellationReason}';
+          message += '\nReason: ${order.cancellationReason}';
         }
         break;
       default:
-        title = 'Update Pesanan';
-        message = 'Pesanan #${order.id} diperbarui ke status ${order.status}';
+        title = 'Order Update';
+        message = 'Order #${order.id} status updated to ${order.status}';
+        statusColor = Colors.orange;
     }
 
     return NotificationModel(
@@ -100,6 +91,7 @@ class NotificationModel {
         'orderId': order.id,
         'status': order.status,
         'customerName': order.customerName,
+        'statusColor': statusColor.value.toRadixString(16),
       },
     );
   }

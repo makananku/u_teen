@@ -1,0 +1,439 @@
+# U-Teen Project Documentation
+
+## Overview
+U-Teen is a Flutter-based mobile application designed to facilitate food ordering within the UMN (Universitas Multimedia Nusantara) canteen. The app supports both customer and seller roles, allowing customers to browse food items, add them to a cart, place orders, and track their order status, while sellers can manage their products, view orders, and handle financial transactions. The application leverages the Provider package for state management, SharedPreferences for local storage, and various Flutter widgets for a responsive and engaging user interface.
+
+This documentation provides a comprehensive overview of the project’s architecture, file structure, key components, and functionality. It is intended for developers, maintainers, and stakeholders to understand the system and facilitate future development or maintenance.
+
+---
+
+## Table of Contents
+1. [Project Structure](#project-structure)
+2. [Key Components](#key-components)
+   - [Models](#models)
+   - [Providers](#providers)
+   - [Screens](#screens)
+   - [Widgets](#widgets)
+   - [Data](#data)
+3. [Core Functionality](#core-functionality)
+   - [Authentication](#authentication)
+   - [Food Browsing and Searching](#food-browsing-and-searching)
+   - [Cart Management](#cart-management)
+   - [Order Placement and Tracking](#order-placement-and-tracking)
+   - [Notifications](#notifications)
+   - [Favorites](#favorites)
+   - [Seller Features](#seller-features)
+4. [Dependencies](#dependencies)
+5. [Setup and Installation](#setup-and-installation)
+6. [Potential Improvements](#potential-improvements)
+7. [Known Issues](#known-issues)
+
+---
+
+## Project Structure
+The project follows a modular structure to enhance maintainability and scalability. Below is an overview of the directory structure based on the provided files:
+
+```
+lib/
+├── auth/
+│   ├── auth_provider.dart
+│   ├── auth_service.dart
+│   ├── logout_service.dart
+├── data/
+│   ├── food_data.dart
+│   ├── payment_methods_data.dart
+│   ├── search_data.dart
+├── models/
+│   ├── balance_model.dart
+│   ├── cart_item.dart
+│   ├── favorite_item.dart
+│   ├── notification_model.dart
+│   ├── order_model.dart
+│   ├── payment_method.dart
+│   ├── product_model.dart
+│   ├── user_model.dart
+├── providers/
+│   ├── balance_provider.dart
+│   ├── cart_provider.dart
+│   ├── favorite_provider.dart
+│   ├── food_provider.dart
+│   ├── notification_provider.dart
+│   ├── order_provider.dart
+│   ├── ratings_provider.dart
+├── screens/
+│   ├── customer/
+│   │   ├── favorite_screen.dart
+│   │   ├── home_screen.dart
+│   │   ├── my_orders_screen.dart
+│   │   ├── notification_screen.dart
+│   │   ├── payment_screen.dart
+│   │   ├── payment_success_screen.dart
+│   │   ├── profile_screen.dart
+│   │   ├── shopping_cart_screen.dart
+│   ├── login_screen.dart
+│   ├── seller/
+│   │   ├── home_screen.dart
+├── widgets/
+│   ├── customer/
+│   │   ├── custom_bottom_navigation.dart
+│   │   ├── category_selector.dart
+│   │   ├── detail_box.dart
+│   │   ├── search_widget.dart
+│   ├── order_card.dart
+│   ├── payment_method_card.dart
+│   ├── time_picker_widget.dart
+│   ├── notes_field.dart
+├── main.dart
+├── order_repository.dart
+```
+
+### Directory Descriptions
+- **auth/**: Contains authentication-related logic, including provider and services for login and logout.
+- **data/**: Static data sources for food items, payment methods, and search history.
+- **models/**: Data models representing entities like users, orders, cart items, etc.
+- **providers/**: State management classes using the Provider package to handle app state.
+- **screens/**: UI screens for customer and seller functionalities, including navigation flows.
+- **widgets/**: Reusable UI components, such as custom navigation bars, cards, and input fields.
+- **main.dart**: Entry point of the application, initializing providers and setting up the app.
+- **order_repository.dart**: Repository for handling order-related operations (currently minimal).
+
+---
+
+## Key Components
+
+### Models
+Models define the data structures used throughout the application. They include serialization methods (`toMap` and `fromMap`) for persistence with SharedPreferences.
+
+1. **User (`user_model.dart`, `auth_provider.dart`)**
+   - Represents a user with properties: `email`, `name`, `userType` (`customer` or `seller`), and an optional `password`.
+   - Used for authentication and user-specific data access.
+   - Note: `user_model.dart` and `auth_provider.dart` both define a `User` class, which is redundant. The version in `auth_provider.dart` is used in practice.
+
+2. **Balance (`balance_model.dart`)**
+   - Represents a seller’s financial balance with properties: `amount` and `history` (list of `BalanceHistory`).
+   - `BalanceHistory` tracks transactions (income or withdrawal) with details like `id`, `date`, `type`, `amount`, `description`, `orderId`, and `paymentMethod`.
+
+3. **CartItem (`cart_item.dart`)**
+   - Represents an item in the shopping cart with properties: `name`, `price`, `image`, `subtitle`, `sellerEmail`, and `quantity`.
+   - Includes equality and hash code overrides for comparison.
+
+4. **FavoriteItem (`favorite_item.dart`)**
+   - Represents a favorite food item with properties: `name`, `price`, `image`, and `subtitle`.
+   - Supports JSON serialization for persistence.
+
+5. **NotificationModel (`notification_model.dart`)**
+   - Represents a notification with properties: `id`, `type` (e.g., `order`, `system`, `promo`), `title`, `message`, `timestamp`, `isRead`, and `payload`.
+   - Can be created from an `Order` to notify about order status changes.
+
+6. **Order (`order_model.dart`)**
+   - Represents an order with properties: `id`, `orderTime`, `pickupTime`, `items` (list of `OrderItem`), `status`, `paymentMethod`, `merchantName`, `merchantEmail`, `customerName`, `cancellationReason`, `notes`, `completedTime`, `cancelledTime`, `foodRating`, `appRating`, `foodNotes`, and `appNotes`.
+   - `OrderItem` represents individual items in an order with properties like `name`, `image`, `subtitle`, `price`, `quantity`, and `sellerEmail`.
+
+7. **PaymentMethod (`payment_method.dart`)**
+   - Represents a payment method with properties: `id`, `name`, `iconPath`, `description`, `primaryColor`, `requiresPhoneNumber`, and `supportsTopUp`.
+
+8. **Product (`product_model.dart`)**
+   - Represents a food product with properties: `id`, `title`, `subtitle`, `time`, `imgUrl`, `price`, and `sellerEmail`.
+
+### Providers
+Providers manage the application’s state using the Provider package, enabling reactive UI updates.
+
+1. **AuthProvider (`auth_provider.dart`)**
+   - Manages user authentication state, including login, logout, and initialization from SharedPreferences.
+   - Properties: `user`, `isLoading`, `isLoggedIn`, `isSeller`, `isCustomer`, `sellerEmail`, `customerEmail`, `customerName`.
+
+2. **BalanceProvider (`balance_provider.dart`)**
+   - Manages seller balances, storing them in SharedPreferences.
+   - Functions: Load/save balances, add order income, and process withdrawals.
+
+3. **CartProvider (`cart_provider.dart`)**
+   - Manages the shopping cart, including adding/removing items, adjusting quantities, and calculating totals.
+   - Provides grouped items by merchant (`subtitle`) for display.
+
+4. **FavoriteProvider (`favorite_provider.dart`)**
+   - Manages favorite food items, with persistence in SharedPreferences.
+   - Functions: Add/remove favorites, check if an item is favorited, and clear favorites.
+
+5. **FoodProvider (`food_provider.dart`)**
+   - Manages food products, loading them from `food_data.dart` and supporting CRUD operations.
+   - Functions: Load initial data, add/update/remove products, and filter by seller.
+
+6. **NotificationProvider (`notification_provider.dart`)**
+   - Manages notifications, with persistence in SharedPreferences.
+   - Functions: Add notifications, mark as read, mark all as read, clear all, and filter by customer.
+
+7. **OrderProvider (`order_provider.dart`)**
+   - Manages orders, with persistence in SharedPreferences.
+   - Functions: Add orders, update status, submit ratings, create orders from cart, handle withdrawals, and calculate balances/earnings.
+
+8. **RatingsProvider (`ratings_provider.dart`)**
+   - Manages ratings for sellers based on completed orders.
+   - Functions: Get rated orders, calculate average food rating, and retrieve food notes.
+
+### Screens
+Screens represent the main UI views of the application, divided into customer and seller functionalities.
+
+1. **Customer Screens**
+   - **FavoriteScreen (`favorite_screen.dart`)**
+     - Displays a list of favorite food items.
+     - Allows removal via swipe or button, and navigation to item details.
+   - **HomeScreen (`home_screen.dart`)**
+     - Main customer screen for browsing food items.
+     - Features search, category selection, food lists, and a detail box for selected items.
+     - Supports adding items to cart or favorites.
+   - **MyOrdersScreen (`my_orders_screen.dart`)**
+     - Displays customer orders in two tabs: Ongoing and History.
+     - Shows order details using `OrderCard` widget.
+   - **NotificationScreen (`notification_screen.dart`)**
+     - Displays customer-specific notifications with options to mark as read or view order details.
+   - **PaymentScreen (`payment_screen.dart`)**
+     - Handles order payment, including selecting payment method, pickup time, and notes.
+     - Creates and submits orders via `OrderProvider`.
+   - **PaymentSuccessScreen (`payment_success_screen.dart`)**
+     - Displays confirmation of successful payment with order details.
+   - **ProfileScreen (`profile_screen.dart`)**
+     - Displays user profile options, including favorites, ratings, payment methods, security, help, and logout.
+   - **ShoppingCartScreen (`shopping_cart_screen.dart`)**
+     - Displays cart items grouped by merchant, with options to adjust quantities, remove items, or proceed to checkout.
+
+2. **Seller Screens**
+   - **SellerHomeScreen (`seller/home_screen.dart`)**
+     - Placeholder for seller-specific UI (not provided in detail).
+
+3. **Other Screens**
+   - **LoginScreen (`login_screen.dart`)**
+     - Handles user login with email, name, and user type.
+
+### Widgets
+Reusable UI components enhance modularity and consistency.
+
+1. **CustomBottomNavigation (`custom_bottom_navigation.dart`)**
+   - A bottom navigation bar for customer screens, with icons for Home, Orders, Cart, and Profile.
+
+2. **CategorySelector (`category_selector.dart`)**
+   - Allows selecting food categories (e.g., All, Fast Food, Drinks).
+
+3. **DetailBox (`detail_box.dart`)**
+   - Displays detailed information about a selected food item, with options to add to cart or favorites.
+
+4. **SearchWidget (`search_widget.dart`)**
+   - Provides search functionality with recent searches and results.
+
+5. **OrderCard (`order_card.dart`)**
+   - Displays order details, including status, items, and total price.
+
+6. **PaymentMethodCard (`payment_method_card.dart`)**
+   - Displays a payment method option with selection state.
+
+7. **TimePickerWidget (`time_picker_widget.dart`)**
+   - Allows selecting pickup time for orders.
+
+8. **NotesField (`notes_field.dart`)**
+   - Input field for order notes.
+
+### Data
+Static data sources provide initial data for the app.
+
+1. **FoodData (`food_data.dart`)**
+   - Provides a list of food items with details like title, subtitle, price, time, image URL, and seller email.
+
+2. **PaymentMethodsData (`payment_methods_data.dart`)**
+   - Defines available payment methods with properties like ID, name, icon, description, and requirements.
+
+3. **SearchData (`search_data.dart`)**
+   - Manages recent search queries with persistence.
+
+---
+
+## Core Functionality
+
+### Authentication
+- **Login**: Users log in via `LoginScreen`, providing email, name, and user type (`customer` or `seller`). `AuthProvider` stores credentials in SharedPreferences and sets the user state.
+- **Logout**: `LogoutService` displays a confirmation dialog and clears user data via `AuthProvider`.
+- **Initialization**: On app start, `AuthProvider` checks SharedPreferences for existing user data to auto-login.
+
+### Food Browsing and Searching
+- **Browsing**: `HomeScreen` displays food items from `FoodProvider`, filtered by category. Users can tap items to view details in `DetailBox`.
+- **Searching**: `SearchWidget` allows searching food items, with recent searches persisted via `SearchData`.
+
+### Cart Management
+- **Adding Items**: Users add items to the cart from `HomeScreen` or `FavoriteScreen`. `CartProvider` manages quantities and groups items by merchant.
+- **Modifying Cart**: `ShoppingCartScreen` allows increasing/decreasing quantities, removing items, or clearing the cart.
+- **Checkout**: Users proceed to `PaymentScreen` for order placement.
+
+### Order Placement and Tracking
+- **Placement**: `PaymentScreen` collects payment method, pickup time, and notes, then creates an `Order` via `OrderProvider`. The cart is cleared, and the user is redirected to `PaymentSuccessScreen`.
+- **Tracking**: `MyOrdersScreen` displays ongoing and historical orders. `OrderProvider` supports status updates (pending, processing, ready, completed, cancelled).
+- **Ratings**: Customers can submit food and app ratings via `OrderProvider` after order completion.
+
+### Notifications
+- **Generation**: `NotificationProvider` creates notifications for order status changes (ready, completed, cancelled) using `NotificationModel.fromOrder`.
+- **Display**: `NotificationScreen` shows customer-specific notifications with options to mark as read or view order details.
+- **Persistence**: Notifications are stored in SharedPreferences.
+
+### Favorites
+- **Management**: `FavoriteProvider` handles adding/removing favorite items, with persistence in SharedPreferences.
+- **Display**: `FavoriteScreen` lists favorite items with options to remove or navigate to details.
+
+### Seller Features
+- **Product Management**: `FoodProvider` allows sellers to add, update, or remove products.
+- **Order Management**: `OrderProvider` provides seller-specific order lists (pending, processing, ready, completed, cancelled).
+- **Balance Management**: `BalanceProvider` tracks seller earnings and withdrawals, with transaction history.
+- **Ratings**: `RatingsProvider` calculates average food ratings and collects feedback for sellers.
+
+---
+
+## Dependencies
+The project relies on the following Flutter packages (based on typical usage in the provided code):
+
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^6.0.5
+  shared_preferences: ^2.0.15
+  lottie: ^2.0.0
+  flutter_keyboard_visibility: ^5.4.0
+  intl: ^0.17.0
+  path: ^1.8.0
+```
+
+### Descriptions
+- **provider**: State management for reactive UI updates.
+- **shared_preferences**: Local storage for user data, orders, notifications, etc.
+- **lottie**: Animations for empty states and success screens.
+- **flutter_keyboard_visibility**: Detects keyboard visibility for UI adjustments.
+- **intl**: Date and currency formatting.
+- **path**: File path utilities (used in `notification_screen.dart`).
+
+Ensure these dependencies are included in `pubspec.yaml`. Run `flutter pub get` to install them.
+
+---
+
+## Setup and Installation
+1. **Prerequisites**:
+   - Flutter SDK (version compatible with the app, e.g., 3.x.x).
+   - Dart (included with Flutter).
+   - IDE (e.g., VS Code, Android Studio) with Flutter plugins.
+   - Android/iOS emulator or physical device.
+
+2. **Clone the Repository**:
+   ```bash
+   git clone <repository-url>
+   cd u-teen
+   ```
+
+3. **Install Dependencies**:
+   ```bash
+   flutter pub get
+   ```
+
+4. **Add Assets**:
+   - Ensure the `assets/` directory contains:
+     - Lottie animations (`empty_cart.json`, `empty_order.json`, `empty_notification.json`, `success_checkmark.json`).
+     - Images (`logo/u.png`, `profile_picture.png`, food images, etc.).
+   - Update `pubspec.yaml` to include assets:
+     ```yaml
+     flutter:
+       assets:
+         - assets/animation/
+         - assets/logo/
+         - assets/asset/
+         - assets/food/
+     ```
+
+5. **Run the App**:
+   ```bash
+   flutter run
+   ```
+
+6. **Build for Release**:
+   ```bash
+   flutter build apk  # For Android
+   flutter build ios  # For iOS
+   ```
+
+---
+
+## Potential Improvements
+1. **Backend Integration**:
+   - Replace SharedPreferences with a backend (e.g., Firebase, Supabase) for real-time data synchronization and scalability.
+   - Implement server-side authentication with secure password handling.
+
+2. **Enhanced Authentication**:
+   - Add password-based authentication and email verification.
+   - Support OAuth (e.g., Google Sign-In).
+
+3. **Improved Search**:
+   - Implement fuzzy search or server-side search for better performance.
+   - Add filters (e.g., price, rating) to search results.
+
+4. **Order Repository Enhancement**:
+   - Expand `order_repository.dart` to handle all order-related operations, reducing redundancy in `OrderProvider`.
+   - Integrate with a database for persistent storage.
+
+5. **Seller Dashboard**:
+   - Develop a comprehensive seller dashboard with analytics (e.g., sales trends, popular items).
+   - Add product inventory management.
+
+6. **UI/UX Enhancements**:
+   - Implement dark mode support.
+   - Add animations for smoother transitions.
+   - Improve accessibility (e.g., screen reader support, larger touch targets).
+
+7. **Testing**:
+   - Add unit tests for providers and models.
+   - Implement widget tests for screens and integration tests for workflows.
+
+8. **Error Handling**:
+   - Add robust error handling for network failures (if backend is added).
+   - Improve user feedback for invalid inputs or failed operations.
+
+9. **Code Optimization**:
+   - Remove redundant `User` class in `auth_provider.dart`.
+   - Refactor repetitive navigation code into a utility class.
+   - Use constants for magic strings (e.g., SharedPreferences keys).
+
+---
+
+## Known Issues
+1. **Redundant User Class**:
+   - Both `user_model.dart` and `auth_provider.dart` define a `User` class. The version in `auth_provider.dart` is used, making `user_model.dart` obsolete.
+
+2. **OrderRepository Underutilized**:
+   - `order_repository.dart` defines order creation and retrieval methods but is not integrated into the app. `OrderProvider` handles most order operations.
+
+3. **Hardcoded Profile Data**:
+   - `ProfileScreen` uses a hardcoded name (“Javier Matthew”) instead of fetching from `AuthProvider`.
+
+4. **Incomplete Seller Features**:
+   - `SellerHomeScreen` is referenced but not provided, indicating incomplete seller functionality.
+
+5. **Potential Navigation Issues**:
+   - Frequent use of `pushReplacement` in `WillPopScope` may disrupt the navigation stack. Consider using `push` for non-destructive navigation.
+
+6. **Product Model Syntax Error**:
+   - `product_model.dart` contains a syntax error in the constructor (`required String ,` and `String: null`). This needs correction:
+     ```dart
+     Product({
+       required this.id,
+       required this.title,
+       required this.subtitle,
+       required this.time,
+       required this.imgUrl,
+       required this.price,
+       required this.sellerEmail,
+     });
+     ```
+
+7. **Limited Error Handling**:
+   - Some operations (e.g., JSON parsing in providers) catch errors but only log them, without user feedback.
+
+---
+
+## Conclusion
+U-Teen is a well-structured Flutter application with robust features for food ordering and seller management. Its modular design and use of Provider make it maintainable, but there are opportunities for enhancement, such as backend integration, improved authentication, and expanded seller features. The provided code is functional but requires minor fixes (e.g., redundant classes, syntax errors) and could benefit from additional testing and optimization.
+
+For further development, prioritize backend integration and comprehensive testing to ensure scalability and reliability. This documentation should serve as a foundation for understanding the project and guiding future improvements.
+
+---
