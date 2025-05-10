@@ -29,13 +29,13 @@ class FoodList extends StatelessWidget {
             time: food["time"]!,
             imgUrl: food["imgUrl"]!,
             price: food["price"]!,
-            sellerEmail: food["sellerEmail"] ?? '', // Add sellerEmail
+            sellerEmail: food["sellerEmail"] ?? '', 
             onTap: () => onFoodItemTap(
               food["title"]!,
               food["price"]!,
               food["imgUrl"]!,
               food["subtitle"]!,
-              food["sellerEmail"] ?? '', // Pass sellerEmail
+              food["sellerEmail"] ?? '', 
             ),
           );
         },

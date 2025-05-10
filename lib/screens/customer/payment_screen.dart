@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../auth/auth_provider.dart';
@@ -19,7 +20,7 @@ class PaymentScreen extends StatefulWidget {
   final int totalPrice;
 
   const PaymentScreen({Key? key, required this.items, required this.totalPrice})
-      : super(key: key);
+    : super(key: key);
 
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();
@@ -32,6 +33,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
   String phoneNumber = '';
   bool isProcessing = false;
   bool showPhoneInput = false;
+  bool isTimeValid = true; // Melacak validitas waktu
+  String?
+  timeErrorMessage; // Tetap simpan untuk debugging, tapi tidak ditampilkan
   final NumberFormat currencyFormat = NumberFormat.currency(
     locale: 'id_ID',
     symbol: 'Rp ',
@@ -43,7 +47,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
     if (selectedPaymentMethod == null) return Colors.grey;
     final method = paymentMethods.firstWhere(
       (m) => m.id == selectedPaymentMethod,
-      orElse: () => PaymentMethod(id: '', name: '', iconPath: '', description: ''),
+      orElse:
+          () => PaymentMethod(id: '', name: '', iconPath: '', description: ''),
     );
     return method.primaryColor ?? Colors.grey;
   }
@@ -54,10 +59,35 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Inisialisasi awal validasi waktu setelah build selesai
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _validateInitialTime();
+    });
+  }
+
+  void _validateInitialTime() {
+    final now = DateTime.now();
+    final isValid =
+        !pickupTime.isBefore(now) &&
+        pickupTime.hour >= 8 &&
+        pickupTime.hour < 17;
+    setState(() {
+      isTimeValid = isValid;
+      timeErrorMessage =
+          isValid
+              ? null
+              : 'Pickup time cannot be in the past or outside 08:00 AM - 05:00 PM';
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final merchantName = widget.items.isNotEmpty
-        ? widget.items.first.subtitle
-        : 'Unknown Merchant';
+    final merchantName =
+        widget.items.isNotEmpty
+            ? widget.items.first.subtitle
+            : 'Unknown Merchant';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -81,7 +111,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 const SizedBox(height: 24),
                 TimePickerWidget(
                   onTimeSelected: (time) => setState(() => pickupTime = time),
+                  onValidationChanged: (isValid, errorMessage) {
+                    // Gunakan addPostFrameCallback untuk menghindari setState selama build
+                    SchedulerBinding.instance.addPostFrameCallback((_) {
+                      setState(() {
+                        isTimeValid = isValid;
+                        timeErrorMessage = errorMessage;
+                      });
+                    });
+                  },
                 ),
+                // Hapus tampilan timeErrorMessage karena sudah ditangani di TimePickerWidget
                 const SizedBox(height: 24),
                 _buildPaymentMethodSelector(),
                 const SizedBox(height: 24),
@@ -126,27 +166,34 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ],
             ),
             const Divider(height: 24),
-            ...widget.items.map((item) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          '${item.name} (${item.quantity}x)',
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 2,
-                        ),
+            ...widget.items.map(
+              (item) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        '${item.name} (${item.quantity}x)',
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
                       ),
-                      Text('${currencyFormat.format(item.price)} x ${item.quantity}'),
-                    ],
-                  ),
-                )),
+                    ),
+                    Text(
+                      '${currencyFormat.format(item.price)} x ${item.quantity}',
+                    ),
+                  ],
+                ),
+              ),
+            ),
             const Divider(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Subtotal', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  'Subtotal',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 Text(
                   currencyFormat.format(widget.totalPrice),
                   style: const TextStyle(fontWeight: FontWeight.bold),
@@ -168,41 +215,43 @@ class _PaymentScreenState extends State<PaymentScreen> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
-        ...paymentMethods.map((method) => Column(
-              children: [
-                PaymentMethodCard(
-                  method: method,
-                  isSelected: selectedPaymentMethod == method.id,
-                  onTap: () {
-                    setState(() {
-                      selectedPaymentMethod = method.id;
-                      showPhoneInput = method.requiresPhoneNumber;
-                      if (!method.requiresPhoneNumber) phoneNumber = '';
-                    });
-                  },
-                ),
-                const SizedBox(height: 12),
-              ],
-            )),
+        ...paymentMethods.map(
+          (method) => Column(
+            children: [
+              PaymentMethodCard(
+                method: method,
+                isSelected: selectedPaymentMethod == method.id,
+                onTap: () {
+                  setState(() {
+                    selectedPaymentMethod = method.id;
+                    showPhoneInput = method.requiresPhoneNumber;
+                    if (!method.requiresPhoneNumber) phoneNumber = '';
+                  });
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildPlaceOrderButton(BuildContext context) {
-    final now = DateTime.now();
-    final isTimeValid =
-        !pickupTime.isBefore(now) && pickupTime.hour >= 8 && pickupTime.hour < 17;
-
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: isProcessing || !isTimeValid || selectedPaymentMethod == null
-            ? null
-            : () => _processPayment(context),
+        onPressed:
+            isProcessing || !isTimeValid || selectedPaymentMethod == null
+                ? null
+                : () => _processPayment(context),
         style: ElevatedButton.styleFrom(
-          backgroundColor: isProcessing || !isTimeValid
-              ? Colors.grey[400]
-              : (selectedPaymentMethod != null ? _getBorderColor() : Colors.blue),
+          backgroundColor:
+              isProcessing || !isTimeValid || selectedPaymentMethod == null
+                  ? Colors.grey[400]
+                  : (selectedPaymentMethod != null
+                      ? _getBorderColor()
+                      : Colors.blue),
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -254,13 +303,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
       final cartProvider = Provider.of<CartProvider>(context, listen: false);
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-      final sellerEmail = widget.items.isNotEmpty ? widget.items.first.sellerEmail : null;
+      final sellerEmail =
+          widget.items.isNotEmpty ? widget.items.first.sellerEmail : null;
 
       if (sellerEmail == null) {
         throw Exception('Seller information not available');
       }
 
-      final merchantName = widget.items.isNotEmpty ? widget.items.first.subtitle : 'Unknown Merchant';
+      final merchantName =
+          widget.items.isNotEmpty
+              ? widget.items.first.subtitle
+              : 'Unknown Merchant';
 
       final customerName = authProvider.user?.name ?? 'Customer';
 
@@ -268,17 +321,23 @@ class _PaymentScreenState extends State<PaymentScreen> {
         id: _generateOrderId(),
         orderTime: DateTime.now(),
         pickupTime: pickupTime,
-        items: widget.items
-            .map((item) => OrderItem(
-                  name: item.name,
-                  image: item.image,
-                  subtitle: item.subtitle,
-                  price: item.price,
-                  quantity: item.quantity,
-                  sellerEmail: item.sellerEmail,
-                ))
-            .toList(),
-        paymentMethod: paymentMethods.firstWhere((m) => m.id == selectedPaymentMethod).name,
+        items:
+            widget.items
+                .map(
+                  (item) => OrderItem(
+                    name: item.name,
+                    image: item.image,
+                    subtitle: item.subtitle,
+                    price: item.price,
+                    quantity: item.quantity,
+                    sellerEmail: item.sellerEmail,
+                  ),
+                )
+                .toList(),
+        paymentMethod:
+            paymentMethods
+                .firstWhere((m) => m.id == selectedPaymentMethod)
+                .name,
         merchantName: merchantName,
         merchantEmail: sellerEmail,
         customerName: customerName,
@@ -297,9 +356,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
         ),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     } finally {
       if (mounted) setState(() => isProcessing = false);
     }

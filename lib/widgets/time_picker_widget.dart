@@ -3,10 +3,12 @@ import 'package:intl/intl.dart';
 
 class TimePickerWidget extends StatefulWidget {
   final Function(DateTime) onTimeSelected;
+  final Function(bool, String?) onValidationChanged; // Callback untuk validasi
 
   const TimePickerWidget({
     Key? key,
     required this.onTimeSelected,
+    required this.onValidationChanged,
   }) : super(key: key);
 
   @override
@@ -24,6 +26,7 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
   void initState() {
     super.initState();
     isPM = selectedTime.hour >= 12;
+    // Hapus validasi awal di initState untuk menghindari setState di build
   }
 
   @override
@@ -91,6 +94,7 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
       return false;
     }
 
+    errorMessage = null;
     return true;
   }
 
@@ -201,6 +205,7 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
         if (isValid) {
           widget.onTimeSelected(newTime);
         }
+        widget.onValidationChanged(isTimeValid, errorMessage); // Panggil callback validasi
       }
     });
   }
