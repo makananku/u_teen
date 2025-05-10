@@ -26,7 +26,6 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
   void initState() {
     super.initState();
     isPM = selectedTime.hour >= 12;
-    // Hapus validasi awal di initState untuk menghindari setState di build
   }
 
   @override
@@ -57,8 +56,7 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
                       color: isTimeValid ? Colors.black : Colors.red,
                     ),
                   ),
-                  const Spacer(),
-                  const Icon(Icons.arrow_drop_down),
+                  // Hapus Spacer dan Icon arrow_drop_down
                 ],
               ),
             ),
