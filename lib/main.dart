@@ -99,13 +99,18 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   late AnimationController _logoController;
   late Animation<double> _logoScale;
   late Animation<double> _logoOpacity;
+  late Animation<double> _logoFadeOut; // Untuk menghilangkan logo
 
   late AnimationController _textController;
   late Animation<Offset> _textSlide;
   late Animation<double> _textOpacity;
 
+  late AnimationController _textShiftController; // Untuk pergeseran teks ke atas
+  late Animation<Offset> _textShift; // Pergeseran teks ke atas
+
   late AnimationController _bgController;
   late Animation<Color?> _bgColor;
+  late Animation<Color?> _textColor; // Untuk transisi warna teks
 
   late AnimationController _buttonController;
   late Animation<double> _buttonScale;
@@ -127,6 +132,13 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       begin: 0.0,
       end: 1.0,
     ).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeIn));
+    _logoFadeOut = Tween<double>(
+      begin: 1.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(
+      parent: _logoController,
+      curve: const Interval(0.8, 1.0, curve: Curves.easeOut), // Fade out di akhir
+    ));
 
     _textController = AnimationController(
       vsync: this,
@@ -143,6 +155,17 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       end: 1.0,
     ).animate(CurvedAnimation(parent: _textController, curve: Curves.easeIn));
 
+    _textShiftController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000), // Durasi lebih lama untuk pergeseran halus
+    );
+    _textShift = Tween<Offset>(
+      begin: Offset.zero,
+      end: const Offset(0, -1.5), // Geser lebih jauh untuk menggantikan posisi logo
+    ).animate(
+      CurvedAnimation(parent: _textShiftController, curve: Curves.easeInOutQuad),
+    );
+
     _bgController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2000),
@@ -150,6 +173,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _bgColor = ColorTween(
       begin: Colors.blue[800],
       end: Colors.white,
+    ).animate(_bgController);
+    _textColor = ColorTween(
+      begin: Colors.white,
+      end: Colors.blue[800],
     ).animate(_bgController);
 
     _buttonController = AnimationController(
@@ -187,6 +214,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
     await Future.delayed(const Duration(milliseconds: 800));
     _bgController.forward().then((_) {
+      // Setelah latar belakang selesai, mulai animasi pergeseran teks dan fade out logo
+      _logoController.reverse(); // Memudarkan logo
+      _textShiftController.forward(); // Geser teks ke atas
+
       final auth = Provider.of<AuthProvider>(context, listen: false);
       if (auth.isLoggedIn) {
         Navigator.pushReplacement(
@@ -206,6 +237,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   void dispose() {
     _logoController.dispose();
     _textController.dispose();
+    _textShiftController.dispose();
     _bgController.dispose();
     _buttonController.dispose();
     super.dispose();
@@ -217,6 +249,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       animation: Listenable.merge([
         _logoController,
         _textController,
+        _textShiftController,
         _bgController,
         _buttonController,
       ]),
@@ -230,7 +263,15 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 ScaleTransition(
                   scale: _logoScale,
                   child: FadeTransition(
-                    opacity: _logoOpacity,
+                    opacity: Tween<double>(
+                      begin: 0.0,
+                      end: 1.0,
+                    ).animate(
+                      CurvedAnimation(
+                        parent: _logoController,
+                        curve: const Interval(0.0, 1.0, curve: Curves.easeInOut),
+                      ),
+                    ), // Kembalikan kombinasi fade in dan fade out
                     child: Image.asset(
                       'assets/logo/u.png',
                       width: 100,
@@ -245,31 +286,32 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 const SizedBox(height: 30),
                 SlideTransition(
                   position: _textSlide,
-                  child: FadeTransition(
-                    opacity: _textOpacity,
-                    child: Column(
-                      children: [
-                        Text(
-                          'U-Teen',
-                          style: TextStyle(
-                            fontSize: 36,
-                            fontWeight: FontWeight.bold,
-                            color: _bgController.value < 0.5
-                                ? Colors.white
-                                : Colors.blue[800],
+                  child: SlideTransition(
+                    position: _textShift, // Animasi pergeseran ke atas
+                    child: FadeTransition(
+                      opacity: _textOpacity,
+                      child: Column(
+                        children: [
+                          Text(
+                            'U-Teen',
+                            style: TextStyle(
+                              fontSize: 36,
+                              fontWeight: FontWeight.bold,
+                              color: _textColor.value,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'UMN Canteen',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: _bgController.value < 0.5
-                                ? Colors.white70
-                                : Colors.grey,
+                          const SizedBox(height: 8),
+                          Text(
+                            'UMN Canteen',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: _bgController.value < 0.5
+                                  ? Colors.white70
+                                  : Colors.grey,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
