@@ -14,6 +14,7 @@ class CategorySelector extends StatelessWidget {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 24), // Tambahkan padding untuk jarak merata
       child: Row(
         children: [
           _buildCategory("All", selectedCategory == 'All'),
