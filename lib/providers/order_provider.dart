@@ -137,10 +137,14 @@ class OrderProvider with ChangeNotifier {
         notes: _orders[index].notes,
         completedTime: newStatus == 'completed' ? now : _orders[index].completedTime,
         cancelledTime: newStatus == 'cancelled' ? now : _orders[index].cancelledTime,
+        readyAt: newStatus == 'ready' ? now : _orders[index].readyAt,
+        completedAt: newStatus == 'completed' ? now : _orders[index].completedAt,
+        cancelledAt: newStatus == 'cancelled' ? now : _orders[index].cancelledAt,
         foodRating: _orders[index].foodRating,
         appRating: _orders[index].appRating,
         foodNotes: _orders[index].foodNotes,
         appNotes: _orders[index].appNotes,
+        createdAt: _orders[index].createdAt,
       );
       if (['ready', 'completed', 'cancelled'].contains(newStatus)) {
         await _notificationProvider.addNotification(
@@ -175,10 +179,14 @@ class OrderProvider with ChangeNotifier {
         notes: _orders[index].notes,
         completedTime: now,
         cancelledTime: _orders[index].cancelledTime,
+        readyAt: _orders[index].readyAt,
+        completedAt: now,
+        cancelledAt: _orders[index].cancelledAt,
         foodRating: foodRating,
         appRating: appRating,
         foodNotes: foodNotes,
         appNotes: appNotes,
+        createdAt: _orders[index].createdAt,
       );
       await _notificationProvider.addNotification(
           NotificationModel.fromOrder(_orders[index]));
@@ -211,6 +219,10 @@ class OrderProvider with ChangeNotifier {
       appRating: null,
       foodNotes: null,
       appNotes: null,
+      readyAt: null,
+      completedAt: null,
+      cancelledAt: null,
+      createdAt: DateTime.now(),
     );
   }
 
@@ -240,6 +252,10 @@ class OrderProvider with ChangeNotifier {
       customerName: 'Withdrawal',
       status: 'processed',
       notes: 'Withdrawal to $method',
+      readyAt: null,
+      completedAt: null,
+      cancelledAt: null,
+      createdAt: DateTime.now(),
     );
 
     _orders.insert(0, withdrawal);

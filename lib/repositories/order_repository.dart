@@ -16,6 +16,10 @@ class OrderRepository {
       id: _generateOrderId(),
       orderTime: DateTime.now(),
       pickupTime: pickupTime,
+      createdAt: DateTime.now(),
+      readyAt: null,
+      completedAt: null,
+      cancelledAt: null,
       items: items.map((item) => OrderItem(
         name: item.name,
         image: item.image,

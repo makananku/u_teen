@@ -18,6 +18,10 @@ class Order {
   final int? _appRating; // 1–5 stars
   final String? _foodNotes; // Food feedback
   final String? _appNotes; // App feedback
+  final DateTime createdAt;
+  final DateTime? readyAt;
+  final DateTime? completedAt;
+  final DateTime? cancelledAt;
 
   Order({
     required this.id,
@@ -28,6 +32,10 @@ class Order {
     required this.merchantName,
     required this.merchantEmail,
     required this.customerName,
+    required this.createdAt,
+    required this.readyAt,
+    required this.completedAt,
+    required this.cancelledAt,
     this.status = 'pending',
     this.cancellationReason,
     this.notes,
@@ -63,6 +71,7 @@ class Order {
       'merchantName': merchantName,
       'merchantEmail': merchantEmail,
       'customerName': customerName,
+      'createdAt': createdAt.toIso8601String(),
       'cancellationReason': cancellationReason,
       'notes': notes,
       'completedTime': completedTime?.toIso8601String(),
@@ -84,6 +93,10 @@ class Order {
       merchantName: map['merchantName'],
       merchantEmail: map['merchantEmail'] ?? '',
       customerName: map['customerName'],
+      createdAt: DateTime.parse(map['createdAt']),
+      readyAt: map['readyAt'] != null ? DateTime.parse(map['readyAt']) : null,
+      completedAt: map['completedAt'] != null ? DateTime.parse(map['completedAt']) : null,
+      cancelledAt: map['cancelledAt'] != null ? DateTime.parse(map['cancelledAt']) : null,
       status: map['status'] ?? 'pending',
       cancellationReason: map['cancellationReason'],
       notes: map['notes'],

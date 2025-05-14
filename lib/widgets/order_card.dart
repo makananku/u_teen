@@ -58,10 +58,40 @@ class OrderCard extends StatelessWidget {
               'Merchant: ${order.merchantName}',
               style: TextStyle(color: Colors.grey[600]),
             ),
+      // Display order creation time
+      Text(
+        'Ordered: ${DateFormat('dd MMM yyyy, HH:mm').format(order.createdAt)}',
+        style: TextStyle(color: Colors.grey[600]),
+      ),
       Text(
         'Pickup: ${DateFormat('dd MMM yyyy, HH:mm').format(order.pickupTime)}',
         style: TextStyle(color: Colors.grey[600]),
       ),
+      // Display status-specific time (completed/ready/cancelled) in bold
+      if (order.status == 'completed' && order.completedAt != null)
+        Text(
+          'Completed: ${DateFormat('dd MMM yyyy, HH:mm').format(order.completedAt!)}',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.grey[600],
+          ),
+        ),
+      if (order.status == 'ready' && order.readyAt != null)
+        Text(
+          'Ready: ${DateFormat('dd MMM yyyy, HH:mm').format(order.readyAt!)}',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.grey[600],
+          ),
+        ),
+      if (order.status == 'cancelled' && order.cancelledAt != null)
+        Text(
+          'Cancelled: ${DateFormat('dd MMM yyyy, HH:mm').format(order.cancelledAt!)}',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.grey[600],
+          ),
+        ),
       if (!isSellerView)
         Text(
           'Paid with ${order.paymentMethod}',

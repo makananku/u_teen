@@ -320,7 +320,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
       final newOrder = Order(
         id: _generateOrderId(),
         orderTime: DateTime.now(),
+        createdAt: DateTime.now(),
         pickupTime: pickupTime,
+        readyAt: null,
+        completedAt: null,
+        cancelledAt: null,
         items:
             widget.items
                 .map(
