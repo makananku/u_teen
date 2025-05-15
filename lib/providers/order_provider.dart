@@ -12,7 +12,7 @@ class OrderProvider with ChangeNotifier {
   late final SharedPreferences _prefs;
   final NotificationProvider _notificationProvider;
   bool _isSaving = false;
-  final Map<String, Timer> _readyTimers = {}; // Map to store active timers for ready orders
+  final Map<String, Timer> _readyTimers = {};
 
   OrderProvider(SharedPreferences prefs, this._notificationProvider) : _prefs = prefs {
     _loadOrders();
@@ -45,17 +45,14 @@ class OrderProvider with ChangeNotifier {
     }
   }
 
-  // Get all orders
   List<Order> get orders => List.unmodifiable(_orders);
 
-  // Get orders by status
   List<Order> get pendingOrders => _orders.where((o) => o.status == 'pending').toList();
   List<Order> get processingOrders => _orders.where((o) => o.status == 'processing').toList();
   List<Order> get readyOrders => _orders.where((o) => o.status == 'ready').toList();
   List<Order> get completedOrders => _orders.where((o) => o.status == 'completed').toList();
   List<Order> get cancelledOrders => _orders.where((o) => o.status == 'cancelled').toList();
 
-  // Merchant-specific orders
   List<Order> getOrdersForMerchant(String merchantEmail) {
     return _orders.where((o) => o.merchantEmail == merchantEmail).toList();
   }
@@ -86,7 +83,6 @@ class OrderProvider with ChangeNotifier {
         .toList();
   }
 
-  // Customer-specific orders
   List<Order> getOrdersForCustomer(String customerEmail) {
     return _orders.where((o) => o.customerName == customerEmail).toList();
   }
@@ -114,7 +110,6 @@ class OrderProvider with ChangeNotifier {
         .toList();
   }
 
-  // Order operations
   Future<void> addOrder(Order order) async {
     _orders.insert(0, order);
     notifyListeners();
@@ -125,33 +120,18 @@ class OrderProvider with ChangeNotifier {
     final index = _orders.indexWhere((o) => o.id == orderId);
     if (index != -1) {
       final now = DateTime.now();
-      // Cancel any existing timer if the status changes from 'ready'
       if (_orders[index].status == 'ready' && newStatus != 'ready') {
         _readyTimers[orderId]?.cancel();
         _readyTimers.remove(orderId);
       }
-      _orders[index] = Order(
-        id: _orders[index].id,
-        orderTime: _orders[index].orderTime,
-        pickupTime: _orders[index].pickupTime,
-        items: _orders[index].items,
-        paymentMethod: _orders[index].paymentMethod,
-        merchantName: _orders[index].merchantName,
-        merchantEmail: _orders[index].merchantEmail,
-        customerName: _orders[index].customerName,
+      _orders[index] = _orders[index].copyWith(
         status: newStatus,
         cancellationReason: reason,
-        notes: _orders[index].notes,
         completedTime: newStatus == 'completed' ? now : _orders[index].completedTime,
         cancelledTime: newStatus == 'cancelled' ? now : _orders[index].cancelledTime,
         readyAt: newStatus == 'ready' ? now : _orders[index].readyAt,
         completedAt: newStatus == 'completed' ? now : _orders[index].completedAt,
         cancelledAt: newStatus == 'cancelled' ? now : _orders[index].cancelledAt,
-        foodRating: _orders[index].foodRating,
-        appRating: _orders[index].appRating,
-        foodNotes: _orders[index].foodNotes,
-        appNotes: _orders[index].appNotes,
-        createdAt: _orders[index].createdAt,
       );
       if (newStatus == 'ready') {
         _readyTimers[orderId] = Timer(const Duration(minutes: 2), () {
@@ -167,6 +147,26 @@ class OrderProvider with ChangeNotifier {
     }
   }
 
+  Future<void> updateOrderWithRatings({
+    required String orderId,
+    required Order updatedOrder,
+  }) async {
+    final index = _orders.indexWhere((o) => o.id == orderId);
+    if (index == -1) {
+      throw Exception('Order with ID $orderId not found');
+    }
+    if (_orders[index].status == 'ready') {
+      _readyTimers[orderId]?.cancel();
+      _readyTimers.remove(orderId);
+    }
+    _orders[index] = updatedOrder;
+    await _notificationProvider.addNotification(
+      NotificationModel.fromOrder(updatedOrder),
+    );
+    notifyListeners();
+    await _saveOrders();
+  }
+
   Future<void> submitRatingAndCompleteOrder({
     required String orderId,
     required int foodRating,
@@ -177,31 +177,16 @@ class OrderProvider with ChangeNotifier {
     final index = _orders.indexWhere((o) => o.id == orderId);
     if (index != -1) {
       final now = DateTime.now();
-      // Cancel the timer since the customer has confirmed pickup
       _readyTimers[orderId]?.cancel();
       _readyTimers.remove(orderId);
-      _orders[index] = Order(
-        id: _orders[index].id,
-        orderTime: _orders[index].orderTime,
-        pickupTime: _orders[index].pickupTime,
-        items: _orders[index].items,
-        paymentMethod: _orders[index].paymentMethod,
-        merchantName: _orders[index].merchantName,
-        merchantEmail: _orders[index].merchantEmail,
-        customerName: _orders[index].customerName,
+      _orders[index] = _orders[index].copyWith(
         status: 'completed',
-        cancellationReason: _orders[index].cancellationReason,
-        notes: _orders[index].notes,
         completedTime: now,
-        cancelledTime: _orders[index].cancelledTime,
-        readyAt: _orders[index].readyAt,
         completedAt: now,
-        cancelledAt: _orders[index].cancelledAt,
         foodRating: foodRating,
         appRating: appRating,
         foodNotes: foodNotes,
         appNotes: appNotes,
-        createdAt: _orders[index].createdAt,
       );
       await _notificationProvider.addNotification(
           NotificationModel.fromOrder(_orders[index]));
@@ -214,30 +199,16 @@ class OrderProvider with ChangeNotifier {
     final index = _orders.indexWhere((o) => o.id == orderId);
     if (index != -1 && _orders[index].status == 'ready') {
       final now = DateTime.now();
-      _orders[index] = Order(
-        id: _orders[index].id,
-        orderTime: _orders[index].orderTime,
-        pickupTime: _orders[index].pickupTime,
-        items: _orders[index].items,
-        paymentMethod: _orders[index].paymentMethod,
-        merchantName: _orders[index].merchantName,
-        merchantEmail: _orders[index].merchantEmail,
-        customerName: _orders[index].customerName,
+      _orders[index] = _orders[index].copyWith(
         status: 'completed',
-        cancellationReason: _orders[index].cancellationReason,
-        notes: _orders[index].notes,
         completedTime: now,
-        cancelledTime: _orders[index].cancelledTime,
-        readyAt: _orders[index].readyAt,
         completedAt: now,
-        cancelledAt: _orders[index].cancelledAt,
         foodRating: null,
         appRating: null,
         foodNotes: null,
         appNotes: null,
-        createdAt: _orders[index].createdAt,
       );
-      _readyTimers.remove(orderId); // Remove the timer as it's no longer needed
+      _readyTimers.remove(orderId);
       await _notificationProvider.addNotification(
           NotificationModel.fromOrder(_orders[index]));
       notifyListeners();
@@ -276,7 +247,6 @@ class OrderProvider with ChangeNotifier {
     );
   }
 
-  // Withdrawal operations
   Future<void> addWithdrawal({
     required String merchantEmail,
     required double amount,
@@ -313,7 +283,6 @@ class OrderProvider with ChangeNotifier {
     await _saveOrders();
   }
 
-  // Transaction history
   List<Order> getTransactionsForMerchant(String merchantEmail) {
     return _orders
         .where((order) =>
@@ -322,7 +291,6 @@ class OrderProvider with ChangeNotifier {
         .toList();
   }
 
-  // Balance calculation
   int getAvailableBalanceForMerchant(String merchantEmail) {
     double earnings = 0;
     double withdrawals = 0;
@@ -340,7 +308,6 @@ class OrderProvider with ChangeNotifier {
     return (earnings - withdrawals).round();
   }
 
-  // Helper methods
   String _generateOrderId() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final random = Random();
@@ -354,7 +321,6 @@ class OrderProvider with ChangeNotifier {
         .fold(0, (int sum, order) => sum + order.totalPrice.round());
   }
 
-  // Clean up timers when disposing
   @override
   void dispose() {
     _readyTimers.forEach((_, timer) => timer.cancel());

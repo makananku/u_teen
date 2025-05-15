@@ -71,7 +71,6 @@ class Order {
       'merchantName': merchantName,
       'merchantEmail': merchantEmail,
       'customerName': customerName,
-      'createdAt': createdAt.toIso8601String(),
       'cancellationReason': cancellationReason,
       'notes': notes,
       'completedTime': completedTime?.toIso8601String(),
@@ -80,6 +79,10 @@ class Order {
       'appRating': _appRating,
       'foodNotes': _foodNotes,
       'appNotes': _appNotes,
+      'createdAt': createdAt.toIso8601String(),
+      'readyAt': readyAt?.toIso8601String(),
+      'completedAt': completedAt?.toIso8601String(),
+      'cancelledAt': cancelledAt?.toIso8601String(),
     };
   }
 
@@ -108,6 +111,54 @@ class Order {
       appRating: map['appRating'],
       foodNotes: map['foodNotes'],
       appNotes: map['appNotes'],
+    );
+  }
+
+  Order copyWith({
+    String? id,
+    DateTime? orderTime,
+    DateTime? pickupTime,
+    List<OrderItem>? items,
+    String? status,
+    String? paymentMethod,
+    String? merchantName,
+    String? merchantEmail,
+    String? customerName,
+    String? cancellationReason,
+    String? notes,
+    DateTime? completedTime,
+    DateTime? cancelledTime,
+    int? foodRating,
+    int? appRating,
+    String? foodNotes,
+    String? appNotes,
+    DateTime? createdAt,
+    DateTime? readyAt,
+    DateTime? completedAt,
+    DateTime? cancelledAt,
+  }) {
+    return Order(
+      id: id ?? this.id,
+      orderTime: orderTime ?? this.orderTime,
+      pickupTime: pickupTime ?? this.pickupTime,
+      items: items ?? this.items,
+      status: status ?? this.status,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      merchantName: merchantName ?? this.merchantName,
+      merchantEmail: merchantEmail ?? this.merchantEmail,
+      customerName: customerName ?? this.customerName,
+      cancellationReason: cancellationReason ?? this.cancellationReason,
+      notes: notes ?? this.notes,
+      completedTime: completedTime ?? this.completedTime,
+      cancelledTime: cancelledTime ?? this.cancelledTime,
+      foodRating: foodRating ?? this.foodRating,
+      appRating: appRating ?? this.appRating,
+      foodNotes: foodNotes ?? this.foodNotes,
+      appNotes: appNotes ?? this.appNotes,
+      createdAt: createdAt ?? this.createdAt,
+      readyAt: readyAt ?? this.readyAt,
+      completedAt: completedAt ?? this.completedAt,
+      cancelledAt: cancelledAt ?? this.cancelledAt,
     );
   }
 }
@@ -148,6 +199,24 @@ class OrderItem {
       price: map['price'],
       quantity: map['quantity'],
       sellerEmail: map['sellerEmail'] ?? '',
+    );
+  }
+
+  OrderItem copyWith({
+    String? name,
+    String? image,
+    String? subtitle,
+    int? price,
+    int? quantity,
+    String? sellerEmail,
+  }) {
+    return OrderItem(
+      name: name ?? this.name,
+      image: image ?? this.image,
+      subtitle: subtitle ?? this.subtitle,
+      price: price ?? this.price,
+      quantity: quantity ?? this.quantity,
+      sellerEmail: sellerEmail ?? this.sellerEmail,
     );
   }
 }

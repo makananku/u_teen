@@ -1,17 +1,17 @@
 # Summary
 
-Date : 2025-05-15 18:08:49
+Date : 2025-05-15 18:34:34
 
 Directory c:\\Users\\Acer\\u_teen
 
-Total : 111 files,  12946 codes, 378 comments, 1161 blanks, all 14485 lines
+Total : 117 files,  13034 codes, 364 comments, 1182 blanks, all 14580 lines
 
 Summary / [Details](details.md) / [Diff Summary](diff.md) / [Diff Details](diff-details.md)
 
 ## Languages
 | language | files | code | comment | blank | total |
 | :--- | ---: | ---: | ---: | ---: | ---: |
-| Dart | 61 | 10,015 | 149 | 704 | 10,868 |
+| Dart | 67 | 10,103 | 135 | 725 | 10,963 |
 | JSON | 11 | 1,256 | 0 | 6 | 1,262 |
 | C++ | 16 | 547 | 131 | 189 | 867 |
 | Markdown | 2 | 518 | 0 | 204 | 722 |
@@ -24,7 +24,7 @@ Summary / [Details](details.md) / [Diff Summary](diff.md) / [Diff Details](diff-
 ## Directories
 | path | files | code | comment | blank | total |
 | :--- | ---: | ---: | ---: | ---: | ---: |
-| . | 111 | 12,946 | 378 | 1,161 | 14,485 |
+| . | 117 | 13,034 | 364 | 1,182 | 14,580 |
 | . (Files) | 5 | 1,454 | 23 | 222 | 1,699 |
 | android | 9 | 77 | 51 | 11 | 139 |
 | android (Files) | 1 | 3 | 0 | 1 | 4 |
@@ -52,22 +52,23 @@ Summary / [Details](details.md) / [Diff Summary](diff.md) / [Diff Details](diff-
 | ios\\Runner\\Assets.xcassets\\AppIcon.appiconset | 1 | 122 | 0 | 1 | 123 |
 | ios\\Runner\\Assets.xcassets\\LaunchImage.imageset | 2 | 26 | 0 | 3 | 29 |
 | ios\\Runner\\Base.lproj | 2 | 61 | 2 | 2 | 65 |
-| lib | 60 | 10,001 | 139 | 697 | 10,837 |
+| lib | 66 | 10,089 | 125 | 718 | 10,932 |
 | lib (Files) | 1 | 383 | 1 | 31 | 415 |
 | lib\\auth | 3 | 208 | 5 | 25 | 238 |
 | lib\\data | 3 | 144 | 8 | 14 | 166 |
-| lib\\models | 7 | 415 | 4 | 40 | 459 |
-| lib\\providers | 7 | 775 | 24 | 109 | 908 |
+| lib\\models | 8 | 492 | 4 | 43 | 539 |
+| lib\\providers | 7 | 743 | 9 | 113 | 865 |
 | lib\\repositories | 1 | 44 | 0 | 7 | 51 |
-| lib\\screens | 18 | 5,109 | 63 | 283 | 5,455 |
+| lib\\screens | 18 | 4,904 | 63 | 277 | 5,244 |
 | lib\\screens (Files) | 1 | 265 | 1 | 21 | 287 |
 | lib\\screens\\customer | 8 | 2,247 | 7 | 115 | 2,369 |
-| lib\\screens\\seller | 9 | 2,597 | 55 | 147 | 2,799 |
+| lib\\screens\\seller | 9 | 2,392 | 55 | 141 | 2,588 |
 | lib\\services | 2 | 216 | 19 | 34 | 269 |
 | lib\\utils | 2 | 73 | 1 | 8 | 82 |
-| lib\\widgets | 16 | 2,634 | 14 | 146 | 2,794 |
-| lib\\widgets (Files) | 6 | 1,334 | 8 | 69 | 1,411 |
+| lib\\widgets | 21 | 2,882 | 15 | 166 | 3,063 |
+| lib\\widgets (Files) | 5 | 1,160 | 5 | 56 | 1,221 |
 | lib\\widgets\\customer | 6 | 918 | 6 | 52 | 976 |
+| lib\\widgets\\rating | 6 | 422 | 4 | 33 | 459 |
 | lib\\widgets\\seller | 4 | 382 | 0 | 25 | 407 |
 | linux | 5 | 107 | 37 | 45 | 189 |
 | linux\\flutter | 2 | 12 | 9 | 11 | 32 |

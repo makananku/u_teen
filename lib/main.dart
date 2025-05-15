@@ -13,7 +13,7 @@ import 'providers/notification_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/customer/home_screen.dart';
 import 'screens/seller/home_screen.dart';
-import 'providers/ratings_provider.dart';
+import 'providers/rating_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,7 +38,7 @@ void main() async {
           ),
         ),
         ChangeNotifierProvider(
-          create: (context) => RatingsProvider(
+          create: (context) => RatingProvider(
             Provider.of<OrderProvider>(context, listen: false),
           ),
         ),

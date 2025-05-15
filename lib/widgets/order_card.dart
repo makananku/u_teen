@@ -3,8 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/order_model.dart';
 import '../providers/order_provider.dart';
-import '../providers/ratings_provider.dart';
-import 'rating_widget.dart';
+import '../providers/rating_provider.dart';
+import 'rating/rating_dialog.dart';
 
 class OrderCard extends StatelessWidget {
   final Order order;
@@ -296,7 +296,7 @@ class OrderCard extends StatelessWidget {
               builder: (context) => RatingDialog(
                 order: order,
                 onSubmit: (foodRating, appRating, foodNotes, appNotes) {
-                  Provider.of<RatingsProvider>(context, listen: false).submitRating(
+                  Provider.of<RatingProvider>(context, listen: false).submitRating(
                     orderId: order.id,
                     foodRating: foodRating,
                     appRating: appRating,
