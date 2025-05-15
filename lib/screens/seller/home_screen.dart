@@ -6,6 +6,7 @@ import 'package:u_teen/providers/order_provider.dart';
 import 'package:u_teen/screens/seller/cancellation_screen.dart' as cancellation;
 import 'package:u_teen/screens/seller/completed_screen.dart' as completed;
 import 'package:u_teen/screens/seller/on_process_screen.dart' as onprocess;
+import 'package:u_teen/screens/seller/rating_screen.dart'; 
 import 'package:u_teen/widgets/seller/sales_metric_card.dart';
 import 'package:u_teen/widgets/seller/status_button.dart';
 import 'package:u_teen/widgets/seller/event_card.dart';
@@ -221,6 +222,15 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                                   onPressed: () => Navigator.push(
                                     context,
                                     MaterialPageRoute(builder: (context) => const completed.CompletedScreen()),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                StatusButton(
+                                  text: 'My Ratings',
+                                  count: 0, // Anda bisa menambahkan count rating jika diperlukan
+                                  onPressed: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const RatingScreen()),
                                   ),
                                 ),
                               ],

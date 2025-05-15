@@ -3,15 +3,19 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/order_model.dart';
 import '../providers/order_provider.dart';
+import '../providers/ratings_provider.dart';
+import 'rating_widget.dart';
 
 class OrderCard extends StatelessWidget {
   final Order order;
   final bool isSellerView;
+  final VoidCallback? onTap;
 
   const OrderCard({
     super.key,
     required this.order,
-    this.isSellerView = false, required Null Function() onTap,
+    this.isSellerView = false,
+    this.onTap,
   });
 
   @override
@@ -22,7 +26,6 @@ class OrderCard extends StatelessWidget {
       decimalDigits: 0,
     );
 
-    // Build the children list for the Column
     final List<Widget> children = [
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -48,7 +51,6 @@ class OrderCard extends StatelessWidget {
         ],
       ),
       const SizedBox(height: 8),
-      // Show customer name for seller, merchant name for customer
       isSellerView
           ? Text(
               'Customer: ${order.customerName}',
@@ -58,7 +60,6 @@ class OrderCard extends StatelessWidget {
               'Merchant: ${order.merchantName}',
               style: TextStyle(color: Colors.grey[600]),
             ),
-      // Display order creation time
       Text(
         'Ordered: ${DateFormat('dd MMM yyyy, HH:mm').format(order.createdAt)}',
         style: TextStyle(color: Colors.grey[600]),
@@ -67,7 +68,6 @@ class OrderCard extends StatelessWidget {
         'Pickup: ${DateFormat('dd MMM yyyy, HH:mm').format(order.pickupTime)}',
         style: TextStyle(color: Colors.grey[600]),
       ),
-      // Display status-specific time (completed/ready/cancelled) in bold
       if (order.status == 'completed' && order.completedAt != null)
         Text(
           'Completed: ${DateFormat('dd MMM yyyy, HH:mm').format(order.completedAt!)}',
@@ -97,7 +97,6 @@ class OrderCard extends StatelessWidget {
           'Paid with ${order.paymentMethod}',
           style: TextStyle(color: Colors.grey[600]),
         ),
-      // Display customer notes if available
       if (order.notes != null && order.notes!.isNotEmpty) ...[
         const SizedBox(height: 8),
         Container(
@@ -125,7 +124,6 @@ class OrderCard extends StatelessWidget {
           ),
         ),
       ],
-      // Display cancellation reason if order is cancelled
       if (order.status == 'cancelled' && order.cancellationReason != null) ...[
         const SizedBox(height: 8),
         Container(
@@ -153,7 +151,6 @@ class OrderCard extends StatelessWidget {
           ),
         ),
       ],
-      // Display ratings if available (for completed orders)
       if (order.status == 'completed' &&
           (order.foodRating != null || order.appRating != null)) ...[
         const SizedBox(height: 8),
@@ -184,7 +181,8 @@ class OrderCard extends StatelessWidget {
                     ),
                     ...List.generate(
                       5 - order.foodRating!,
-                      (index) => const Icon(Icons.star_border, color: Colors.amber, size: 16),
+                      (index) =>
+                          const Icon(Icons.star_border, color: Colors.amber, size: 16),
                     ),
                   ],
                 ),
@@ -206,7 +204,8 @@ class OrderCard extends StatelessWidget {
                     ),
                     ...List.generate(
                       5 - order.appRating!,
-                      (index) => const Icon(Icons.star_border, color: Colors.amber, size: 16),
+                      (index) =>
+                          const Icon(Icons.star_border, color: Colors.amber, size: 16),
                     ),
                   ],
                 ),
@@ -240,7 +239,6 @@ class OrderCard extends StatelessWidget {
       ),
     ];
 
-    // Add seller buttons for pending/processing orders only
     if (isSellerView && (order.status == 'pending' || order.status == 'processing')) {
       children.addAll([
         const SizedBox(height: 16),
@@ -280,7 +278,6 @@ class OrderCard extends StatelessWidget {
       ]);
     }
 
-    // Add Confirm Pickup button for ready orders (customer view only)
     if (!isSellerView && order.status == 'ready') {
       children.addAll([
         const SizedBox(height: 16),
@@ -293,7 +290,23 @@ class OrderCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
           ),
-          onPressed: () => _showRatingDialog(context, order),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (context) => RatingDialog(
+                order: order,
+                onSubmit: (foodRating, appRating, foodNotes, appNotes) {
+                  Provider.of<RatingsProvider>(context, listen: false).submitRating(
+                    orderId: order.id,
+                    foodRating: foodRating,
+                    appRating: appRating,
+                    foodNotes: foodNotes,
+                    appNotes: appNotes,
+                  );
+                },
+              ),
+            );
+          },
           child: const Text('Confirm Pickup'),
         ),
       ]);
@@ -306,11 +319,15 @@ class OrderCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: children,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: children,
+          ),
         ),
       ),
     );
@@ -361,13 +378,6 @@ class OrderCard extends StatelessWidget {
     );
   }
 
-  void _showRatingDialog(BuildContext context, Order order) {
-    showDialog(
-      context: context,
-      builder: (context) => RatingDialog(order: order),
-    );
-  }
-
   void _markAsReady(BuildContext context, Order order) {
     showDialog(
       context: context,
@@ -409,10 +419,7 @@ class OrderCard extends StatelessWidget {
                       ),
                     ),
                     onPressed: () async {
-                      // Close the confirmation dialog
                       Navigator.pop(context);
-
-                      // Show processing dialog
                       showDialog(
                         context: context,
                         barrierDismissible: false,
@@ -441,17 +448,11 @@ class OrderCard extends StatelessWidget {
                         ),
                       );
 
-                      // Update order status to 'ready'
                       await Provider.of<OrderProvider>(context, listen: false)
                           .updateOrderStatus(order.id, 'ready');
 
-                      // Close processing dialog
                       if (context.mounted) {
                         Navigator.pop(context);
-                      }
-
-                      // Show success animation
-                      if (context.mounted) {
                         await _showSuccessAnimation(context);
                       }
                     },
@@ -533,10 +534,7 @@ class OrderCard extends StatelessWidget {
                       onPressed: () async {
                         if (!formKey.currentState!.validate()) return;
 
-                        // Close confirmation dialog
                         Navigator.pop(context);
-
-                        // Show processing dialog
                         showDialog(
                           context: context,
                           barrierDismissible: false,
@@ -565,7 +563,6 @@ class OrderCard extends StatelessWidget {
                           ),
                         );
 
-                        // Update order status
                         await Provider.of<OrderProvider>(context, listen: false)
                             .updateOrderStatus(
                           order.id,
@@ -573,13 +570,8 @@ class OrderCard extends StatelessWidget {
                           reason: reasonController.text,
                         );
 
-                        // Close processing dialog
                         if (context.mounted) {
                           Navigator.pop(context);
-                        }
-
-                        // Show cancelled animation
-                        if (context.mounted) {
                           await _showCancelledAnimation(context);
                         }
                       },
@@ -686,182 +678,5 @@ class OrderCard extends StatelessWidget {
       default:
         return Colors.orange[800]!;
     }
-  }
-}
-
-class RatingDialog extends StatefulWidget {
-  final Order order;
-
-  const RatingDialog({super.key, required this.order});
-
-  @override
-  _RatingDialogState createState() => _RatingDialogState();
-}
-
-class _RatingDialogState extends State<RatingDialog> {
-  int foodRating = 0;
-  int appRating = 0;
-  final foodNotesController = TextEditingController();
-  final appNotesController = TextEditingController();
-  final formKey = GlobalKey<FormState>();
-
-  @override
-  void dispose() {
-    foodNotesController.dispose();
-    appNotesController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Rate Your Experience',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-
-                // Food Rating
-                const Text('Food Quality', style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(5, (index) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: IconButton(
-                        key: ValueKey('food_star_$index'),
-                        iconSize: 24,
-                        icon: Icon(
-                          index < foodRating ? Icons.star : Icons.star_border,
-                          color: Colors.amber,
-                        ),
-                        onPressed: () {
-                          print('Food rating tapped: ${index + 1}');
-                          setState(() {
-                            foodRating = index + 1;
-                            print('Food rating updated to: $foodRating');
-                          });
-                        },
-                      ),
-                    );
-                  }),
-                ),
-                TextFormField(
-                  controller: foodNotesController,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Food Feedback (Optional)',
-                    hintText: 'E.g. Taste, portion size',
-                  ),
-                  maxLines: 3,
-                ),
-
-                const SizedBox(height: 16),
-
-                // App Rating
-                const Text('App Experience', style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(5, (index) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: IconButton(
-                        key: ValueKey('app_star_$index'),
-                        iconSize: 24,
-                        icon: Icon(
-                          index < appRating ? Icons.star : Icons.star_border,
-                          color: Colors.amber,
-                        ),
-                        onPressed: () {
-                          print('App rating tapped: ${index + 1}');
-                          setState(() {
-                            appRating = index + 1;
-                            print('App rating updated to: $appRating');
-                          });
-                        },
-                      ),
-                    );
-                  }),
-                ),
-                TextFormField(
-                  controller: appNotesController,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'App Feedback (Optional)',
-                    hintText: 'E.g. Usability, features',
-                  ),
-                  maxLines: 3,
-                ),
-
-                const SizedBox(height: 24),
-
-                // Buttons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('CANCEL'),
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      ),
-                      onPressed: () {
-                        if (foodRating == 0 || appRating == 0) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Please provide both food and app ratings'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                          return;
-                        }
-
-                        // Submit ratings and update status
-                        Provider.of<OrderProvider>(context, listen: false)
-                            .submitRatingAndCompleteOrder(
-                          orderId: widget.order.id,
-                          foodRating: foodRating,
-                          appRating: appRating,
-                          foodNotes: foodNotesController.text.isNotEmpty
-                              ? foodNotesController.text
-                              : null,
-                          appNotes: appNotesController.text.isNotEmpty
-                              ? appNotesController.text
-                              : null,
-                        );
-
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Thank you for your feedback!'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      },
-                      child: const Text('SUBMIT', style: TextStyle(color: Colors.white)),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }

@@ -1,9 +1,0 @@
-"filename", "language", "YAML", "Dart", "JSON", "comment", "blank", "total"
-"c:\Users\Acer\u_teen\assets\animation\empty_payment.json", "JSON", 0, 0, -1, 0, 0, -1
-"c:\Users\Acer\u_teen\assets\animation\withdrawal.json", "JSON", 0, 0, -1, 0, 0, -1
-"c:\Users\Acer\u_teen\assets\logo\u.json", "JSON", 0, 0, 114, 0, 0, 114
-"c:\Users\Acer\u_teen\lib\main.dart", "Dart", 0, -1, 0, 5, -2, 2
-"c:\Users\Acer\u_teen\lib\screens\customer\payment_screen.dart", "Dart", 0, 31, 0, 0, 4, 35
-"c:\Users\Acer\u_teen\lib\widgets\time_picker_widget.dart", "Dart", 0, 92, 0, -2, 3, 93
-"c:\Users\Acer\u_teen\pubspec.yaml", "YAML", 1, 0, 0, 0, 0, 1
-"Total", "-", 1, 122, 112, 3, 5, 243

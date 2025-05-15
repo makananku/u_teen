@@ -1,31 +1,31 @@
 # Summary
 
-Date : 2025-04-23 11:03:16
+Date : 2025-05-15 18:08:49
 
 Directory c:\\Users\\Acer\\u_teen
 
-Total : 106 files,  11265 codes, 379 comments, 930 blanks, all 12574 lines
+Total : 111 files,  12946 codes, 378 comments, 1161 blanks, all 14485 lines
 
 Summary / [Details](details.md) / [Diff Summary](diff.md) / [Diff Details](diff-details.md)
 
 ## Languages
 | language | files | code | comment | blank | total |
 | :--- | ---: | ---: | ---: | ---: | ---: |
-| Dart | 57 | 8,841 | 150 | 668 | 9,659 |
-| JSON | 10 | 1,255 | 0 | 6 | 1,261 |
+| Dart | 61 | 10,015 | 149 | 704 | 10,868 |
+| JSON | 11 | 1,256 | 0 | 6 | 1,262 |
 | C++ | 16 | 547 | 131 | 189 | 867 |
+| Markdown | 2 | 518 | 0 | 204 | 722 |
 | XML | 10 | 471 | 53 | 12 | 536 |
 | Swift | 6 | 61 | 7 | 21 | 89 |
-| YAML | 2 | 48 | 23 | 18 | 89 |
+| YAML | 2 | 49 | 23 | 18 | 90 |
 | HTML | 1 | 19 | 15 | 5 | 39 |
-| Markdown | 2 | 13 | 0 | 9 | 22 |
 | Java Properties | 2 | 10 | 0 | 2 | 12 |
 
 ## Directories
 | path | files | code | comment | blank | total |
 | :--- | ---: | ---: | ---: | ---: | ---: |
-| . | 106 | 11,265 | 379 | 930 | 12,574 |
-| . (Files) | 5 | 948 | 23 | 27 | 998 |
+| . | 111 | 12,946 | 378 | 1,161 | 14,485 |
+| . (Files) | 5 | 1,454 | 23 | 222 | 1,699 |
 | android | 9 | 77 | 51 | 11 | 139 |
 | android (Files) | 1 | 3 | 0 | 1 | 4 |
 | android\\app | 7 | 67 | 51 | 9 | 127 |
@@ -41,8 +41,8 @@ Summary / [Details](details.md) / [Diff Summary](diff.md) / [Diff Details](diff-
 | android\\app\\src\\profile | 1 | 3 | 4 | 1 | 8 |
 | android\\gradle | 1 | 7 | 0 | 1 | 8 |
 | android\\gradle\\wrapper | 1 | 7 | 0 | 1 | 8 |
-| assets | 4 | 117 | 0 | 0 | 117 |
-| assets\\animation | 3 | 3 | 0 | 0 | 3 |
+| assets | 5 | 118 | 0 | 0 | 118 |
+| assets\\animation | 4 | 4 | 0 | 0 | 4 |
 | assets\\logo | 1 | 114 | 0 | 0 | 114 |
 | ios | 8 | 229 | 4 | 13 | 246 |
 | ios\\Runner | 7 | 222 | 2 | 9 | 233 |
@@ -52,22 +52,22 @@ Summary / [Details](details.md) / [Diff Summary](diff.md) / [Diff Details](diff-
 | ios\\Runner\\Assets.xcassets\\AppIcon.appiconset | 1 | 122 | 0 | 1 | 123 |
 | ios\\Runner\\Assets.xcassets\\LaunchImage.imageset | 2 | 26 | 0 | 3 | 29 |
 | ios\\Runner\\Base.lproj | 2 | 61 | 2 | 2 | 65 |
-| lib | 56 | 8,827 | 140 | 661 | 9,628 |
-| lib (Files) | 1 | 333 | 6 | 31 | 370 |
-| lib\\auth | 4 | 220 | 5 | 25 | 250 |
+| lib | 60 | 10,001 | 139 | 697 | 10,837 |
+| lib (Files) | 1 | 383 | 1 | 31 | 415 |
+| lib\\auth | 3 | 208 | 5 | 25 | 238 |
 | lib\\data | 3 | 144 | 8 | 14 | 166 |
-| lib\\models | 6 | 304 | 3 | 32 | 339 |
-| lib\\providers | 6 | 561 | 19 | 93 | 673 |
-| lib\\repositories | 1 | 40 | 0 | 7 | 47 |
-| lib\\screens | 16 | 4,367 | 50 | 266 | 4,683 |
+| lib\\models | 7 | 415 | 4 | 40 | 459 |
+| lib\\providers | 7 | 775 | 24 | 109 | 908 |
+| lib\\repositories | 1 | 44 | 0 | 7 | 51 |
+| lib\\screens | 18 | 5,109 | 63 | 283 | 5,455 |
 | lib\\screens (Files) | 1 | 265 | 1 | 21 | 287 |
-| lib\\screens\\customer | 7 | 1,895 | 11 | 114 | 2,020 |
-| lib\\screens\\seller | 8 | 2,207 | 38 | 131 | 2,376 |
+| lib\\screens\\customer | 8 | 2,247 | 7 | 115 | 2,369 |
+| lib\\screens\\seller | 9 | 2,597 | 55 | 147 | 2,799 |
 | lib\\services | 2 | 216 | 19 | 34 | 269 |
 | lib\\utils | 2 | 73 | 1 | 8 | 82 |
-| lib\\widgets | 15 | 2,569 | 29 | 151 | 2,749 |
-| lib\\widgets (Files) | 5 | 1,270 | 23 | 74 | 1,367 |
-| lib\\widgets\\customer | 6 | 917 | 6 | 52 | 975 |
+| lib\\widgets | 16 | 2,634 | 14 | 146 | 2,794 |
+| lib\\widgets (Files) | 6 | 1,334 | 8 | 69 | 1,411 |
+| lib\\widgets\\customer | 6 | 918 | 6 | 52 | 976 |
 | lib\\widgets\\seller | 4 | 382 | 0 | 25 | 407 |
 | linux | 5 | 107 | 37 | 45 | 189 |
 | linux\\flutter | 2 | 12 | 9 | 11 | 32 |
