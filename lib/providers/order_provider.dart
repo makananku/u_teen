@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,6 +12,7 @@ class OrderProvider with ChangeNotifier {
   late final SharedPreferences _prefs;
   final NotificationProvider _notificationProvider;
   bool _isSaving = false;
+  final Map<String, Timer> _readyTimers = {}; // Map to store active timers for ready orders
 
   OrderProvider(SharedPreferences prefs, this._notificationProvider) : _prefs = prefs {
     _loadOrders();
@@ -123,6 +125,11 @@ class OrderProvider with ChangeNotifier {
     final index = _orders.indexWhere((o) => o.id == orderId);
     if (index != -1) {
       final now = DateTime.now();
+      // Cancel any existing timer if the status changes from 'ready'
+      if (_orders[index].status == 'ready' && newStatus != 'ready') {
+        _readyTimers[orderId]?.cancel();
+        _readyTimers.remove(orderId);
+      }
       _orders[index] = Order(
         id: _orders[index].id,
         orderTime: _orders[index].orderTime,
@@ -146,6 +153,11 @@ class OrderProvider with ChangeNotifier {
         appNotes: _orders[index].appNotes,
         createdAt: _orders[index].createdAt,
       );
+      if (newStatus == 'ready') {
+        _readyTimers[orderId] = Timer(const Duration(minutes: 2), () {
+          _autoCompleteOrder(orderId);
+        });
+      }
       if (['ready', 'completed', 'cancelled'].contains(newStatus)) {
         await _notificationProvider.addNotification(
             NotificationModel.fromOrder(_orders[index]));
@@ -165,6 +177,9 @@ class OrderProvider with ChangeNotifier {
     final index = _orders.indexWhere((o) => o.id == orderId);
     if (index != -1) {
       final now = DateTime.now();
+      // Cancel the timer since the customer has confirmed pickup
+      _readyTimers[orderId]?.cancel();
+      _readyTimers.remove(orderId);
       _orders[index] = Order(
         id: _orders[index].id,
         orderTime: _orders[index].orderTime,
@@ -188,6 +203,41 @@ class OrderProvider with ChangeNotifier {
         appNotes: appNotes,
         createdAt: _orders[index].createdAt,
       );
+      await _notificationProvider.addNotification(
+          NotificationModel.fromOrder(_orders[index]));
+      notifyListeners();
+      await _saveOrders();
+    }
+  }
+
+  Future<void> _autoCompleteOrder(String orderId) async {
+    final index = _orders.indexWhere((o) => o.id == orderId);
+    if (index != -1 && _orders[index].status == 'ready') {
+      final now = DateTime.now();
+      _orders[index] = Order(
+        id: _orders[index].id,
+        orderTime: _orders[index].orderTime,
+        pickupTime: _orders[index].pickupTime,
+        items: _orders[index].items,
+        paymentMethod: _orders[index].paymentMethod,
+        merchantName: _orders[index].merchantName,
+        merchantEmail: _orders[index].merchantEmail,
+        customerName: _orders[index].customerName,
+        status: 'completed',
+        cancellationReason: _orders[index].cancellationReason,
+        notes: _orders[index].notes,
+        completedTime: now,
+        cancelledTime: _orders[index].cancelledTime,
+        readyAt: _orders[index].readyAt,
+        completedAt: now,
+        cancelledAt: _orders[index].cancelledAt,
+        foodRating: null,
+        appRating: null,
+        foodNotes: null,
+        appNotes: null,
+        createdAt: _orders[index].createdAt,
+      );
+      _readyTimers.remove(orderId); // Remove the timer as it's no longer needed
       await _notificationProvider.addNotification(
           NotificationModel.fromOrder(_orders[index]));
       notifyListeners();
@@ -302,5 +352,13 @@ class OrderProvider with ChangeNotifier {
         .where((order) =>
             order.merchantEmail == merchantEmail && order.status == 'completed')
         .fold(0, (int sum, order) => sum + order.totalPrice.round());
+  }
+
+  // Clean up timers when disposing
+  @override
+  void dispose() {
+    _readyTimers.forEach((_, timer) => timer.cancel());
+    _readyTimers.clear();
+    super.dispose();
   }
 }
