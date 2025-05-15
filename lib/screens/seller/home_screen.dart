@@ -241,10 +241,10 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                 children: [
                   const Expanded(child: Divider(thickness: 1, endIndent: 10)),
                   Text(
-                    'PUBLIC EVENTS (${_filterMonths[_selectedFilterIndex]} MONTHS)',
+                    'ACADEMIC CALENDER (${_filterMonths[_selectedFilterIndex]} MONTHS)',
                     style: TextStyle(color: Colors.grey[500], fontSize: 12, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 8), 
                   InkWell(
                     onTap: () => _showFilterDialog(context),
                     child: Icon(

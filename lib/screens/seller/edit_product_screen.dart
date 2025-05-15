@@ -5,6 +5,7 @@ import 'package:u_teen/auth/auth_provider.dart';
 import 'package:u_teen/providers/food_provider.dart';
 import 'package:u_teen/models/product_model.dart';
 import 'dart:io';
+import 'package:flutter/services.dart';
 
 class SellerEditProductScreen extends StatefulWidget {
   final Product? product;
@@ -12,7 +13,8 @@ class SellerEditProductScreen extends StatefulWidget {
   const SellerEditProductScreen({super.key, this.product});
 
   @override
-  State<SellerEditProductScreen> createState() => _SellerEditProductScreenState();
+  State<SellerEditProductScreen> createState() =>
+      _SellerEditProductScreenState();
 }
 
 class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
@@ -25,78 +27,90 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
   int _preparationTime = 5;
   bool _isUploading = false;
 
+  // Time options for alternative selection
+  final List<int> _timeOptions = [5, 10, 15, 20, 25, 30];
+  final List<String> _timeLabels = [
+    'Fast (5-10 min)',
+    'Medium (15-20 min)',
+    'Long (25-30 min)',
+  ];
+
   @override
   void initState() {
     super.initState();
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     _tenantName = authProvider.user?.name ?? 'My Tenant';
-    
+
     _nameController = TextEditingController(text: widget.product?.title ?? '');
-    _priceController = TextEditingController(text: widget.product?.price ?? '');
-    _descriptionController = TextEditingController(text: widget.product?.subtitle ?? '');
-    
+    _descriptionController = TextEditingController(
+      text: widget.product?.subtitle ?? '',
+    );
+
+    // Initialize price controller, removing any non-digits from existing price
+    _priceController = TextEditingController(
+      text: widget.product?.price != null
+          ? _formatPrice(widget.product!.price.replaceAll('.', ''))
+          : '',
+    );
+
+    // Add listener to format price input with thousand separators
+    _priceController.addListener(_formatPriceInput);
+
     if (widget.product?.time != null) {
-      _preparationTime = int.parse(widget.product!.time.replaceAll(' mins', ''));
+      _preparationTime = int.parse(
+        widget.product!.time.replaceAll(' mins', ''),
+      );
     }
   }
 
-  Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 800,
-      imageQuality: 85,
-    );
-    
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
+  // Format price input as the user types
+  void _formatPriceInput() {
+    String text = _priceController.text.replaceAll('.', '');
+    if (text.isEmpty) return;
+
+    String formatted = _formatPrice(text);
+    if (formatted != _priceController.text) {
+      // Calculate cursor position
+      int cursorPos = _priceController.selection.baseOffset;
+      int dotsBeforeCursor = _priceController.text
+          .substring(0, cursorPos)
+          .replaceAll(RegExp(r'[^.]'), '')
+          .length;
+      int newDotsBeforeCursor = formatted
+          .substring(0, cursorPos + (formatted.length - _priceController.text.length))
+          .replaceAll(RegExp(r'[^.]'), '')
+          .length;
+
+      _priceController.value = TextEditingValue(
+        text: formatted,
+        selection: TextSelection.collapsed(
+          offset: cursorPos + (newDotsBeforeCursor - dotsBeforeCursor),
+        ),
+      );
     }
   }
 
-  Future<void> _saveProduct() async {
-    if (!_formKey.currentState!.validate()) return;
+  // Format number with thousand separators (dots)
+  String _formatPrice(String input) {
+    if (input.isEmpty) return '';
+    // Remove any non-digits
+    String digits = input.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.isEmpty) return '';
 
-    // For demo purposes, we'll just use the existing image URL or a placeholder
-    final imageUrl = widget.product?.imgUrl ?? 'https://via.placeholder.com/150?text=No+Image';
-
-    final foodProvider = Provider.of<FoodProvider>(context, listen: false);
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
-    final product = Product(
-      id: widget.product?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      title: _nameController.text,
-      subtitle: _descriptionController.text.isNotEmpty 
-          ? _descriptionController.text 
-          : _tenantName,
-      price: _priceController.text,
-      time: '$_preparationTime mins',
-      imgUrl: imageUrl,
-      sellerEmail: authProvider.user?.email ?? '', 
-      String: null,
-    );
-
-    try {
-      setState(() => _isUploading = true);
-      
-      if (widget.product == null) {
-        await foodProvider.addProduct(product);
+    // Convert to number and format with dots
+    int number = int.parse(digits);
+    String result = number.toString();
+    List<String> parts = [];
+    while (result.isNotEmpty) {
+      if (result.length > 3) {
+        parts.insert(0, result.substring(result.length - 3));
+        result = result.substring(0, result.length - 3);
       } else {
-        await foodProvider.updateProduct(product);
+        parts.insert(0, result);
+        result = '';
       }
-
-      if (mounted) {
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving product: ${e.toString()}')),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isUploading = false);
     }
+    return parts.join('.');
   }
 
   @override
@@ -112,7 +126,7 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
           IconButton(
             icon: _isUploading
                 ? const CircularProgressIndicator()
-                : const Icon(Icons.save, color: Colors.blue),
+                : const Icon(Icons.save, color: Color(0xFF6C63FF)),
             onPressed: _isUploading ? null : _saveProduct,
           ),
         ],
@@ -137,7 +151,8 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
                     hintText: 'Enter product name',
                     border: InputBorder.none,
                   ),
-                  validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                  validator:
+                      (value) => value?.isEmpty ?? true ? 'Required' : null,
                 ),
               ),
               const SizedBox(height: 20),
@@ -162,17 +177,21 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
                 child: TextFormField(
                   controller: _priceController,
                   keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
                   decoration: const InputDecoration(
                     hintText: 'Enter price',
                     prefixText: 'Rp ',
                     border: InputBorder.none,
                   ),
-                  validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                  validator:
+                      (value) => value?.isEmpty ?? true ? 'Required' : null,
                 ),
               ),
               const SizedBox(height: 20),
 
-              // Preparation Time
+              // Preparation Time - Option 1: Enhanced Slider
               _buildInputSection(
                 title: 'Preparation Time',
                 child: Column(
@@ -180,45 +199,98 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
                     Text(
                       '$_preparationTime mins',
                       style: const TextStyle(
-                        fontSize: 20,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue,
+                        color: Color(0xFF6C63FF),
                       ),
                     ),
-                    Slider(
-                      value: _preparationTime.toDouble(),
-                      min: 1,
-                      max: 30,
-                      divisions: 29,
-                      onChanged: (value) {
-                        setState(() {
-                          _preparationTime = value.toInt();
-                        });
-                      },
+                    const SizedBox(height: 8),
+                    SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        activeTrackColor: const Color(0xFF6C63FF),
+                        inactiveTrackColor: const Color(0xFFD1CDFF),
+                        thumbColor: const Color(0xFF6C63FF),
+                        overlayColor: const Color(0x1A6C63FF),
+                        valueIndicatorColor: const Color(0xFF6C63FF),
+                        thumbShape: const RoundSliderThumbShape(
+                          enabledThumbRadius: 10,
+                        ),
+                        overlayShape: const RoundSliderOverlayShape(
+                          overlayRadius: 16,
+                        ),
+                      ),
+                      child: Slider(
+                        value: _preparationTime.toDouble(),
+                        min: 1,
+                        max: 30,
+                        divisions: 29,
+                        label: '$_preparationTime mins',
+                        onChanged: (value) {
+                          setState(() {
+                            _preparationTime = value.toInt();
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: const [
+                        Text('1 min', style: TextStyle(color: Colors.grey)),
+                        Text('30 mins', style: TextStyle(color: Colors.grey)),
+                      ],
                     ),
                   ],
                 ),
               ),
+
               const SizedBox(height: 32),
 
               // Save Button
               ElevatedButton(
                 onPressed: _isUploading ? null : _saveProduct,
                 style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6C63FF),
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
+                  elevation: 2,
+                  shadowColor: const Color(0x806C63FF),
                 ),
                 child: _isUploading
-                    ? const CircularProgressIndicator()
-                    : const Text('SAVE PRODUCT'),
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'SAVE PRODUCT',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
   }
 
   Widget _buildImageSection() {
@@ -242,10 +314,7 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
             alignment: Alignment.centerLeft,
             child: Text(
               'Product Image',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
           const SizedBox(height: 12),
@@ -274,14 +343,12 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
     if (_imageFile != null) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: Image.file(
-          _imageFile!,
-          fit: BoxFit.cover,
-        ),
+        child: Image.file(_imageFile!, fit: BoxFit.cover),
       );
     }
 
-    if (widget.product?.imgUrl != null && widget.product!.imgUrl.startsWith('http')) {
+    if (widget.product?.imgUrl != null &&
+        widget.product!.imgUrl.startsWith('http')) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Image.network(
@@ -299,17 +366,11 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(
-          Icons.add_a_photo,
-          size: 40,
-          color: Colors.grey.shade400,
-        ),
+        Icon(Icons.add_a_photo, size: 40, color: Colors.grey.shade400),
         const SizedBox(height: 8),
         Text(
           'Add Product Image',
-          style: TextStyle(
-            color: Colors.grey.shade500,
-          ),
+          style: TextStyle(color: Colors.grey.shade500),
         ),
       ],
     );
@@ -349,9 +410,36 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
     );
   }
 
+  Future<void> _saveProduct() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _isUploading = true;
+    });
+
+    try {
+      // You can add your logic here to save or update the product.
+      // For example, call your provider to save the product.
+      // Example:
+      // await Provider.of<FoodProvider>(context, listen: false).saveProduct(...);
+
+      // After saving, pop the screen or show a success message.
+      Navigator.of(context).pop();
+    } catch (e) {
+      // Handle error, show a snackbar or dialog
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to save product: $e')));
+    } finally {
+      setState(() {
+        _isUploading = false;
+      });
+    }
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
+    _priceController.removeListener(_formatPriceInput);
     _priceController.dispose();
     _descriptionController.dispose();
     super.dispose();

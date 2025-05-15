@@ -82,7 +82,8 @@ class OnProcessScreen extends StatelessWidget {
         debugPrint('Showing order: ${orders[index].id}');
         return OrderCard(
           order: orders[index],
-          isSellerView: true, onTap: () {  },
+          isSellerView: true,
+          onTap: () {},
         );
       },
     );
@@ -321,27 +322,38 @@ class OnProcessScreen extends StatelessWidget {
   Future<void> _showSuccessAnimation(BuildContext context) async {
     await showDialog(
       context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.check_circle, color: Colors.green, size: 60),
-              const SizedBox(height: 16),
-              const Text(
-                'Success!',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              const Text('Order marked as ready'),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
+      builder: (context) => Theme(
+        data: Theme.of(context).copyWith(
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green[600], // Green for success
+              foregroundColor: Colors.white, // Ensure text/icon contrast
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+          ),
+        ),
+        child: Dialog(
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.check_circle, color: Colors.green, size: 60),
+                const SizedBox(height: 16),
+                const Text(
+                  'Success!',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const Text('Order marked as ready'),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -351,27 +363,38 @@ class OnProcessScreen extends StatelessWidget {
   Future<void> _showCancelledAnimation(BuildContext context) async {
     await showDialog(
       context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.cancel, color: Colors.red, size: 60),
-              const SizedBox(height: 16),
-              const Text(
-                'Order Cancelled',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              const Text('The order has been cancelled'),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
+      builder: (context) => Theme(
+        data: Theme.of(context).copyWith(
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red[600], // Red for cancellation
+              foregroundColor: Colors.white, // Ensure text/icon contrast
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+          ),
+        ),
+        child: Dialog(
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.cancel, color: Colors.red, size: 60),
+                const SizedBox(height: 16),
+                const Text(
+                  'Order Cancelled',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const Text('The order has been cancelled'),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

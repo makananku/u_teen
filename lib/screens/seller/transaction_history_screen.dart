@@ -251,6 +251,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       elevation: 1,
+      color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
