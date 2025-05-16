@@ -25,72 +25,283 @@ class SellerHomeScreen extends StatefulWidget {
 class _SellerHomeScreenState extends State<SellerHomeScreen> {
   int _selectedFilterIndex = 2; // Default to 6 months
   final List<int> _filterMonths = [1, 3, 6];
+  final Map<String, Color> _filterColors = {
+    'All': Colors.blueAccent,
+    'Holidays': Colors.redAccent,
+    'Exams': Colors.orangeAccent,
+    'Events': Colors.purpleAccent,
+  };
 
   void _confirmLogout(BuildContext context) {
     LogoutService.showLogoutConfirmation(context);
   }
 
-  void _showFilterDialog(BuildContext context) {
+  Widget _buildCalendarFilterButton(BuildContext context) {
+    return PopupMenuButton<String>(
+      color: Colors.white,
+      icon: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: Colors.blue[50],
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Filter',
+              style: TextStyle(
+                color: Colors.blue[700],
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(
+              Icons.filter_list,
+              size: 16,
+              color: Colors.blue[700],
+            ),
+          ],
+        ),
+      ),
+      onSelected: (value) {
+        setState(() {
+          if (value == 'custom') {
+            _showCustomDateRangePicker(context);
+          } else {
+            _selectedFilterIndex = int.parse(value);
+          }
+        });
+      },
+      itemBuilder: (BuildContext context) => [
+        PopupMenuItem(
+          value: '0',
+          child: Row(
+            children: [
+              Icon(Icons.calendar_view_month, color: Colors.blue[700]),
+              const SizedBox(width: 8),
+              const Text('1 Month'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: '1',
+          child: Row(
+            children: [
+              Icon(Icons.calendar_view_week, color: Colors.green[700]),
+              const SizedBox(width: 8),
+              const Text('3 Months'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: '2',
+          child: Row(
+            children: [
+              Icon(Icons.calendar_today, color: Colors.orange[700]),
+              const SizedBox(width: 8),
+              const Text('6 Months'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'custom',
+          child: Row(
+            children: [
+              Icon(Icons.date_range, color: Colors.purple[700]),
+              const SizedBox(width: 8),
+              const Text('Custom Range...'),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateRangeDisplay(BuildContext context) {
+    final now = DateTime.now();
+    final endDate = DateTime(
+      now.year,
+      now.month + _filterMonths[_selectedFilterIndex],
+      now.day,
+    );
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.blue[50],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.calendar_month, size: 16, color: Colors.blue[700]),
+          const SizedBox(width: 8),
+          Text(
+            '${DateFormat('MMM yyyy').format(now)} - ${DateFormat('MMM yyyy').format(endDate)}',
+            style: TextStyle(
+              color: Colors.blue[700],
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEventTypeChip(String label, IconData icon) {
+    final color = _filterColors[label] ?? Colors.blueAccent;
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: ChoiceChip(
+        label: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 4),
+            Text(label, style: TextStyle(color: color)),
+          ],
+        ),
+        selected: false,
+        onSelected: (bool selected) {
+          // Add your filter logic here
+        },
+        selectedColor: color.withOpacity(0.2),
+        backgroundColor: color.withOpacity(0.1),
+        labelStyle: TextStyle(
+          color: color,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: color.withOpacity(0.3)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEventItem(calendar_service.CalendarEvent event) {
+    final icon = CalendarUtils.getEventIcon(event.summary);
+    final color = CalendarUtils.getEventColor(event.summary);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.2),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        title: Text(
+          event.summary,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            Text(
+              event.description,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Icon(Icons.calendar_month, size: 12, color: Colors.grey[500]),
+                const SizedBox(width: 4),
+                Text(
+                  event.formattedDateRange,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[700],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        trailing: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            event.dayName,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showCustomDateRangePicker(BuildContext context) {
+    DateTimeRange? selectedDateRange;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Select Time Range',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              ..._filterMonths.asMap().entries.map((entry) {
-                int index = entry.key;
-                int months = entry.value;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: InkWell(
-                    onTap: () {
-                      setState(() {
-                        _selectedFilterIndex = index;
-                      });
-                      Navigator.of(context).pop();
-                    },
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      width: 120,
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: _selectedFilterIndex == index ? Colors.blue[50] : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '$months Month${months > 1 ? 's' : ''}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: _selectedFilterIndex == index ? Colors.blue[700] : Colors.black87,
-                          fontWeight: _selectedFilterIndex == index ? FontWeight.w600 : FontWeight.normal,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
+          shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16), // optional: biar lebih modern
+        ),
+          title: const Text('Select Date Range'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: CalendarDatePicker(
+              firstDate: DateTime.now(),
+              lastDate: DateTime.now().add(const Duration(days: 365)),
+              initialDate: DateTime.now(),
+              onDateChanged: (DateTime date) {
+                // Simplified range selection
+                selectedDateRange = DateTimeRange(
+                  start: date,
+                  end: date.add(const Duration(days: 30)),
                 );
-              }).toList(),
-            ],
+              },
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'Cancel',
-                style: TextStyle(color: Colors.blue[700], fontSize: 14),
-              ),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (selectedDateRange != null) {
+                  // Implement custom date range filtering
+                  Navigator.of(context).pop();
+                }
+              },
+              child: const Text('Apply'),
             ),
           ],
-          actionsPadding: const EdgeInsets.only(right: 12, bottom: 8),
         );
       },
     );
@@ -129,7 +340,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
       backgroundColor: Colors.grey[50],
       body: CustomScrollView(
         slivers: [
-          // New Sliver App Bar with improved design
+          // Sliver App Bar
           SliverAppBar(
             expandedHeight: 180,
             floating: false,
@@ -352,7 +563,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                   ),
                 ),
 
-                // Calendar Events Section - Redesigned
+                // Calendar Events Section - Enhanced
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   decoration: BoxDecoration(
@@ -369,77 +580,33 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                   ),
                   child: Column(
                     children: [
-                      // Calendar Header
+                      // Calendar Header with Enhanced Controls
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'HOLIDAY CALENDAR',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1,
-                              ),
-                            ),
                             Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  '${_filterMonths[_selectedFilterIndex]} MONTHS',
+                                  'ACADEMIC CALENDAR',
                                   style: TextStyle(
-                                    color: Colors.blue[700],
-                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                    fontSize: 14,
                                     fontWeight: FontWeight.bold,
+                                    letterSpacing: 1,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                InkWell(
-                                  onTap: () => _showFilterDialog(context),
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(4),
-                                    decoration: BoxDecoration(
-                                      color: Colors.blue[50],
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      Icons.filter_list,
-                                      size: 16,
-                                      color: Colors.blue[700],
-                                    ),
-                                  ),
-                                ),
+                                _buildCalendarFilterButton(context),
                               ],
                             ),
+                            const SizedBox(height: 8),
+                            _buildDateRangeDisplay(context),
                           ],
                         ),
                       ),
-                      
-                      // Current Month Preview
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.blue[50],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        margin: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          children: [
-                            Icon(Icons.calendar_today, size: 16, color: Colors.blue[700]),
-                            const SizedBox(width: 8),
-                            Text(
-                              DateFormat('MMMM yyyy').format(DateTime.now()),
-                              style: TextStyle(
-                                color: Colors.blue[700],
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      
+
                       // Events List
                       FutureBuilder<List<calendar_service.CalendarEvent>>(
                         future: calendar_service.CalendarService().getPublicEvents(_filterMonths[_selectedFilterIndex]),
@@ -457,7 +624,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                             return Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                               child: Text(
-                                'Error loading holidays',
+                                'Error loading calendar events',
                                 style: TextStyle(color: Colors.red[700]),
                               ),
                             );
@@ -469,7 +636,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                             return Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                               child: Text(
-                                'No holidays in the selected period',
+                                'No events in the selected period',
                                 style: TextStyle(
                                   color: Colors.grey[600],
                                   fontSize: 14,
@@ -479,84 +646,25 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                           }
 
                           return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             child: Column(
-                              children: events.map((event) {
-                                final icon = CalendarUtils.getEventIcon(event.summary);
-                                final color = CalendarUtils.getEventColor(event.summary);
-                                
-                                return Container(
-                                  margin: const EdgeInsets.only(bottom: 12),
-                                  decoration: BoxDecoration(
-                                    color: color.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: color.withOpacity(0.3),
-                                      width: 1,
-                                    ),
+                              children: [
+                                // Event Type Filter Chips
+                                SizedBox(
+                                  height: 40,
+                                  child: ListView(
+                                    scrollDirection: Axis.horizontal,
+                                    children: [
+                                      _buildEventTypeChip('All', Icons.calendar_today),
+                                      _buildEventTypeChip('Holidays', Icons.beach_access),
+                                      _buildEventTypeChip('Exams', Icons.school),
+                                      _buildEventTypeChip('Events', Icons.event),
+                                    ],
                                   ),
-                                  child: ListTile(
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                    leading: Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: color.withOpacity(0.2),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Icon(icon, color: color, size: 20),
-                                    ),
-                                    title: Text(
-                                      event.summary,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    subtitle: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          event.description,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey[600],
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Row(
-                                          children: [
-                                            Icon(Icons.calendar_month, size: 12, color: Colors.grey[500]),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              event.formattedDateRange,
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.grey[700],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                    trailing: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: color.withOpacity(0.2),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        event.dayName,
-                                        style: TextStyle(
-                                          color: color,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
+                                ),
+                                const SizedBox(height: 8),
+                                ...events.map((event) => _buildEventItem(event)).toList(),
+                              ],
                             ),
                           );
                         },
