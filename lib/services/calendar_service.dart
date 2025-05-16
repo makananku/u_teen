@@ -7,7 +7,6 @@ class CalendarService {
   static const String _apiKey = 'AIzaSyCJubQ43RExEPnbfknWR7KKSQCzzGDeE80';
   static const String _calendarId = 'id.indonesian#holiday@group.v.calendar.google.com';
 
-  // New method to filter events by date range
   Future<List<CalendarEvent>> getEventsInRange(DateTime startDate, DateTime endDate) async {
     try {
       final url = Uri.parse(
@@ -20,7 +19,7 @@ class CalendarService {
       );
 
       final response = await http.get(url);
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final items = data['items'] as List? ?? [];
@@ -44,7 +43,7 @@ class CalendarService {
     return [
       CalendarEvent(
         id: '1',
-        summary: 'Hari Kemerdekaan RI',
+        summary: 'Hari Kemerdekaan RI (Libur)',
         description: 'Libur Nasional',
         start: DateTime(now.year, 8, 17),
         end: DateTime(now.year, 8, 18),
@@ -52,31 +51,43 @@ class CalendarService {
       ),
       CalendarEvent(
         id: '2',
-        summary: 'Tahun Baru',
+        summary: 'Tahun Baru (Libur)',
         description: 'Libur Nasional',
         start: DateTime(now.year + 1, 1, 1),
         end: DateTime(now.year + 1, 1, 2),
         cardColor: _getCardColor(Colors.blue[100]!),
       ),
+      CalendarEvent(
+        id: '3',
+        summary: 'Ujian Akhir Semester',
+        description: 'Jadwal Ujian',
+        start: DateTime(now.year, 12, 10),
+        end: DateTime(now.year, 12, 11),
+        cardColor: _getCardColor(Colors.orange[100]!),
+      ),
+      CalendarEvent(
+        id: '4',
+        summary: 'Festival Kampus',
+        description: 'Acara Mahasiswa',
+        start: DateTime(now.year, 11, 15),
+        end: DateTime(now.year, 11, 16),
+        cardColor: _getCardColor(Colors.purple[100]!),
+      ),
     ];
   }
 
-  // Helper method for card colors
   Color _getCardColor(Color baseColor) {
-    return baseColor.withOpacity(0.2); // Semi-transparent version
+    return baseColor.withOpacity(0.2);
   }
 
-  // Updated method to merge consecutive events with the same summary
   List<CalendarEvent> _mergeConsecutiveEvents(List<CalendarEvent> events) {
     if (events.isEmpty) return events;
 
-    // Sort events by start date
     events.sort((a, b) => a.start.compareTo(b.start));
 
     List<CalendarEvent> mergedEvents = [];
     Map<String, List<CalendarEvent>> groupedEvents = {};
 
-    // Group events by summary
     for (var event in events) {
       final summary = event.summary.toLowerCase();
       if (!groupedEvents.containsKey(summary)) {
@@ -85,12 +96,11 @@ class CalendarService {
       groupedEvents[summary]!.add(event);
     }
 
-    // Process each group to merge consecutive events
     for (var summary in groupedEvents.keys) {
       var group = groupedEvents[summary]!;
       group.sort((a, b) => a.start.compareTo(b.start));
 
-      CalendarEvent? currentEvent = null;
+      CalendarEvent? currentEvent;
 
       for (var event in group) {
         if (currentEvent == null) {
@@ -98,10 +108,8 @@ class CalendarService {
           continue;
         }
 
-        // Check if the event is consecutive or overlapping
         final daysDifference = event.start.difference(currentEvent.end).inDays;
         if (daysDifference <= 1) {
-          // Merge by extending the end date and combining descriptions if different
           final mergedDescription = currentEvent.description == event.description
               ? currentEvent.description
               : '${currentEvent.description}\n${event.description}'.trim();
@@ -121,13 +129,11 @@ class CalendarService {
         }
       }
 
-      // Add the last event in the group
       if (currentEvent != null) {
         mergedEvents.add(currentEvent);
       }
     }
 
-    // Sort merged events by start date
     mergedEvents.sort((a, b) => a.start.compareTo(b.start));
     return mergedEvents;
   }
@@ -159,9 +165,9 @@ class CalendarEvent {
       final startDate = json['start']['date'] ?? json['start']['dateTime'];
       final endDate = json['end']['date'] ?? json['end']['dateTime'];
       final summary = json['summary'] ?? 'Event';
-      
+
       final eventColor = _determineEventColor(summary);
-      
+
       return CalendarEvent(
         id: json['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
         summary: summary,
@@ -180,11 +186,10 @@ class CalendarEvent {
 
   static Color _determineEventColor(String summary) {
     final lowerSummary = summary.toLowerCase();
-    if (lowerSummary.contains('holiday')) return Colors.indigo[400]!;
+    if (lowerSummary.contains('holiday') || lowerSummary.contains('libur')) return Colors.indigo[400]!;
     if (lowerSummary.contains('natal')) return Colors.green[400]!;
-    if (lowerSummary.contains('idul') || lowerSummary.contains('fitri')) 
-      return Colors.teal[600]!;
-    if (lowerSummary.contains('exam')) return Colors.orange[400]!;
+    if (lowerSummary.contains('idul') || lowerSummary.contains('fitri')) return Colors.teal[600]!;
+    if (lowerSummary.contains('exam') || lowerSummary.contains('ujian')) return Colors.orange[400]!;
     if (lowerSummary.contains('buruh') || lowerSummary.contains('labor') || lowerSummary.contains('labour')) return Colors.purple[400]!;
     if (lowerSummary.contains('paskah') || lowerSummary.contains('easter')) return Colors.pink[400]!;
     if (lowerSummary.contains('imlek') || lowerSummary.contains('chinese new year')) return Colors.red[400]!;
@@ -193,7 +198,7 @@ class CalendarEvent {
     if (lowerSummary.contains('maulid') || lowerSummary.contains('mawlid')) return Colors.cyan[400]!;
     if (lowerSummary.contains('kemerdekaan') || lowerSummary.contains('independence')) return Colors.red[400]!;
     if (lowerSummary.contains('kurban') || lowerSummary.contains('adha')) return Colors.teal[400]!;
-    return Colors.blueGrey[400]!; // Default color
+    return Colors.blueGrey[400]!;
   }
 
   static Color _getCardBackgroundColor(Color baseColor) {
@@ -207,9 +212,9 @@ class CalendarEvent {
   String get formattedDateRange {
     final dateFormat = DateFormat('d MMM yyyy', 'id_ID');
     final isSameDay = start.year == end.year &&
-                      start.month == end.month &&
-                      (start.day == end.day || 
-                       (end.difference(start).inDays <= 1 && end.hour == 0 && end.minute == 0));
+        start.month == end.month &&
+        (start.day == end.day ||
+            (end.difference(start).inDays <= 1 && end.hour == 0 && end.minute == 0));
 
     if (isSameDay) {
       return dateFormat.format(start);
@@ -221,9 +226,39 @@ class CalendarEvent {
     return DateFormat('EEEE', 'id_ID').format(start);
   }
 
-  // New method to check if event is within a date range
   bool isInRange(DateTime rangeStart, DateTime rangeEnd) {
     return (start.isAfter(rangeStart) || start.isAtSameMomentAs(rangeStart)) &&
-           (end.isBefore(rangeEnd) || end.isAtSameMomentAs(rangeEnd));
+        (end.isBefore(rangeEnd) || end.isAtSameMomentAs(rangeEnd));
+  }
+
+  String getEventType() {
+    final lowerSummary = summary.toLowerCase();
+    if (lowerSummary.contains('holiday') || 
+        lowerSummary.contains('libur') ||
+        lowerSummary.contains('natal') ||
+        lowerSummary.contains('idul') ||
+        lowerSummary.contains('fitri') ||
+        lowerSummary.contains('buruh') ||
+        lowerSummary.contains('labor') ||
+        lowerSummary.contains('labour') ||
+        lowerSummary.contains('paskah') ||
+        lowerSummary.contains('easter') ||
+        lowerSummary.contains('imlek') ||
+        lowerSummary.contains('chinese new year') ||
+        lowerSummary.contains('nyepi') ||
+        lowerSummary.contains('waisak') ||
+        lowerSummary.contains('vesak') ||
+        lowerSummary.contains('maulid') ||
+        lowerSummary.contains('mawlid') ||
+        lowerSummary.contains('kemerdekaan') ||
+        lowerSummary.contains('independence') ||
+        lowerSummary.contains('kurban') ||
+        lowerSummary.contains('adha')) {
+      return 'Holidays';
+    } else if (lowerSummary.contains('exam') || lowerSummary.contains('ujian')) {
+      return 'Exams';
+    } else {
+      return 'Events';
+    }
   }
 }

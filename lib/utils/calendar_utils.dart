@@ -31,11 +31,10 @@ class CalendarUtils {
   static String formatEventDate(DateTime start, DateTime end) {
     final dateFormat = DateFormat('d MMM yyyy', 'id_ID');
     final dayFormat = DateFormat('EEEE', 'id_ID');
-    final timeFormat = DateFormat('HH:mm', 'id_ID');
 
     final isSameDay = start.year == end.year &&
-                      start.month == end.month &&
-                      start.day == end.day;
+        start.month == end.month &&
+        start.day == end.day;
 
     if (isSameDay) {
       return '${dayFormat.format(start)}, ${dateFormat.format(start)}';

@@ -1,10 +1,10 @@
 # Details
 
-Date : 2025-05-15 18:34:34
+Date : 2025-05-16 20:21:52
 
 Directory c:\\Users\\Acer\\u_teen
 
-Total : 117 files,  13034 codes, 364 comments, 1182 blanks, all 14580 lines
+Total : 118 files,  13594 codes, 354 comments, 1211 blanks, all 15159 lines
 
 [Summary](results.md) / Details / [Diff Summary](diff.md) / [Diff Details](diff-details.md)
 
@@ -70,15 +70,15 @@ Total : 117 files,  13034 codes, 364 comments, 1182 blanks, all 14580 lines
 | [lib/screens/seller/cancellation\_screen.dart](/lib/screens/seller/cancellation_screen.dart) | Dart | 63 | 0 | 6 | 69 |
 | [lib/screens/seller/completed\_screen.dart](/lib/screens/seller/completed_screen.dart) | Dart | 66 | 1 | 8 | 75 |
 | [lib/screens/seller/edit\_product\_screen.dart](/lib/screens/seller/edit_product_screen.dart) | Dart | 393 | 20 | 34 | 447 |
-| [lib/screens/seller/home\_screen.dart](/lib/screens/seller/home_screen.dart) | Dart | 382 | 7 | 15 | 404 |
+| [lib/screens/seller/home\_screen.dart](/lib/screens/seller/home_screen.dart) | Dart | 429 | 6 | 14 | 449 |
 | [lib/screens/seller/my\_balance\_screen.dart](/lib/screens/seller/my_balance_screen.dart) | Dart | 371 | 4 | 16 | 391 |
 | [lib/screens/seller/my\_product\_screen.dart](/lib/screens/seller/my_product_screen.dart) | Dart | 245 | 4 | 11 | 260 |
 | [lib/screens/seller/on\_process\_screen.dart](/lib/screens/seller/on_process_screen.dart) | Dart | 370 | 12 | 21 | 403 |
-| [lib/screens/seller/rating\_screen.dart](/lib/screens/seller/rating_screen.dart) | Dart | 80 | 4 | 6 | 90 |
+| [lib/screens/seller/rating\_screen.dart](/lib/screens/seller/rating_screen.dart) | Dart | 86 | 4 | 8 | 98 |
 | [lib/screens/seller/transaction\_history\_screen.dart](/lib/screens/seller/transaction_history_screen.dart) | Dart | 422 | 3 | 24 | 449 |
-| [lib/services/calendar\_service.dart](/lib/services/calendar_service.dart) | Dart | 189 | 11 | 29 | 229 |
+| [lib/services/calendar\_service.dart](/lib/services/calendar_service.dart) | Dart | 188 | 0 | 29 | 217 |
 | [lib/services/email\_service.dart](/lib/services/email_service.dart) | Dart | 27 | 8 | 5 | 40 |
-| [lib/utils/calendar\_utils.dart](/lib/utils/calendar_utils.dart) | Dart | 49 | 1 | 5 | 55 |
+| [lib/utils/calendar\_utils.dart](/lib/utils/calendar_utils.dart) | Dart | 39 | 0 | 5 | 44 |
 | [lib/utils/navigation\_utils.dart](/lib/utils/navigation_utils.dart) | Dart | 24 | 0 | 3 | 27 |
 | [lib/widgets/customer/cart\_item\_widget.dart](/lib/widgets/customer/cart_item_widget.dart) | Dart | 134 | 0 | 4 | 138 |
 | [lib/widgets/customer/cart\_summary\_widget.dart](/lib/widgets/customer/cart_summary_widget.dart) | Dart | 49 | 0 | 2 | 51 |
@@ -90,13 +90,14 @@ Total : 117 files,  13034 codes, 364 comments, 1182 blanks, all 14580 lines
 | [lib/widgets/notes\_field.dart](/lib/widgets/notes_field.dart) | Dart | 34 | 0 | 3 | 37 |
 | [lib/widgets/order\_card.dart](/lib/widgets/order_card.dart) | Dart | 662 | 0 | 20 | 682 |
 | [lib/widgets/payment\_method\_card.dart](/lib/widgets/payment_method_card.dart) | Dart | 140 | 2 | 8 | 150 |
-| [lib/widgets/rating/feedback\_card.dart](/lib/widgets/rating/feedback_card.dart) | Dart | 44 | 0 | 3 | 47 |
+| [lib/widgets/rating/feedback\_card.dart](/lib/widgets/rating/feedback_card.dart) | Dart | 56 | 0 | 3 | 59 |
 | [lib/widgets/rating/rating\_dialog.dart](/lib/widgets/rating/rating_dialog.dart) | Dart | 152 | 4 | 16 | 172 |
-| [lib/widgets/rating/rating\_distribution.dart](/lib/widgets/rating/rating_distribution.dart) | Dart | 71 | 0 | 5 | 76 |
-| [lib/widgets/rating/rating\_history\_card.dart](/lib/widgets/rating/rating_history_card.dart) | Dart | 65 | 0 | 3 | 68 |
+| [lib/widgets/rating/rating\_distribution\_card.dart](/lib/widgets/rating/rating_distribution_card.dart) | Dart | 72 | 0 | 5 | 77 |
+| [lib/widgets/rating/rating\_history\_card.dart](/lib/widgets/rating/rating_history_card.dart) | Dart | 66 | 0 | 3 | 69 |
 | [lib/widgets/rating/rating\_stars.dart](/lib/widgets/rating/rating_stars.dart) | Dart | 25 | 0 | 3 | 28 |
-| [lib/widgets/rating/rating\_summary\_card.dart](/lib/widgets/rating/rating_summary_card.dart) | Dart | 65 | 0 | 3 | 68 |
-| [lib/widgets/seller/event\_card.dart](/lib/widgets/seller/event_card.dart) | Dart | 84 | 0 | 3 | 87 |
+| [lib/widgets/rating/rating\_summary\_card.dart](/lib/widgets/rating/rating_summary_card.dart) | Dart | 66 | 0 | 3 | 69 |
+| [lib/widgets/seller/calendar\_widget.dart](/lib/widgets/seller/calendar_widget.dart) | Dart | 487 | 3 | 27 | 517 |
+| [lib/widgets/seller/event\_card.dart](/lib/widgets/seller/event_card.dart) | Dart | 100 | 0 | 4 | 104 |
 | [lib/widgets/seller/sales\_metric\_card.dart](/lib/widgets/seller/sales_metric_card.dart) | Dart | 62 | 0 | 3 | 65 |
 | [lib/widgets/seller/seller\_custom\_bottom\_navigation.dart](/lib/widgets/seller/seller_custom_bottom_navigation.dart) | Dart | 164 | 0 | 16 | 180 |
 | [lib/widgets/seller/status\_button.dart](/lib/widgets/seller/status_button.dart) | Dart | 72 | 0 | 3 | 75 |
