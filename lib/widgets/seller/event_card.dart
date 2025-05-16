@@ -1,32 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:u_teen/utils/calendar_utils.dart';
 
 class EventCard extends StatelessWidget {
-  final String date;
-  final String event;
+  final String summary;
   final String description;
-  final IconData icon;
-  final Color color;
+  final DateTime start;
+  final DateTime end;
+  final VoidCallback? onPressed;
 
   const EventCard({
     super.key,
-    required this.date,
-    required this.event,
+    required this.summary,
     required this.description,
-    required this.icon,
-    required this.color, required Null Function() onPressed, required String title,
+    required this.start,
+    required this.end,
+    this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
+    final icon = CalendarUtils.getEventIcon(summary);
+    final color = CalendarUtils.getEventColor(summary);
+    final formattedDate = CalendarUtils.formatEventDate(start, end);
+
     return Card(
-      elevation: 4,
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () {},
-        child: Padding(
+        onTap: onPressed,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                color.withOpacity(0.05),
+                color.withOpacity(0.15),
+              ],
+            ),
+          ),
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
@@ -36,11 +53,7 @@ class EventCard extends StatelessWidget {
                   color: color.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 24,
-                ),
+                child: Icon(icon, color: color, size: 24),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -48,29 +61,33 @@ class EventCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      event,
-                      style: const TextStyle(
+                      summary,
+                      style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[800],
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      date,
+                      formattedDate,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 13,
                         color: Colors.grey[600],
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      description,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[500],
+                    if (description.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        description,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[600],
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
