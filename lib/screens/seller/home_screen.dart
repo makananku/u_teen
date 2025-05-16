@@ -13,6 +13,7 @@ import 'package:u_teen/widgets/seller/seller_custom_bottom_navigation.dart';
 import 'package:provider/provider.dart';
 import 'package:u_teen/services/calendar_service.dart' as calendar_service;
 import '../../utils/calendar_utils.dart';
+import 'package:intl/intl.dart';
 
 class SellerHomeScreen extends StatefulWidget {
   const SellerHomeScreen({super.key});
@@ -126,284 +127,448 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: Text(
-          tenantName,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blue[800]!, Colors.blue[600]!],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: () => _confirmLogout(context),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Header with greeting
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-              child: Row(
-                children: [
-                  Expanded(
+      body: CustomScrollView(
+        slivers: [
+          // New Sliver App Bar with improved design
+          SliverAppBar(
+            expandedHeight: 180,
+            floating: false,
+            pinned: true,
+            stretch: true,
+            flexibleSpace: FlexibleSpaceBar(
+              stretchModes: const [StretchMode.zoomBackground],
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.blue[800]!,
+                      Colors.blue[600]!,
+                    ],
+                  ),
+                ),
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Text(
-                          'Hello, $tenantName 👋',
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.storefront,
+                                color: Colors.white,
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    tenantName,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Kantin Kampus',
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.9),
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.logout, color: Colors.white),
+                              onPressed: () => _confirmLogout(context),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Here\'s your business overview',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.calendar_today, size: 16, color: Colors.white),
+                              const SizedBox(width: 8),
+                              Text(
+                                DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(DateTime.now()),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[100],
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.storefront,
-                      color: Colors.blue,
-                      size: 28,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
+          ),
 
-            // Sales Metrics Cards - Horizontal Scroll
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Sales Overview',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    height: 140,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: [
-                        _buildMetricCard(
-                          context,
-                          value: todayCount.toString(),
-                          label: 'Today',
-                          icon: Icons.today,
-                          color: Colors.blue,
-                        ),
-                        const SizedBox(width: 12),
-                        _buildMetricCard(
-                          context,
-                          value: weekCount.toString(),
-                          label: 'This Week',
-                          icon: Icons.calendar_view_week,
-                          color: Colors.green,
-                        ),
-                        const SizedBox(width: 12),
-                        _buildMetricCard(
-                          context,
-                          value: monthCount.toString(),
-                          label: 'This Month',
-                          icon: Icons.calendar_month,
-                          color: Colors.orange,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Order Status Buttons - Grid Layout
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Order Status',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  GridView.count(
-                    crossAxisCount: 2,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 2.5,
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                // Sales Metrics Cards - Horizontal Scroll
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildStatusButton(
-                        context,
-                        text: 'On Process',
-                        count: onProcessCount,
-                        icon: Icons.hourglass_top,
-                        color: Colors.blue,
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const onprocess.OnProcessScreen()),
+                      const Text(
+                        'Sales Overview',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      _buildStatusButton(
-                        context,
-                        text: 'Cancelled',
-                        count: cancelledCount,
-                        icon: Icons.cancel,
-                        color: Colors.red,
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const cancellation.CancellationScreen()),
-                        ),
-                      ),
-                      _buildStatusButton(
-                        context,
-                        text: 'Completed',
-                        count: completedCount,
-                        icon: Icons.check_circle,
-                        color: Colors.green,
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const completed.CompletedScreen()),
-                        ),
-                      ),
-                      _buildStatusButton(
-                        context,
-                        text: 'My Ratings',
-                        count: 0,
-                        icon: Icons.star_rate,
-                        color: Colors.amber,
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const RatingScreen()),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 140,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: [
+                            _buildMetricCard(
+                              context,
+                              value: todayCount.toString(),
+                              label: 'Today',
+                              icon: Icons.today,
+                              color: Colors.blue,
+                            ),
+                            const SizedBox(width: 12),
+                            _buildMetricCard(
+                              context,
+                              value: weekCount.toString(),
+                              label: 'This Week',
+                              icon: Icons.calendar_view_week,
+                              color: Colors.green,
+                            ),
+                            const SizedBox(width: 12),
+                            _buildMetricCard(
+                              context,
+                              value: monthCount.toString(),
+                              label: 'This Month',
+                              icon: Icons.calendar_month,
+                              color: Colors.orange,
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
+                ),
 
-            // Calendar Events Section
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              child: Row(
-                children: [
-                  const Expanded(child: Divider(thickness: 1, endIndent: 10)),
-                  Text(
-                    'ACADEMIC CALENDAR (${_filterMonths[_selectedFilterIndex]} MONTHS)',
-                    style: TextStyle(
-                      color: Colors.grey[500],
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  InkWell(
-                    onTap: () => _showFilterDialog(context),
-                    child: Icon(
-                      Icons.filter_list,
-                      size: 20,
-                      color: Colors.blue[700],
-                    ),
-                  ),
-                  const Expanded(child: Divider(thickness: 1, indent: 10)),
-                ],
-              ),
-            ),
-
-            // Events List
-            FutureBuilder<List<calendar_service.CalendarEvent>>(
-              future: calendar_service.CalendarService().getPublicEvents(_filterMonths[_selectedFilterIndex]),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20),
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
-
-                if (snapshot.hasError) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Text(
-                      'Error: ${snapshot.error}',
-                      style: TextStyle(color: Colors.red[700]),
-                    ),
-                  );
-                }
-
-                final events = snapshot.data ?? [];
-
-                if (events.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                    child: Text(
-                      'No events found for the selected period',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 14,
-                      ),
-                    ),
-                  );
-                }
-
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                // Order Status Buttons - Grid Layout
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
                   child: Column(
-                    children: events.map((event) => Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: EventCard(
-                        summary: event.summary,
-                        description: event.description,
-                        start: event.start,
-                        end: event.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Order Status',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    )).toList(),
+                      const SizedBox(height: 12),
+                      GridView.count(
+                        crossAxisCount: 2,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        childAspectRatio: 2.5,
+                        children: [
+                          _buildStatusButton(
+                            context,
+                            text: 'On Process',
+                            count: onProcessCount,
+                            icon: Icons.hourglass_top,
+                            color: Colors.blue,
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const onprocess.OnProcessScreen()),
+                            ),
+                          ),
+                          _buildStatusButton(
+                            context,
+                            text: 'Cancelled',
+                            count: cancelledCount,
+                            icon: Icons.cancel,
+                            color: Colors.red,
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const cancellation.CancellationScreen()),
+                            ),
+                          ),
+                          _buildStatusButton(
+                            context,
+                            text: 'Completed',
+                            count: completedCount,
+                            icon: Icons.check_circle,
+                            color: Colors.green,
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const completed.CompletedScreen()),
+                            ),
+                          ),
+                          _buildStatusButton(
+                            context,
+                            text: 'My Ratings',
+                            count: 0,
+                            icon: Icons.star_rate,
+                            color: Colors.amber,
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const RatingScreen()),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                );
-              },
+                ),
+
+                // Calendar Events Section - Redesigned
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      // Calendar Header
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'HOLIDAY CALENDAR',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                Text(
+                                  '${_filterMonths[_selectedFilterIndex]} MONTHS',
+                                  style: TextStyle(
+                                    color: Colors.blue[700],
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                InkWell(
+                                  onTap: () => _showFilterDialog(context),
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue[50],
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      Icons.filter_list,
+                                      size: 16,
+                                      color: Colors.blue[700],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      // Current Month Preview
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.blue[50],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          children: [
+                            Icon(Icons.calendar_today, size: 16, color: Colors.blue[700]),
+                            const SizedBox(width: 8),
+                            Text(
+                              DateFormat('MMMM yyyy').format(DateTime.now()),
+                              style: TextStyle(
+                                color: Colors.blue[700],
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      // Events List
+                      FutureBuilder<List<calendar_service.CalendarEvent>>(
+                        future: calendar_service.CalendarService().getPublicEvents(_filterMonths[_selectedFilterIndex]),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 40),
+                              child: Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          }
+
+                          if (snapshot.hasError) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                              child: Text(
+                                'Error loading holidays',
+                                style: TextStyle(color: Colors.red[700]),
+                              ),
+                            );
+                          }
+
+                          final events = snapshot.data ?? [];
+
+                          if (events.isEmpty) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                              child: Text(
+                                'No holidays in the selected period',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 14,
+                                ),
+                              ),
+                            );
+                          }
+
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                            child: Column(
+                              children: events.map((event) {
+                                final icon = CalendarUtils.getEventIcon(event.summary);
+                                final color = CalendarUtils.getEventColor(event.summary);
+                                
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  decoration: BoxDecoration(
+                                    color: color.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: color.withOpacity(0.3),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: ListTile(
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                    leading: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: color.withOpacity(0.2),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(icon, color: color, size: 20),
+                                    ),
+                                    title: Text(
+                                      event.summary,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          event.description,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            Icon(Icons.calendar_month, size: 12, color: Colors.grey[500]),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              event.formattedDateRange,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey[700],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                    trailing: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: color.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        event.dayName,
+                                        style: TextStyle(
+                                          color: color,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
-            const SizedBox(height: 20),
-          ],
-        ),
+          ),
+        ],
       ),
       bottomNavigationBar: SellerCustomBottomNavigation(
         selectedIndex: 0,
