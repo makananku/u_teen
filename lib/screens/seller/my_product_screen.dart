@@ -42,8 +42,14 @@ class _SellerMyProductScreenState extends State<SellerMyProductScreen> {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
-          title: const Text('My Products', 
-              style: TextStyle(color: Colors.black87)),
+          title: const Text(
+            'My Product',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           backgroundColor: Colors.white,
           elevation: 0.5,
           iconTheme: const IconThemeData(color: Colors.black87),

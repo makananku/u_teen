@@ -27,19 +27,11 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
   bool _isUploading = false;
   bool _isActive = true;
 
-  // Time options for alternative selection
-  final List<int> _timeOptions = [5, 10, 15, 20, 25, 30];
-  final List<String> _timeLabels = [
-    'Fast (5-10 min)',
-    'Medium (15-20 min)',
-    'Long (25-30 min)',
-  ];
-
   @override
   void initState() {
     super.initState();
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    _tenantName = authProvider.tenantName ?? 'My Tenant'; // Ambil dari tenantName, fallback ke 'My Tenant'
+    _tenantName = authProvider.tenantName ?? 'My Tenant';
 
     _isActive = widget.product?.isActive ?? true;
 
@@ -48,14 +40,12 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
       text: widget.product?.subtitle ?? '',
     );
 
-    // Initialize price controller, removing any non-digits from existing price
     _priceController = TextEditingController(
       text: widget.product?.price != null
           ? _formatPrice(widget.product!.price.replaceAll('.', ''))
           : '',
     );
 
-    // Add listener to format price input with thousand separators
     _priceController.addListener(_formatPriceInput);
 
     if (widget.product?.time != null) {
@@ -65,14 +55,12 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
     }
   }
 
-  // Format price input as the user types
   void _formatPriceInput() {
     String text = _priceController.text.replaceAll('.', '');
     if (text.isEmpty) return;
 
     String formatted = _formatPrice(text);
     if (formatted != _priceController.text) {
-      // Calculate cursor position
       int cursorPos = _priceController.selection.baseOffset;
       int dotsBeforeCursor = _priceController.text
           .substring(0, cursorPos)
@@ -92,14 +80,11 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
     }
   }
 
-  // Format number with thousand separators (dots)
   String _formatPrice(String input) {
     if (input.isEmpty) return '';
-    // Remove any non-digits
     String digits = input.replaceAll(RegExp(r'[^0-9]'), '');
     if (digits.isEmpty) return '';
 
-    // Convert to number and format with dots
     int number = int.parse(digits);
     String result = number.toString();
     List<String> parts = [];
@@ -118,18 +103,33 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: Text(widget.product == null ? 'Add Product' : 'Edit Product'),
+        title: Text(
+          widget.product == null ? 'Add New Product' : 'Edit Product',
+          style: const TextStyle(
+            color: Colors.black,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+          ),
+        ),
         backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0.5,
+        elevation: 0,
+        centerTitle: false,
+        iconTheme: const IconThemeData(color: Colors.black87),
         actions: [
-          IconButton(
-            icon: _isUploading
-                ? const CircularProgressIndicator()
-                : const Icon(Icons.save, color: Color(0xFF6C63FF)),
-            onPressed: _isUploading ? null : _saveProduct,
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: IconButton(
+              icon: _isUploading
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.save_rounded, size: 26),
+              onPressed: _isUploading ? null : _saveProduct,
+            ),
           ),
         ],
       ),
@@ -146,109 +146,40 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
 
               // Product Status Toggle
               _buildStatusToggle(),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
               // Product Name
               _buildInputSection(
                 title: 'Product Name',
-                child: TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    hintText: 'Enter product name',
-                    border: InputBorder.none,
-                  ),
-                  validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
-                ),
+                hintText: 'Enter product name',
+                controller: _nameController,
+                validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               // Description
               _buildInputSection(
                 title: 'Description',
-                child: TextFormField(
-                  controller: _descriptionController,
-                  decoration: const InputDecoration(
-                    hintText: 'Enter product description',
-                    border: InputBorder.none,
-                  ),
-                  maxLines: 2,
-                ),
+                hintText: 'Enter product description',
+                controller: _descriptionController,
+                maxLines: 3,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               // Price
               _buildInputSection(
                 title: 'Price',
-                child: TextFormField(
-                  controller: _priceController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                  ],
-                  decoration: const InputDecoration(
-                    hintText: 'Enter price',
-                    prefixText: 'Rp ',
-                    border: InputBorder.none,
-                  ),
-                  validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
-                ),
+                hintText: 'Enter price',
+                controller: _priceController,
+                keyboardType: TextInputType.number,
+                prefixText: 'Rp ',
+                validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
-              // Preparation Time - Enhanced Slider
-              _buildInputSection(
-                title: 'Preparation Time',
-                child: Column(
-                  children: [
-                    Text(
-                      '$_preparationTime mins',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF6C63FF),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    SliderTheme(
-                      data: SliderTheme.of(context).copyWith(
-                        activeTrackColor: const Color(0xFF6C63FF),
-                        inactiveTrackColor: const Color(0xFFD1CDFF),
-                        thumbColor: const Color(0xFF6C63FF),
-                        overlayColor: const Color(0x1A6C63FF),
-                        valueIndicatorColor: const Color(0xFF6C63FF),
-                        thumbShape: const RoundSliderThumbShape(
-                          enabledThumbRadius: 10,
-                        ),
-                        overlayShape: const RoundSliderOverlayShape(
-                          overlayRadius: 16,
-                        ),
-                      ),
-                      child: Slider(
-                        value: _preparationTime.toDouble(),
-                        min: 1,
-                        max: 30,
-                        divisions: 29,
-                        label: '$_preparationTime mins',
-                        onChanged: (value) {
-                          setState(() {
-                            _preparationTime = value.toInt();
-                          });
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        Text('1 min', style: TextStyle(color: Colors.grey)),
-                        Text('30 mins', style: TextStyle(color: Colors.grey)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 32),
+              // Preparation Time
+              _buildTimeSection(),
+              const SizedBox(height: 28),
 
               // Save Button
               ElevatedButton(
@@ -260,8 +191,8 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  elevation: 2,
-                  shadowColor: const Color(0x806C63FF),
+                  elevation: 0,
+                  shadowColor: Colors.transparent,
                 ),
                 child: _isUploading
                     ? const SizedBox(
@@ -272,11 +203,12 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text(
-                        'SAVE PRODUCT',
-                        style: TextStyle(
+                    : Text(
+                        widget.product == null ? 'ADD PRODUCT' : 'UPDATE PRODUCT',
+                        style: const TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
                         ),
                       ),
               ),
@@ -289,16 +221,14 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
 
   Widget _buildStatusToggle() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.05),
-            spreadRadius: 1,
-            blurRadius: 6,
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
@@ -306,24 +236,23 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
+          Text(
             'Product Status',
             style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.black54,
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[800],
             ),
           ),
-          Switch(
-            value: _isActive,
-            onChanged: (value) {
-              setState(() {
-                _isActive = value;
-              });
-            },
-            activeColor: Colors.green,
-            inactiveThumbColor: Colors.grey,
-            inactiveTrackColor: Colors.grey.withOpacity(0.5),
+          Transform.scale(
+            scale: 1.2,
+            child: Switch.adaptive(
+              value: _isActive,
+              onChanged: (value) => setState(() => _isActive = value),
+              activeColor: const Color(0xFF6C63FF),
+              inactiveThumbColor: Colors.grey[400],
+              inactiveTrackColor: Colors.grey[300],
+            ),
           ),
         ],
       ),
@@ -341,55 +270,53 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
   }
 
   Widget _buildImageSection() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 2,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Product Image',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            'Product Image',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[800],
             ),
           ),
-          const SizedBox(height: 12),
-          GestureDetector(
-            onTap: _isUploading ? null : _pickImage,
-            child: Container(
-              height: 160,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: Colors.grey.shade100,
-                border: Border.all(color: Colors.grey.shade300),
+        ),
+        GestureDetector(
+          onTap: _isUploading ? null : _pickImage,
+          child: Container(
+            height: 180,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.grey[300]!,
+                width: 1.5,
               ),
-              child: _buildImageContent(),
             ),
+            child: _buildImageContent(),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildImageContent() {
     if (_isUploading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: Color(0xFF6C63FF),
+        ),
+      );
     }
 
     if (_imageFile != null) {
       return ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(11),
         child: Image.file(_imageFile!, fit: BoxFit.cover),
       );
     }
@@ -397,7 +324,7 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
     if (widget.product?.imgUrl != null &&
         widget.product!.imgUrl.startsWith('http')) {
       return ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(11),
         child: Image.network(
           widget.product!.imgUrl,
           fit: BoxFit.cover,
@@ -413,45 +340,155 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(Icons.add_a_photo, size: 40, color: Colors.grey.shade400),
+        Icon(Icons.add_photo_alternate_rounded,
+            size: 48, color: Colors.grey[400]),
         const SizedBox(height: 8),
         Text(
-          'Add Product Image',
-          style: TextStyle(color: Colors.grey.shade500),
+          'Tap to add image',
+          style: TextStyle(
+            color: Colors.grey[500],
+            fontSize: 14,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildInputSection({required String title, required Widget child}) {
+  Widget _buildInputSection({
+    required String title,
+    required String hintText,
+    required TextEditingController controller,
+    String? prefixText,
+    int maxLines = 1,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.black54,
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[800],
+            ),
           ),
         ),
-        const SizedBox(height: 8),
         Container(
-          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200),
             boxShadow: [
               BoxShadow(
                 color: Colors.grey.withOpacity(0.05),
-                spreadRadius: 1,
-                blurRadius: 6,
+                blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
             ],
           ),
-          child: child,
+          child: TextFormField(
+            controller: controller,
+            keyboardType: keyboardType,
+            maxLines: maxLines,
+            inputFormatters: keyboardType == TextInputType.number
+                ? [FilteringTextInputFormatter.digitsOnly]
+                : null,
+            decoration: InputDecoration(
+              hintText: hintText,
+              prefixText: prefixText,
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.all(16),
+              hintStyle: TextStyle(color: Colors.grey[500]),
+            ),
+            validator: validator,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTimeSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            'Preparation Time',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[800],
+            ),
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Text(
+                '$_preparationTime mins',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF6C63FF),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  activeTrackColor: const Color(0xFF6C63FF),
+                  inactiveTrackColor: Colors.grey[200],
+                  thumbColor: const Color(0xFF6C63FF),
+                  overlayColor: const Color(0x1A6C63FF),
+                  thumbShape: const RoundSliderThumbShape(
+                    enabledThumbRadius: 10,
+                    elevation: 0,
+                  ),
+                  overlayShape: const RoundSliderOverlayShape(
+                    overlayRadius: 16,
+                  ),
+                  trackHeight: 4,
+                ),
+                child: Slider(
+                  value: _preparationTime.toDouble(),
+                  min: 1,
+                  max: 30,
+                  divisions: 29,
+                  label: '$_preparationTime mins',
+                  onChanged: (value) {
+                    setState(() {
+                      _preparationTime = value.toInt();
+                    });
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    Text('1 min', style: TextStyle(color: Colors.grey)),
+                    Text('30 mins', style: TextStyle(color: Colors.grey)),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -468,7 +505,6 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final sellerEmail = authProvider.sellerEmail ?? '';
 
-      // Parse price to integer, removing dots
       final price = int.parse(_priceController.text.replaceAll('.', ''));
 
       final product = Product(
@@ -478,7 +514,7 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
         price: price.toString(),
         imgUrl: _imageFile != null ? _imageFile!.path : widget.product?.imgUrl ?? '',
         time: '$_preparationTime mins',
-        tenantName: _tenantName, // Diambil dari authProvider.tenantName
+        tenantName: _tenantName,
         sellerEmail: sellerEmail,
         isActive: _isActive,
       );
@@ -492,7 +528,13 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
       Navigator.of(context).pop();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save product: $e')),
+        SnackBar(
+          content: Text('Failed to save product: $e'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
       );
     } finally {
       setState(() {
