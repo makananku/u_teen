@@ -108,7 +108,7 @@ class ProfileScreen extends StatelessWidget {
     final user = authProvider.user;
     final email = user?.email ?? '';
     final name = user?.name ?? '';
-    final nit = user?.nit ?? '';
+    final nim = user?.nim ?? '';
     final phoneNumber = user?.phoneNumber ?? '';
 
     return Container(
@@ -167,7 +167,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 16),
             _buildProfileDetail(Icons.email, email),
             _buildProfileDetail(Icons.person, name),
-            _buildProfileDetail(Icons.credit_card, nit),
+            _buildProfileDetail(Icons.credit_card, nim),
             _buildProfileDetail(Icons.phone, phoneNumber, info: true),
             const SizedBox(height: 16),
           ],

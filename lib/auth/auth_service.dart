@@ -5,32 +5,20 @@ class AuthService {
       password: '123',
       name: 'Nicholas Soesilo',
       userType: 'customer',
-      nit: '000000646490',
+      nim: '000000646490',
       phoneNumber: '628221110806',
-    ),
-    User(
-      email: 'dosen@lecturer.umn.ac.id',
-      password: '123',
-      name: 'Dosen',
-      userType: 'customer',
-      nit: '',
-      phoneNumber: '',
-    ),
-    User(
-      email: 'staff@umn.ac.id',
-      password: '123',
-      name: 'Staff',
-      userType: 'customer',
-      nit: '',
-      phoneNumber: '',
+      prodi: 'Information Systems',
+      angkatan: '2022',
     ),
     User(
       email: '456@seller.umn.ac.id',
       password: '456',
       name: 'Masakan Minang',
       userType: 'seller',
-      nit: 'TNT000123',
+      nim: 'TNT000123',
       phoneNumber: '628123456789',
+      prodi: '', 
+      angkatan: '',
     ),
   ];
 
@@ -73,15 +61,19 @@ class User {
   final String password;
   final String name;
   final String userType;
-  final String nit;
+  final String nim;
   final String phoneNumber;
+  final String prodi;
+  final String angkatan;
 
   User({
     required this.email,
     required this.password,
     required this.name,
     required this.userType,
-    required this.nit,
+    required this.nim,
     required this.phoneNumber,
+    required this.prodi,
+    required this.angkatan,
   });
 }
