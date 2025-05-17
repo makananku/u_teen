@@ -38,7 +38,10 @@ class _LoginScreenState extends State<LoginScreen>
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       await authProvider.initialize();
       
+      print('LoginScreen initState - isLoggedIn: ${authProvider.isLoggedIn}');
+      
       if (authProvider.isLoggedIn && mounted) {
+        print('User is logged in, navigating to ${authProvider.isSeller ? "SellerHomeScreen" : "HomeScreen"}');
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
@@ -49,6 +52,7 @@ class _LoginScreenState extends State<LoginScreen>
           (route) => false,
         );
       } else {
+        print('User is not logged in, showing login screen');
         _animationController.forward();
       }
     });
@@ -69,12 +73,11 @@ class _LoginScreenState extends State<LoginScreen>
 
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final authService = AuthService(); // Tidak perlu Provider karena AuthService stateless
+      final authService = AuthService();
 
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
 
-      // Validasi email menggunakan AuthService
       final emailValidationError = authService.validateEmail(email);
       if (emailValidationError != null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -87,13 +90,11 @@ class _LoginScreenState extends State<LoginScreen>
         return;
       }
 
-      // Verifikasi kredensial menggunakan AuthService
       final user = await authService.login(email, password);
 
       if (!mounted) return;
 
       if (user != null) {
-        // Simpan data pengguna ke AuthProvider
         final success = await authProvider.login(
           user.email,
           user.name,
@@ -150,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen>
     if (value == null || value.isEmpty) {
       return 'Email is required';
     }
-    return null; // Validasi domain dilakukan di AuthService
+    return null;
   }
 
   String? _validatePassword(String? value) {
@@ -252,7 +253,6 @@ class _LoginScreenState extends State<LoginScreen>
               onChanged: (value) => setState(() {}),
             ),
             const SizedBox(height: 20),
-
             TextFormField(
               controller: _passwordController,
               obscureText: _obscurePassword,
@@ -279,7 +279,6 @@ class _LoginScreenState extends State<LoginScreen>
               validator: _validatePassword,
             ),
             const SizedBox(height: 20),
-
             SizedBox(
               width: double.infinity,
               height: 50,

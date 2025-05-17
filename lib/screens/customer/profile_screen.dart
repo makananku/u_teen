@@ -148,7 +148,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-              // Profile Header with gradient border
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
@@ -190,8 +189,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              
-              // Name with verified badge
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -218,7 +215,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ],
               ),
-              
               const SizedBox(height: 4),
               Text(
                 email,
@@ -228,8 +224,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              
-              // Custom Divider
               Container(
                 height: 1,
                 decoration: BoxDecoration(
@@ -239,15 +233,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              
-              // Profile Details with improved styling
               _buildDetailItem(
                 icon: Icons.badge_outlined,
                 title: authProvider.isCustomer ? 'STUDENT ID' : 'SELLER ID',
                 value: nim ?? 'Not Available',
                 iconColor: Colors.purple[600]!,
               ),
-              
               if (authProvider.isCustomer)
                 _buildDetailItem(
                   icon: Icons.school_outlined,
@@ -257,7 +248,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       : '$prodi ($angkatan)',
                   iconColor: Colors.blue[600]!,
                 ),
-              
               _buildDetailItem(
                 icon: Icons.phone_android_outlined,
                 title: 'PHONE NUMBER',
@@ -448,13 +438,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const SizedBox(width: 16),
                           Expanded(
                             child: ElevatedButton(
-                              onPressed: () {
-                                Provider.of<AuthProvider>(context, listen: false).logout();
-                                Navigator.pushAndRemoveUntil(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const LoginScreen()), // Ubah ke LoginScreen
-                                  (route) => false,
-                                );
+                              onPressed: () async {
+                                final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                                bool success = await authProvider.logout();
+                                if (success) {
+                                  print('Logout successful, navigating to LoginScreen');
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                                    (route) => false,
+                                  );
+                                } else {
+                                  print('Logout failed');
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Failed to logout. Please try again.'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red.shade600,

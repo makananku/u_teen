@@ -23,7 +23,6 @@ class AuthProvider with ChangeNotifier {
   String? get customerProdi => isCustomer ? _user?.prodi : null;
   String? get customerAngkatan => isCustomer ? _user?.angkatan : null;
 
-
   Future<void> initialize() async {
     _isLoading = true;
     notifyListeners();
@@ -37,7 +36,7 @@ class AuthProvider with ChangeNotifier {
       final prodi = _prefs.getString('user_prodi');
       final angkatan = _prefs.getString('user_angkatan');
 
-      print('Initialize - Email: $email, Prodi: $prodi, Angkatan: $angkatan'); // Debugging
+      print('Initialize - Email: $email, Prodi: $prodi, Angkatan: $angkatan');
 
       if (email != null && name != null && userType != null) {
         _user = User(
@@ -77,7 +76,7 @@ class AuthProvider with ChangeNotifier {
       await _prefs.setString('user_prodi', prodi);
       await _prefs.setString('user_angkatan', angkatan);
 
-      print('Login - Prodi: $prodi, Angkatan: $angkatan'); // Debugging
+      print('Login - Prodi: $prodi, Angkatan: $angkatan');
 
       _user = User(
         email: email,
@@ -94,22 +93,39 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       notifyListeners();
-      print('Login error: $e'); // Debugging
+      print('Login error: $e');
       return false;
     }
   }
 
-  Future<void> logout() async {
-    await _prefs.remove('user_email');
-    await _prefs.remove('user_name');
-    await _prefs.remove('user_type');
-    await _prefs.remove('user_nim');
-    await _prefs.remove('user_phone_number');
-    await _prefs.remove('user_prodi');
-    await _prefs.remove('user_angkatan');
+  Future<bool> logout() async {
+    try {
+      await _prefs.remove('user_email');
+      await _prefs.remove('user_name');
+      await _prefs.remove('user_type');
+      await _prefs.remove('user_nim');
+      await _prefs.remove('user_phone_number');
+      await _prefs.remove('user_prodi');
+      await _prefs.remove('user_angkatan');
 
-    _user = null;
-    notifyListeners();
+      // Verifikasi bahwa data benar-benar dihapus
+      final email = _prefs.getString('user_email');
+      final name = _prefs.getString('user_name');
+      final userType = _prefs.getString('user_type');
+      print('After logout - Email: $email, Name: $name, UserType: $userType');
+
+      if (email != null || name != null || userType != null) {
+        print('Failed to clear SharedPreferences');
+        return false;
+      }
+
+      _user = null;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      print('Logout error: $e');
+      return false;
+    }
   }
 }
 
