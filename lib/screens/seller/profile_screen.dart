@@ -182,44 +182,9 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildSocialButton(Icons.share_outlined, 'Share'),
-              const SizedBox(width: 16),
-              _buildSocialButton(Icons.chat_bubble_outline, 'Chat'),
-              const SizedBox(width: 16),
-              _buildSocialButton(Icons.star_border_outlined, 'Rate'),
-            ],
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildSocialButton(IconData icon, String label) {
-    return Column(
-      children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: const Color(0xFFF1F5F9),
-          ),
-          child: Icon(
-            icon,
-            color: const Color(0xFF475569),
-            size: 22,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: const Color(0xFF64748B),
-          ),
-        ),
-      ],
     );
   }
 
