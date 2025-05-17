@@ -93,6 +93,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Payment'),
+        titleTextStyle: Theme.of(
+          context,
+        ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,

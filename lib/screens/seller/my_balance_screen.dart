@@ -37,7 +37,7 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final sellerEmail = authProvider.user?.email ?? '';
-    
+
     setState(() {
       _balance = orderProvider.getAvailableBalanceForMerchant(sellerEmail);
     });
@@ -68,22 +68,24 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
           elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () => Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const SellerHomeScreen(),
-              ),
-            ),
+            onPressed:
+                () => Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SellerHomeScreen(),
+                  ),
+                ),
           ),
           actions: [
             IconButton(
               icon: const Icon(Icons.history, color: Colors.black),
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => TransactionHistoryScreen(),
-                ),
-              ),
+              onPressed:
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TransactionHistoryScreen(),
+                    ),
+                  ),
             ),
           ],
         ),
@@ -115,8 +117,10 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.account_balance_wallet, 
-                                  color: Colors.white70),
+                              Icon(
+                                Icons.account_balance_wallet,
+                                color: Colors.white70,
+                              ),
                               SizedBox(width: 8),
                               Text(
                                 'Balance Available',
@@ -138,9 +142,10 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
                           ),
                           SizedBox(height: 20),
                           ElevatedButton(
-                            onPressed: _selectedMethod != null
-                                ? () => _withdrawFunds(context)
-                                : null,
+                            onPressed:
+                                _selectedMethod != null
+                                    ? () => _withdrawFunds(context)
+                                    : null,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
                               foregroundColor: Colors.blue,
@@ -177,26 +182,25 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
 
                   // List of Payment Methods
                   Column(
-                    children: paymentMethods.map((method) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: PaymentMethodCard(
-                          method: method,
-                          isSelected: _selectedMethod?.id == method.id,
-                          onTap: () {
-                            setState(() => _selectedMethod = method);
-                            HapticFeedback.lightImpact();
-                          },
-                        ),
-                      );
-                    }).toList(),
+                    children:
+                        paymentMethods.map((method) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: PaymentMethodCard(
+                              method: method,
+                              isSelected: _selectedMethod?.id == method.id,
+                              onTap: () {
+                                setState(() => _selectedMethod = method);
+                                HapticFeedback.lightImpact();
+                              },
+                            ),
+                          );
+                        }).toList(),
                   ),
 
                   // Current Gopay Account
                   if (_selectedMethod?.id == 'gopay')
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                    ),
+                    Padding(padding: const EdgeInsets.only(top: 8)),
                   const SizedBox(height: 16),
                   Column(
                     children: [
@@ -247,144 +251,345 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
   void _withdrawFunds(BuildContext context) async {
     if (_balance <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Balance is insufficient for withdrawal')),
+        const SnackBar(
+          content: Text('Balance is insufficient for withdrawal'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
 
+    // Variable to track withdrawal amount
+    double withdrawalAmount = _balance.toDouble();
+    final formatter = NumberFormat('#,###');
+
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+      barrierDismissible: false,
+      builder:
+          (context) => StatefulBuilder(
+            builder: (context, setState) {
+              return Dialog(
+                insetPadding: const EdgeInsets.all(20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                backgroundColor: Colors.white,
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Header with icon
+                        Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withOpacity(0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.account_balance_wallet,
+                                size: 32,
+                                color: Colors.blue,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Withdraw Funds',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Available Balance: Rp${formatter.format(_balance)}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Amount Input
+                        TextField(
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'Withdrawal Amount',
+                            prefixText: 'Rp ',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                          onChanged: (value) {
+                            final parsed = double.tryParse(value) ?? 0;
+                            setState(() {
+                              withdrawalAmount =
+                                  parsed > _balance
+                                      ? _balance.toDouble()
+                                      : parsed;
+                            });
+                          },
+                          controller:
+                              TextEditingController()
+                                ..text = withdrawalAmount.toStringAsFixed(0),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _buildQuickAmountButton('25%', () {
+                              setState(() {
+                                withdrawalAmount = _balance * 0.25;
+                              });
+                              HapticFeedback.lightImpact();
+                            }),
+                            _buildQuickAmountButton('50%', () {
+                              setState(() {
+                                withdrawalAmount = _balance * 0.5;
+                              });
+                              HapticFeedback.lightImpact();
+                            }),
+                            _buildQuickAmountButton('75%', () {
+                              setState(() {
+                                withdrawalAmount = _balance * 0.75;
+                              });
+                              HapticFeedback.lightImpact();
+                            }),
+                            _buildQuickAmountButton('100%', () {
+                              setState(() {
+                                withdrawalAmount = _balance.toDouble();
+                              });
+                              HapticFeedback.lightImpact();
+                            }),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Payment Method Info
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[50],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Withdraw to',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Image.asset(
+                                      _selectedMethod!.iconPath,
+                                      width: 24,
+                                      height: 24,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    _selectedMethod!.name,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                _userGopayNumber,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+
+                        // Action Buttons
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () => Navigator.pop(context),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  side: const BorderSide(color: Colors.grey),
+                                ),
+                                child: const Text(
+                                  'Cancel',
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed:
+                                    withdrawalAmount <= 0
+                                        ? null
+                                        : () async {
+                                          Navigator.pop(context);
+                                          final orderProvider =
+                                              Provider.of<OrderProvider>(
+                                                context,
+                                                listen: false,
+                                              );
+                                          final authProvider =
+                                              Provider.of<AuthProvider>(
+                                                context,
+                                                listen: false,
+                                              );
+                                          final sellerEmail =
+                                              authProvider.user?.email ?? '';
+
+                                          await orderProvider.addWithdrawal(
+                                            merchantEmail: sellerEmail,
+                                            amount: withdrawalAmount,
+                                            method: _selectedMethod!.name,
+                                          );
+                                          _showWithdrawalSuccess(
+                                            withdrawalAmount,
+                                          );
+                                          _calculateBalance();
+                                        },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: const Text(
+                                  'Confirm',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+    );
+  }
+
+  Widget _buildQuickAmountButton(String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.blue.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
         ),
-        backgroundColor: Colors.white,
-        child: Padding(
-          padding: EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.payment, size: 50, color: Colors.blue),
-              SizedBox(height: 16),
-              Text(
-                'Confirm Withdrawal',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Rp${NumberFormat('#,###').format(_balance)} to ${_selectedMethod!.name}',
-                style: TextStyle(fontSize: 16),
-              ),
-              SizedBox(height: 8),
-              Text(
-                _userGopayNumber,
-                style: TextStyle(color: Colors.grey[600], fontSize: 14),
-              ),
-              SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: OutlinedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        'Cancel',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        Navigator.pop(context);
-                        final orderProvider = Provider.of<OrderProvider>(
-                            context, listen: false);
-                        final authProvider = Provider.of<AuthProvider>(
-                            context, listen: false);
-                        final sellerEmail = authProvider.user?.email ?? '';
-                        
-                        await orderProvider.addWithdrawal(
-                          merchantEmail: sellerEmail,
-                          amount: _balance.toDouble(),
-                          method: _selectedMethod!.name,
-                        );
-                        
-                        _showWithdrawalSuccess();
-                        _calculateBalance();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        padding: EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        'Confirm',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.blue,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ),
     );
   }
 
-  void _showWithdrawalSuccess() {
+  void _showWithdrawalSuccess(double amount) {
+    final formatter = NumberFormat('#,###');
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.white),
-            SizedBox(width: 10),
-            Text('Withdrawal to ${_selectedMethod!.name} successful!'),
+            const Icon(Icons.check_circle, color: Colors.white),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Withdrawal Successful!'),
+                  Text(
+                    'Rp${formatter.format(amount)} to ${_selectedMethod!.name}',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
         backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  void _showWithdrawalError() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.error_outline, color: Colors.white),
+            SizedBox(width: 10),
+            Text('Withdrawal failed. Please try again.'),
+          ],
+        ),
+        backgroundColor: Colors.red,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
 
+  // Dummy implementation for adding a new payment method
   void _addNewPaymentMethod() {
-    showModalBottomSheet(
-      context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Coming Soon!',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            Text(
-              'More payment methods will be available soon',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Got it!'),
-            ),
-          ],
-        ),
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Add new payment method feature coming soon!'),
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
