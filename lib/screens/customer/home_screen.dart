@@ -183,47 +183,89 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildMainContent(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 8),
-        Padding(
-          padding: const EdgeInsets.only(left: 24.0),
-          child: Text(
-            "Recommended for you",
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
+  final orderProvider = Provider.of<OrderProvider>(context);
+  final authProvider = Provider.of<AuthProvider>(context);
+  final customerName = authProvider.user?.name ?? '';
+  final orderAgainItems = orderProvider.getOrderAgainItemsForCustomer(customerName);
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const SizedBox(height: 8),
+      Padding(
+        padding: const EdgeInsets.only(left: 24.0),
+        child: Text(
+          "Recommended for you",
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
         ),
-        const SizedBox(height: 16),
-        FoodList(
-          selectedCategory: selectedCategory,
-          onFoodItemTap: (title, price, imgUrl, subtitle, sellerEmail) {
-            _handleFoodItemTap(title, price, imgUrl, subtitle, sellerEmail);
-          },
-        ),
-        const SizedBox(height: 24),
-        Padding(
-          padding: const EdgeInsets.only(left: 24.0),
-          child: Text(
-            "Order Again",
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
+      ),
+      const SizedBox(height: 16),
+      FoodList(
+        selectedCategory: selectedCategory,
+        onFoodItemTap: (title, price, imgUrl, subtitle, sellerEmail) {
+          _handleFoodItemTap(title, price, imgUrl, subtitle, sellerEmail);
+        },
+      ),
+      const SizedBox(height: 24),
+      Padding(
+        padding: const EdgeInsets.only(left: 24.0),
+        child: Text(
+          "Order Again",
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
         ),
-        const SizedBox(height: 16),
-        FoodList(
-          selectedCategory: selectedCategory,
-          onFoodItemTap: _handleFoodItemTap,
-        ),
-        const SizedBox(height: 100),
-      ],
-    );
-  }
+      ),
+      const SizedBox(height: 16),
+      orderAgainItems.isEmpty
+          ? const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24.0),
+              child: Text(
+                "No previous orders yet.",
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 14,
+                ),
+              ),
+            )
+          : SizedBox(
+              height: 220,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: orderAgainItems.length,
+                itemBuilder: (context, index) {
+                  final food = orderAgainItems[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 16),
+                    child: FoodCard(
+                      title: food["title"]!,
+                      subtitle: food["subtitle"]!,
+                      time: food["time"]!,
+                      imgUrl: food["imgUrl"]!,
+                      price: food["price"]!,
+                      sellerEmail: food["sellerEmail"] ?? '',
+                      onTap: () => _handleFoodItemTap(
+                        food["title"]!,
+                        food["price"]!,
+                        food["imgUrl"]!,
+                        food["subtitle"]!,
+                        food["sellerEmail"] ?? '',
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+      const SizedBox(height: 100),
+    ],
+  );
+}
 
   @override
   Widget build(BuildContext context) {

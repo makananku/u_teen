@@ -83,9 +83,47 @@ class OrderProvider with ChangeNotifier {
         .toList();
   }
 
-  List<Order> getOrdersForCustomer(String customerEmail) {
-    return _orders.where((o) => o.customerName == customerEmail).toList();
+  List<Map<String, String>> getOrderAgainItemsForCustomer(String customerEmail) {
+  // Get completed orders for the customer
+  final completedOrders = getCompletedOrdersForCustomer(customerEmail);
+
+  // Create a map to store the most recent order item by name
+  final Map<String, Map<String, String>> uniqueItems = {};
+  
+  for (var order in completedOrders) {
+    for (var item in order.items) {
+      final itemKey = item.name; // Use name as the key for uniqueness
+      final itemData = {
+        'title': item.name,
+        'subtitle': item.subtitle,
+        'imgUrl': item.image,
+        'price': item.price.toString(),
+        'sellerEmail': item.sellerEmail,
+        'orderTime': order.completedAt?.toIso8601String() ?? order.orderTime.toIso8601String(),
+      };
+      
+      // If the item doesn't exist or this order is more recent, update the entry
+      if (!uniqueItems.containsKey(itemKey) || 
+          DateTime.parse(itemData['orderTime']!).isAfter(
+            DateTime.parse(uniqueItems[itemKey]!['orderTime']!))) {
+        uniqueItems[itemKey] = itemData;
+      }
+    }
   }
+
+  // Convert to list and sort by orderTime (newest first)
+  final itemList = uniqueItems.values.toList()
+    ..sort((a, b) => DateTime.parse(b['orderTime']!).compareTo(DateTime.parse(a['orderTime']!)));
+
+  // Remove orderTime from the final output to match FoodData format
+  return itemList.map((item) {
+    final newItem = Map<String, String>.from(item);
+    newItem.remove('orderTime');
+    // Add default time if needed (e.g., "10 mins")
+    newItem['time'] = newItem['time'] ?? '10 mins';
+    return newItem;
+  }).toList();
+}
 
   List<Order> getOngoingOrdersForCustomer(String customerEmail) {
     final orders = _orders
