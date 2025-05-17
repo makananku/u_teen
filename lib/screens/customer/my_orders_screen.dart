@@ -83,15 +83,6 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
           centerTitle: true,
           backgroundColor: Colors.white,
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const HomeScreen()),
-              );
-            },
-          ),
           bottom: TabBar(
             controller: _tabController,
             labelColor: Colors.blue,

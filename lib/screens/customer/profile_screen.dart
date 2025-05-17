@@ -52,12 +52,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               centerTitle: true,
               backgroundColor: Colors.white,
               elevation: 0,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black, size: 26),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              ),
             ),
             body: Stack(
               children: [
