@@ -4,6 +4,7 @@ import 'package:u_teen/auth/auth_provider.dart';
 import 'package:u_teen/screens/seller/home_screen.dart';
 import 'package:u_teen/widgets/seller/custom_bottom_navigation.dart';
 import 'package:u_teen/screens/login_screen.dart';
+import 'package:u_teen/providers/rating_provider.dart'; // Tambahkan import untuk RatingProvider
 
 class SellerProfileScreen extends StatefulWidget {
   const SellerProfileScreen({super.key});
@@ -180,6 +181,11 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
   }
 
   Widget _buildBusinessStats(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final ratingsProvider = Provider.of<RatingProvider>(context);
+    final merchantEmail = authProvider.sellerEmail ?? '';
+    final averageRating = ratingsProvider.getAverageFoodRating(merchantEmail);
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
@@ -255,7 +261,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
               Expanded(
                 child: _buildStatCard(
                   'Rating',
-                  '4.8',
+                  averageRating.toStringAsFixed(1),
                   Icons.star_rate,
                   const Color(0xFFF59E0B),
                 ),

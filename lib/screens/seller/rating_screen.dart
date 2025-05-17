@@ -19,7 +19,7 @@ class RatingScreen extends StatelessWidget {
     final foodNotes = ratingsProvider.getFoodNotes(merchantEmail);
 
     return Scaffold(
-      backgroundColor: Colors.white, // Set background putih untuk seluruh screen
+      backgroundColor: Colors.white, 
       appBar: AppBar(
         title: const Text(
           'Customer Ratings',
@@ -31,24 +31,22 @@ class RatingScreen extends StatelessWidget {
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.white, // Set background putih untuk AppBar
-        foregroundColor: Colors.black, // Opsional: ganti warna teks & ikon jadi hitam
+        backgroundColor: Colors.white, 
+        foregroundColor: Colors.black, 
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Container(
-          color: Colors.white, // Pastikan container scroll view juga putih
+          color: Colors.white, 
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Summary Card
               RatingSummaryCard(
                 averageRating: averageRating,
                 totalRatings: ratedOrders.length,
               ),
               const SizedBox(height: 24),
 
-              // Rating Distribution
               const Text(
                 'Rating Distribution',
                 style: TextStyle(
@@ -74,7 +72,6 @@ class RatingScreen extends StatelessWidget {
                 ...foodNotes.map((note) => FeedbackCard(feedback: note)).toList(),
               ],
 
-              // Rating History
               const SizedBox(height: 24),
               const Text(
                 'Rating History',
