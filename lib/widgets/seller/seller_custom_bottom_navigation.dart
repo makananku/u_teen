@@ -150,7 +150,7 @@ class _SellerCustomBottomNavigationState
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildNavItem(Icons.calendar_today, NavIndices.home),
+                      _buildNavItem(Icons.home, NavIndices.home),
                       _buildNavItem(Icons.account_balance_wallet, NavIndices.balance),
                       _buildNavItem(Icons.shopping_bag, NavIndices.products),
                     ],
