@@ -14,14 +14,15 @@ class AuthProvider with ChangeNotifier {
   bool get isSeller => _user?.userType == 'seller';
   bool get isCustomer => _user?.userType == 'customer';
   String? get sellerEmail => isSeller ? _user?.email : null;
-  String? get sellerNim => isSeller ? _user?.nim : null; // Diperbaiki penamaan
+  String? get sellerNim => isSeller ? _user?.nim : null; 
   String? get tenantName => isSeller ? _user?.name : null;
   String? get customerEmail => isCustomer ? _user?.email : null;
   String? get customerName => isCustomer ? _user?.name : null;
-  String? get customerNim => isCustomer ? _user?.nim : null; // Diperbaiki penamaan
+  String? get customerNim => isCustomer ? _user?.nim : null;
   String? get customerPhoneNumber => isCustomer ? _user?.phoneNumber : null;
   String? get customerProdi => isCustomer ? _user?.prodi : null;
   String? get customerAngkatan => isCustomer ? _user?.angkatan : null;
+
 
   Future<void> initialize() async {
     _isLoading = true;

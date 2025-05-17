@@ -13,6 +13,7 @@ class SearchWidget extends StatefulWidget {
   final FocusNode focusNode;
   final Widget categorySelector;
   final bool showFoodLists;
+  final List<Map<String, dynamic>> orderAgainItems; // Parameter baru untuk orderAgainItems
 
   const SearchWidget({
     Key? key,
@@ -25,6 +26,7 @@ class SearchWidget extends StatefulWidget {
     required this.focusNode,
     required this.categorySelector,
     required this.showFoodLists,
+    required this.orderAgainItems, // Tambahkan parameter ini
   }) : super(key: key);
 
   @override
@@ -83,159 +85,159 @@ class _SearchWidgetState extends State<SearchWidget> {
           const SizedBox(height: 20),
           _buildRecommendedSection(context),
           const SizedBox(height: 24),
-          _buildOrderAgainSection(context),
+          if (widget.orderAgainItems.isNotEmpty) _buildOrderAgainSection(context), // Hanya tampilkan jika tidak kosong
         ],
       ],
     );
   }
 
   Widget _buildSearchBar(BuildContext context) {
-  return TextField(
-    controller: widget.searchController,
-    focusNode: widget.focusNode,
-    decoration: InputDecoration(
-      hintText: "Search",
-      prefixIcon: IconButton(
-        icon: const Icon(Icons.search),
-        onPressed: () {
-          final query = widget.searchController.text.trim();
-          if (query.isNotEmpty) {
-            widget.onSearchSubmitted(query);
-            SearchData.addRecentSearch(query);
-            setState(() {
-              searchQuery = query;
-            });
-          }
-        },
+    return TextField(
+      controller: widget.searchController,
+      focusNode: widget.focusNode,
+      decoration: InputDecoration(
+        hintText: "Search",
+        prefixIcon: IconButton(
+          icon: const Icon(Icons.search),
+          onPressed: () {
+            final query = widget.searchController.text.trim();
+            if (query.isNotEmpty) {
+              widget.onSearchSubmitted(query);
+              SearchData.addRecentSearch(query);
+              setState(() {
+                searchQuery = query;
+              });
+            }
+          },
+        ),
+        suffixIcon: widget.searchController.text.isNotEmpty
+            ? IconButton(
+                icon: const Icon(Icons.clear),
+                onPressed: () {
+                  widget.searchController.clear();
+                  setState(() {
+                    searchQuery = '';
+                  });
+                  widget.focusNode.requestFocus(); // Tetap fokus ke search bar
+                },
+              )
+            : null,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none,
+        ),
+        filled: true,
+        fillColor: Colors.grey.shade200,
       ),
-      suffixIcon: widget.searchController.text.isNotEmpty
-          ? IconButton(
-              icon: const Icon(Icons.clear),
-              onPressed: () {
-                widget.searchController.clear();
-                setState(() {
-                  searchQuery = '';
-                });
-                widget.focusNode.requestFocus(); // Tetap fokus ke search bar
-              },
-            )
-          : null,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(30),
-        borderSide: BorderSide.none,
-      ),
-      filled: true,
-      fillColor: Colors.grey.shade200,
-    ),
-    onChanged: (value) {
-      setState(() {
-        searchQuery = value;
-      });
-    },
-    onSubmitted: (value) {
-      if (value.isNotEmpty) {
-        widget.onSearchSubmitted(value);
-        SearchData.addRecentSearch(value);
-      }
-      // Tetap pertahankan fokus
-      widget.focusNode.requestFocus();
-    },
-  );
-}
+      onChanged: (value) {
+        setState(() {
+          searchQuery = value;
+        });
+      },
+      onSubmitted: (value) {
+        if (value.isNotEmpty) {
+          widget.onSearchSubmitted(value);
+          SearchData.addRecentSearch(value);
+        }
+        // Tetap pertahankan fokus
+        widget.focusNode.requestFocus();
+      },
+    );
+  }
 
   Widget _buildRecentSearches(List<String> recentSearches) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Text(
-        "Recent Searches",
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
-      const SizedBox(height: 10),
-      if (recentSearches.isEmpty) const Text("No recent searches"),
-      if (recentSearches.isNotEmpty)
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: recentSearches.map((search) {
-            return InkWell(
-              borderRadius: BorderRadius.circular(20),
-              onTap: () {
-                widget.searchController.text = search;
-                setState(() {
-                  searchQuery = search;
-                });
-                // Tidak memanggil onSearchSubmitted di sini
-                // Biarkan TextField yang menangani submit
-              },
-              child: Chip(
-                label: Text(search),
-                deleteIcon: const Icon(Icons.clear, size: 18),
-                onDeleted: () {
-                  widget.onRemoveRecentSearch(search);
-                  setState(() {});
-                },
-                backgroundColor: Colors.white,
-                side: BorderSide(color: Colors.grey.shade300),
-              ),
-            );
-          }).toList(),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Recent Searches",
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-    ],
-  );
-}
+        const SizedBox(height: 10),
+        if (recentSearches.isEmpty) const Text("No recent searches"),
+        if (recentSearches.isNotEmpty)
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: recentSearches.map((search) {
+              return InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: () {
+                  widget.searchController.text = search;
+                  setState(() {
+                    searchQuery = search;
+                  });
+                  // Tidak memanggil onSearchSubmitted di sini
+                  // Biarkan TextField yang menangani submit
+                },
+                child: Chip(
+                  label: Text(search),
+                  deleteIcon: const Icon(Icons.clear, size: 18),
+                  onDeleted: () {
+                    widget.onRemoveRecentSearch(search);
+                    setState(() {});
+                  },
+                  backgroundColor: Colors.white,
+                  side: BorderSide(color: Colors.grey.shade300),
+                ),
+              );
+            }).toList(),
+          ),
+      ],
+    );
+  }
 
-Widget _buildSearchResults(List<Map<String, String>> searchResults) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const SizedBox(height: 20),
-      const Text(
-        "Search Results",
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
-      const SizedBox(height: 10),
-      if (searchResults.isEmpty) 
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20.0),
-          child: Center(
-            child: Text(
-              "No menu matches your search",
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 16,
+  Widget _buildSearchResults(List<Map<String, String>> searchResults) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 20),
+        const Text(
+          "Search Results",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 10),
+        if (searchResults.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20.0),
+            child: Center(
+              child: Text(
+                "No menu matches your search",
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 16,
+                ),
               ),
             ),
           ),
-        ),
-      if (searchResults.isNotEmpty)
-        ...searchResults.map((food) {
-          return ListTile(
-            leading: Image.asset(
-              food["imgUrl"]!,
-              width: 50,
-              height: 50,
-              fit: BoxFit.cover,
-            ),
-            title: Text(food["title"]!),
-            subtitle: Text(food["subtitle"]!),
-            trailing: Text("\Rp${food["price"]}"),
-            onTap: () {
-              FocusScope.of(context).unfocus();
-              widget.onFoodItemTap(
-                food["title"]!,
-                food["price"]!,
+        if (searchResults.isNotEmpty)
+          ...searchResults.map((food) {
+            return ListTile(
+              leading: Image.asset(
                 food["imgUrl"]!,
-                food["subtitle"]!,
-                food["sellerEmail"] ?? '',
-              );
-              SearchData.addRecentSearch(food["title"]!);
-            },
-          );
-        }).toList(),
-    ],
-  );
-}
+                width: 50,
+                height: 50,
+                fit: BoxFit.cover,
+              ),
+              title: Text(food["title"]!),
+              subtitle: Text(food["subtitle"]!),
+              trailing: Text("\Rp${food["price"]}"),
+              onTap: () {
+                FocusScope.of(context).unfocus();
+                widget.onFoodItemTap(
+                  food["title"]!,
+                  food["price"]!,
+                  food["imgUrl"]!,
+                  food["subtitle"]!,
+                  food["sellerEmail"] ?? '',
+                );
+                SearchData.addRecentSearch(food["title"]!);
+              },
+            );
+          }).toList(),
+      ],
+    );
+  }
 
   Widget _buildPopularCuisines(List<String> popularCuisines) {
     return Column(
@@ -249,22 +251,21 @@ Widget _buildSearchResults(List<Map<String, String>> searchResults) {
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children:
-              popularCuisines.map((cuisine) {
-                return GestureDetector(
-                  onTap: () {
-                    widget.onFillSearchBar(cuisine);
-                    setState(() {
-                      searchQuery = cuisine;
-                    });
-                  },
-                  child: Chip(
-                    label: Text(cuisine),
-                    backgroundColor: Colors.white,
-                    side: BorderSide(color: Colors.grey.shade300),
-                  ),
-                );
-              }).toList(),
+          children: popularCuisines.map((cuisine) {
+            return GestureDetector(
+              onTap: () {
+                widget.onFillSearchBar(cuisine);
+                setState(() {
+                  searchQuery = cuisine;
+                });
+              },
+              child: Chip(
+                label: Text(cuisine),
+                backgroundColor: Colors.white,
+                side: BorderSide(color: Colors.grey.shade300),
+              ),
+            );
+          }).toList(),
         ),
       ],
     );
@@ -274,8 +275,9 @@ Widget _buildSearchResults(List<Map<String, String>> searchResults) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 8),
         Padding(
-          padding: const EdgeInsets.only(left: 8.0),
+          padding: const EdgeInsets.only(left: 24.0),
           child: Text(
             "Recommended for you",
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -285,7 +287,10 @@ Widget _buildSearchResults(List<Map<String, String>> searchResults) {
           ),
         ),
         const SizedBox(height: 16),
-        FoodList(selectedCategory: 'All', onFoodItemTap: widget.onFoodItemTap),
+        FoodList(
+          selectedCategory: 'All',
+          onFoodItemTap: widget.onFoodItemTap,
+        ),
       ],
     );
   }
@@ -294,8 +299,9 @@ Widget _buildSearchResults(List<Map<String, String>> searchResults) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 24),
         Padding(
-          padding: const EdgeInsets.only(left: 8.0),
+          padding: const EdgeInsets.only(left: 24.0),
           child: Text(
             "Order Again",
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -305,7 +311,36 @@ Widget _buildSearchResults(List<Map<String, String>> searchResults) {
           ),
         ),
         const SizedBox(height: 16),
-        FoodList(selectedCategory: 'All', onFoodItemTap: widget.onFoodItemTap),
+        SizedBox(
+          height: 220,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: widget.orderAgainItems.length,
+            itemBuilder: (context, index) {
+              final food = widget.orderAgainItems[index];
+              return Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: FoodCard(
+                  title: food["title"]!,
+                  subtitle: food["subtitle"]!,
+                  time: food["time"]!,
+                  imgUrl: food["imgUrl"]!,
+                  price: food["price"]!,
+                  sellerEmail: food["sellerEmail"] ?? '',
+                  onTap: () => widget.onFoodItemTap(
+                    food["title"]!,
+                    food["price"]!,
+                    food["imgUrl"]!,
+                    food["subtitle"]!,
+                    food["sellerEmail"] ?? '',
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
       ],
     );
   }

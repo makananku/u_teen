@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:u_teen/auth/auth_provider.dart';
-import 'home_screen.dart';
+import '../login_screen.dart'; 
 import '../../widgets/customer/custom_bottom_navigation.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 
@@ -452,7 +452,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 Provider.of<AuthProvider>(context, listen: false).logout();
                                 Navigator.pushAndRemoveUntil(
                                   context,
-                                  MaterialPageRoute(builder: (context) => const HomeScreen()),
+                                  MaterialPageRoute(builder: (context) => const LoginScreen()), // Ubah ke LoginScreen
                                   (route) => false,
                                 );
                               },
