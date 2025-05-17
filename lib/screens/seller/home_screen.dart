@@ -426,13 +426,14 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  Text(
-                    '$count orders',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
+                  if (text != 'My Ratings')
+                    Text(
+                      '$count orders',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
