@@ -152,7 +152,7 @@ class _SellerCustomBottomNavigationState
                     children: [
                       _buildNavItem(Icons.home, NavIndices.home),
                       _buildNavItem(Icons.account_balance_wallet, NavIndices.balance),
-                      _buildNavItem(Icons.shopping_bag, NavIndices.products),
+                      _buildNavItem(Icons.fastfood, NavIndices.products),
                     ],
                   ),
                 ),
