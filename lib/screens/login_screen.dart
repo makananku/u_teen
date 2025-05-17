@@ -98,8 +98,10 @@ class _LoginScreenState extends State<LoginScreen>
           user.email,
           user.name,
           user.userType,
-          user.nit,
+          user.nim,
           user.phoneNumber,
+          user.prodi,
+          user.angkatan,
         );
 
         if (success && mounted) {

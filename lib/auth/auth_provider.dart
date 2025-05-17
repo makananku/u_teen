@@ -14,14 +14,14 @@ class AuthProvider with ChangeNotifier {
   bool get isSeller => _user?.userType == 'seller';
   bool get isCustomer => _user?.userType == 'customer';
   String? get sellerEmail => isSeller ? _user?.email : null;
-  String? get sellernim => isSeller ? _user?.nim : null; 
+  String? get sellerNim => isSeller ? _user?.nim : null; // Diperbaiki penamaan
   String? get tenantName => isSeller ? _user?.name : null;
   String? get customerEmail => isCustomer ? _user?.email : null;
   String? get customerName => isCustomer ? _user?.name : null;
-  String? get customernim => isCustomer ? _user?.nim : null;
+  String? get customerNim => isCustomer ? _user?.nim : null; // Diperbaiki penamaan
   String? get customerPhoneNumber => isCustomer ? _user?.phoneNumber : null;
-  String? get customerProdi => isCustomer ? _user?.prodi : null; 
-  String? get customerAngkatan => isCustomer ? _user?.angkatan : null; 
+  String? get customerProdi => isCustomer ? _user?.prodi : null;
+  String? get customerAngkatan => isCustomer ? _user?.angkatan : null;
 
   Future<void> initialize() async {
     _isLoading = true;
@@ -35,6 +35,8 @@ class AuthProvider with ChangeNotifier {
       final phoneNumber = _prefs.getString('user_phone_number');
       final prodi = _prefs.getString('user_prodi');
       final angkatan = _prefs.getString('user_angkatan');
+
+      print('Initialize - Email: $email, Prodi: $prodi, Angkatan: $angkatan'); // Debugging
 
       if (email != null && name != null && userType != null) {
         _user = User(
@@ -74,6 +76,8 @@ class AuthProvider with ChangeNotifier {
       await _prefs.setString('user_prodi', prodi);
       await _prefs.setString('user_angkatan', angkatan);
 
+      print('Login - Prodi: $prodi, Angkatan: $angkatan'); // Debugging
+
       _user = User(
         email: email,
         name: name,
@@ -89,6 +93,7 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       notifyListeners();
+      print('Login error: $e'); // Debugging
       return false;
     }
   }
