@@ -165,7 +165,6 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
           SliverToBoxAdapter(
             child: Column(
               children: [
-                // Sales Metrics Cards - Horizontal Scroll
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
                   child: Column(

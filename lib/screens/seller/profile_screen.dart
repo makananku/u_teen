@@ -4,7 +4,8 @@ import 'package:u_teen/auth/auth_provider.dart';
 import 'package:u_teen/screens/seller/home_screen.dart';
 import 'package:u_teen/widgets/seller/custom_bottom_navigation.dart';
 import 'package:u_teen/screens/login_screen.dart';
-import 'package:u_teen/providers/rating_provider.dart'; // Tambahkan import untuk RatingProvider
+import 'package:u_teen/providers/rating_provider.dart';
+import 'package:u_teen/providers/order_provider.dart'; // Tambahkan import untuk OrderProvider
 
 class SellerProfileScreen extends StatefulWidget {
   const SellerProfileScreen({super.key});
@@ -51,14 +52,6 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
           centerTitle: true,
           backgroundColor: Colors.white,
           elevation: 0.5,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.edit_outlined, color: Color(0xFF64748B)),
-              onPressed: () {
-                // TODO: Implement edit profile
-              },
-            ),
-          ],
         ),
         body: Stack(
           children: [
@@ -183,8 +176,10 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
   Widget _buildBusinessStats(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final ratingsProvider = Provider.of<RatingProvider>(context);
+    final orderProvider = Provider.of<OrderProvider>(context); // Ambil OrderProvider
     final merchantEmail = authProvider.sellerEmail ?? '';
     final averageRating = ratingsProvider.getAverageFoodRating(merchantEmail);
+    final totalSales = orderProvider.getCompletedOrdersForMerchant(merchantEmail).length; // Hitung total penjualan seumur hidup
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -252,7 +247,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
               Expanded(
                 child: _buildStatCard(
                   'Total Sales',
-                  '1,245',
+                  totalSales.toString(), // Gunakan totalSales dari OrderProvider
                   Icons.trending_up,
                   const Color(0xFF10B981),
                 ),

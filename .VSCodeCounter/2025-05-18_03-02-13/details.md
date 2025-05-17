@@ -1,10 +1,10 @@
 # Details
 
-Date : 2025-05-18 02:52:34
+Date : 2025-05-18 03:02:13
 
 Directory c:\\Users\\Acer\\u_teen
 
-Total : 119 files,  15678 codes, 361 comments, 1263 blanks, all 17302 lines
+Total : 119 files,  15676 codes, 357 comments, 1264 blanks, all 17297 lines
 
 [Summary](results.md) / Details / [Diff Summary](diff.md) / [Diff Details](diff-details.md)
 
@@ -74,8 +74,8 @@ Total : 119 files,  15678 codes, 361 comments, 1263 blanks, all 17302 lines
 | [lib/screens/seller/my\_balance\_screen.dart](/lib/screens/seller/my_balance_screen.dart) | Dart | 566 | 0 | 16 | 582 |
 | [lib/screens/seller/my\_product\_screen.dart](/lib/screens/seller/my_product_screen.dart) | Dart | 132 | 0 | 8 | 140 |
 | [lib/screens/seller/on\_process\_screen.dart](/lib/screens/seller/on_process_screen.dart) | Dart | 369 | 12 | 21 | 402 |
-| [lib/screens/seller/profile\_screen.dart](/lib/screens/seller/profile_screen.dart) | Dart | 654 | 1 | 15 | 670 |
-| [lib/screens/seller/rating\_screen.dart](/lib/screens/seller/rating_screen.dart) | Dart | 93 | 4 | 8 | 105 |
+| [lib/screens/seller/profile\_screen.dart](/lib/screens/seller/profile_screen.dart) | Dart | 652 | 0 | 16 | 668 |
+| [lib/screens/seller/rating\_screen.dart](/lib/screens/seller/rating_screen.dart) | Dart | 93 | 1 | 8 | 102 |
 | [lib/screens/seller/transaction\_history\_screen.dart](/lib/screens/seller/transaction_history_screen.dart) | Dart | 459 | 0 | 23 | 482 |
 | [lib/services/calendar\_service.dart](/lib/services/calendar_service.dart) | Dart | 234 | 0 | 30 | 264 |
 | [lib/utils/calendar\_utils.dart](/lib/utils/calendar_utils.dart) | Dart | 39 | 0 | 5 | 44 |
