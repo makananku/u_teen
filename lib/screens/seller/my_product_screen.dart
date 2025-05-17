@@ -50,18 +50,10 @@ class _SellerMyProductScreenState extends State<SellerMyProductScreen> {
               fontWeight: FontWeight.bold,
             ),
           ),
+          centerTitle: true,
           backgroundColor: Colors.white,
           elevation: 0.5,
           iconTheme: const IconThemeData(color: Colors.black87),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const SellerHomeScreen()),
-              );
-            },
-          ),
           actions: [
             IconButton(
               icon: const Icon(Icons.add),
