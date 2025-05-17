@@ -1,4 +1,3 @@
-// seller_custom_bottom_navigation.dart (updated)
 import 'package:flutter/material.dart';
 import 'package:u_teen/screens/seller/my_balance_screen.dart' as balance_screen;
 import 'package:u_teen/screens/seller/home_screen.dart' as home_screen;
@@ -39,87 +38,47 @@ class _SellerCustomBottomNavigationState
     _currentIndex = widget.selectedIndex;
   }
 
-  void _navigateWithDirectionalSlide(int newIndex) {
+  void _navigateToScreen(int newIndex) {
     if (_currentIndex == newIndex) return;
 
-    final currentIndex = _currentIndex;
     setState(() {
       _currentIndex = newIndex;
     });
 
-    Future.delayed(Duration.zero, () {
-      if (!mounted) return;
+    Widget nextPage;
+    switch (newIndex) {
+      case NavIndices.home:
+        nextPage = const home_screen.SellerHomeScreen();
+        break;
+      case NavIndices.balance:
+        nextPage = const balance_screen.SellerBalanceScreen();
+        break;
+      case NavIndices.products:
+        nextPage = const product_screen.SellerMyProductScreen();
+        break;
+      case NavIndices.profile:
+        nextPage = const profile_screen.SellerProfileScreen();
+        break;
+      default:
+        return;
+    }
 
-      final Offset begin = newIndex > currentIndex
-          ? const Offset(1.0, 0.0)
-          : const Offset(-1.0, 0.0);
-
-      Widget nextPage;
-      switch (newIndex) {
-        case NavIndices.home:
-          nextPage = const home_screen.SellerHomeScreen();
-          break;
-        case NavIndices.balance:
-          nextPage = const balance_screen.SellerBalanceScreen();
-          break;
-        case NavIndices.products:
-          nextPage = const product_screen.SellerMyProductScreen();
-          break;
-        case NavIndices.profile:
-          nextPage = const profile_screen.SellerProfileScreen();
-          break;
-        default:
-          return;
-      }
-
-      Navigator.of(widget.context).popUntil((route) => route.isFirst);
-      Navigator.pushReplacement(
-        widget.context,
-        PageRouteBuilder(
-          transitionDuration: const Duration(milliseconds: 500),
-          reverseTransitionDuration: const Duration(milliseconds: 400),
-          pageBuilder: (context, animation, secondaryAnimation) => nextPage,
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            final positionAnimation = Tween<Offset>(
-              begin: begin,
-              end: Offset.zero,
-            ).animate(
-              CurvedAnimation(
-                parent: animation,
-                curve: Curves.fastOutSlowIn,
-              ),
-            );
-
-            final fadeAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-              CurvedAnimation(
-                parent: animation,
-                curve: Interval(
-                  0.3,
-                  1.0,
-                  curve: Curves.easeOut,
-                ),
-              ),
-            );
-
-            return SlideTransition(
-              position: positionAnimation,
-              child: FadeTransition(
-                opacity: fadeAnimation,
-                child: ScaleTransition(
-                  scale: Tween<double>(begin: 0.98, end: 1.0).animate(
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.easeOut,
-                    ),
-                  ),
-                  child: child,
-                ),
-              ),
-            );
-          },
-        ),
-      );
-    });
+    Navigator.of(widget.context).pushAndRemoveUntil(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => nextPage,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOut,
+            ),
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 300),
+      ),
+      (route) => false,
+    );
   }
 
   @override
@@ -178,7 +137,7 @@ class _SellerCustomBottomNavigationState
     final isActive = _currentIndex == index;
     
     return GestureDetector(
-      onTap: () => _navigateWithDirectionalSlide(index),
+      onTap: () => _navigateToScreen(index),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         child: Column(
