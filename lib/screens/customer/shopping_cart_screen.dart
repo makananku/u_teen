@@ -70,9 +70,13 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
 
     return AppBar(
       title: const Text(
-        "My Cart",
-        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-      ),
+            'My Cart',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
       centerTitle: true,
       backgroundColor: Colors.white,
       elevation: 0,

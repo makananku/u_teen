@@ -301,6 +301,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               'Home',
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
+                fontSize: 18,
                 color: Colors.black,
               ),
             ),
