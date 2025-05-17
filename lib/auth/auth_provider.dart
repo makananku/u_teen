@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
 class AuthProvider with ChangeNotifier {
   User? _user;
   bool _isLoading = false;
@@ -15,9 +14,12 @@ class AuthProvider with ChangeNotifier {
   bool get isSeller => _user?.userType == 'seller';
   bool get isCustomer => _user?.userType == 'customer';
   String? get sellerEmail => isSeller ? _user?.email : null;
+  String? get sellerNit => isSeller ? _user?.nit : null;
   String? get tenantName => isSeller ? _user?.name : null;
   String? get customerEmail => isCustomer ? _user?.email : null;
   String? get customerName => isCustomer ? _user?.name : null;
+  String? get customerNit => isCustomer ? _user?.nit : null;
+  String? get customerPhoneNumber => isCustomer ? _user?.phoneNumber : null;
 
   Future<void> initialize() async {
     _isLoading = true;
@@ -27,12 +29,16 @@ class AuthProvider with ChangeNotifier {
       final email = _prefs.getString('user_email');
       final name = _prefs.getString('user_name');
       final userType = _prefs.getString('user_type');
+      final nit = _prefs.getString('user_nit');
+      final phoneNumber = _prefs.getString('user_phone_number');
 
       if (email != null && name != null && userType != null) {
         _user = User(
           email: email,
           name: name,
           userType: userType,
+          nit: nit ?? '',
+          phoneNumber: phoneNumber ?? '',
         );
       }
     } finally {
@@ -41,7 +47,13 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> login(String email, String name, String userType) async {
+  Future<bool> login(
+    String email,
+    String name,
+    String userType,
+    String nit,
+    String phoneNumber,
+  ) async {
     _isLoading = true;
     notifyListeners();
 
@@ -49,11 +61,15 @@ class AuthProvider with ChangeNotifier {
       await _prefs.setString('user_email', email);
       await _prefs.setString('user_name', name);
       await _prefs.setString('user_type', userType);
+      await _prefs.setString('user_nit', nit);
+      await _prefs.setString('user_phone_number', phoneNumber);
 
       _user = User(
         email: email,
         name: name,
         userType: userType,
+        nit: nit,
+        phoneNumber: phoneNumber,
       );
 
       notifyListeners();
@@ -69,6 +85,8 @@ class AuthProvider with ChangeNotifier {
     await _prefs.remove('user_email');
     await _prefs.remove('user_name');
     await _prefs.remove('user_type');
+    await _prefs.remove('user_nit');
+    await _prefs.remove('user_phone_number');
 
     _user = null;
     notifyListeners();
@@ -79,10 +97,14 @@ class User {
   final String email;
   final String name;
   final String userType;
+  final String nit;
+  final String phoneNumber;
 
   User({
     required this.email,
     required this.name,
     required this.userType,
+    required this.nit,
+    required this.phoneNumber,
   });
 }

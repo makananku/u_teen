@@ -15,7 +15,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-  bool rememberMe = false;
   bool _obscurePassword = true;
   bool _isLoading = false;
   late AnimationController _animationController;
@@ -64,67 +63,92 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Future<void> _handleLogin() async {
-  if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) return;
 
-  setState(() => _isLoading = true);
+    setState(() => _isLoading = true);
 
-  try {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final authService = Provider.of<AuthService>(context, listen: false);
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final authService = AuthService(); // Tidak perlu Provider karena AuthService stateless
 
-    final user = await authService.login(
-      _emailController.text.trim(),
-      _passwordController.text.trim(),
-    );
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
 
-    if (!mounted) return;
-
-    if (user != null) {
-      final success = await authProvider.login(
-        user.email,
-        user.name,
-        user.userType,
-      );
-
-      if (success && mounted) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) => user.userType == 'seller'
-                ? const SellerHomeScreen()
-                : const HomeScreen(),
+      // Validasi email menggunakan AuthService
+      final emailValidationError = authService.validateEmail(email);
+      if (emailValidationError != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(emailValidationError),
+            backgroundColor: Colors.red,
           ),
-          (route) => false,
         );
+        setState(() => _isLoading = false);
+        return;
       }
-    } else {
-      if (mounted) {
+
+      // Verifikasi kredensial menggunakan AuthService
+      final user = await authService.login(email, password);
+
+      if (!mounted) return;
+
+      if (user != null) {
+        // Simpan data pengguna ke AuthProvider
+        final success = await authProvider.login(
+          user.email,
+          user.name,
+          user.userType,
+          user.nit,
+          user.phoneNumber,
+        );
+
+        if (success && mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) => user.userType == 'seller'
+                  ? const SellerHomeScreen()
+                  : const HomeScreen(),
+            ),
+            (route) => false,
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to save login session.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Login failed. Invalid credentials.'),
+            content: Text('Login failed. Invalid email or password.'),
             backgroundColor: Colors.red,
           ),
         );
       }
-    }
-  } finally {
-    if (mounted) {
-      setState(() => _isLoading = false);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('An error occurred: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
-}
 
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
       return 'Email is required';
     }
-    if (!value.endsWith('@student.umn.ac.id') &&
-        !value.endsWith('@seller.umn.ac.id') &&
-        !value.endsWith('@umn.ac.id') &&
-        !value.endsWith('@lecturer.umn.ac.id')) {
-      return 'Email invalid';
-    }
-    return null;
+    return null; // Validasi domain dilakukan di AuthService
   }
 
   String? _validatePassword(String? value) {
@@ -174,7 +198,6 @@ class _LoginScreenState extends State<LoginScreen>
                         style: TextStyle(fontSize: 16, color: Colors.grey),
                       ),
                       const SizedBox(height: 16),
-                      // Login type indicator
                       Container(padding: const EdgeInsets.all(8)),
                     ],
                   ),
