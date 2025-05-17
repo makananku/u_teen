@@ -118,7 +118,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'Kantin Kampus',
+                                    'By Libro',
                                     style: TextStyle(
                                       color: Colors.white.withOpacity(0.9),
                                       fontSize: 14,
