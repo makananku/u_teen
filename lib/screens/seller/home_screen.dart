@@ -9,7 +9,7 @@ import 'package:u_teen/screens/seller/on_process_screen.dart' as onprocess;
 import 'package:u_teen/screens/seller/rating_screen.dart';
 import 'package:u_teen/widgets/seller/status_button.dart';
 import 'package:u_teen/widgets/seller/calendar_widget.dart';
-import 'package:u_teen/widgets/seller/seller_custom_bottom_navigation.dart';
+import 'package:u_teen/widgets/seller/custom_bottom_navigation.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 

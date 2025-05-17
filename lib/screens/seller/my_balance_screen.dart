@@ -6,7 +6,7 @@ import 'package:u_teen/models/payment_method.dart';
 import 'package:u_teen/data/payment_methods_data.dart';
 import 'package:u_teen/screens/seller/transaction_history_screen.dart';
 import 'package:u_teen/widgets/payment_method_card.dart';
-import 'package:u_teen/widgets/seller/seller_custom_bottom_navigation.dart';
+import 'package:u_teen/widgets/seller/custom_bottom_navigation.dart';
 import 'package:flutter/services.dart';
 import 'package:u_teen/providers/order_provider.dart';
 import 'package:u_teen/auth/auth_provider.dart';

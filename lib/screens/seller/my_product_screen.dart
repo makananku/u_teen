@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:u_teen/providers/food_provider.dart';
 import 'package:u_teen/auth/auth_provider.dart';
 import 'package:u_teen/screens/seller/home_screen.dart';
-import 'package:u_teen/widgets/seller/seller_custom_bottom_navigation.dart';
+import 'package:u_teen/widgets/seller/custom_bottom_navigation.dart';
 import 'package:u_teen/models/product_model.dart';
 import 'package:u_teen/widgets/seller/product_card.dart'; // Import the new card
 
