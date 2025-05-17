@@ -23,6 +23,8 @@ class _LoginScreenState extends State<LoginScreen>
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  DateTime? _lastBackPressTime;
+
   @override
   void initState() {
     super.initState();
@@ -161,54 +163,76 @@ class _LoginScreenState extends State<LoginScreen>
     return null;
   }
 
+  Future<bool> _onWillPop() async {
+    final currentTime = DateTime.now();
+    final backPressDuration = _lastBackPressTime == null
+        ? Duration.zero
+        : currentTime.difference(_lastBackPressTime!);
+
+    if (backPressDuration >= const Duration(seconds: 2)) {
+      _lastBackPressTime = currentTime;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tekan kembali untuk keluar'),
+          duration: Duration(seconds: 2),
+          backgroundColor: Colors.blue,
+        ),
+      );
+      return false;
+    } else {
+      _lastBackPressTime = null;
+      // Keluar dari aplikasi
+      return true;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.blue),
-          onPressed: () => Navigator.pop(context),
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
         ),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 40),
-                FadeTransition(
-                  opacity: _opacityAnimation,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Login',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 40),
+                  FadeTransition(
+                    opacity: _opacityAnimation,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Login',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'UMN Canteen Management',
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
-                      ),
-                      const SizedBox(height: 16),
-                      Container(padding: const EdgeInsets.all(8)),
-                    ],
+                        const SizedBox(height: 8),
+                        const Text(
+                          'UMN Canteen Management',
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 16),
+                        Container(padding: const EdgeInsets.all(8)),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 40),
-                _buildLoginForm(),
-                const SizedBox(height: 20),
-              ],
+                  const SizedBox(height: 40),
+                  _buildLoginForm(),
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
           ),
         ),

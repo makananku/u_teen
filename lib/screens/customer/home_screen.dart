@@ -53,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   String searchQuery = '';
 
   final FocusNode _searchFocusNode = FocusNode();
+  DateTime? _lastBackPressTime;
 
   @override
   void initState() {
@@ -116,7 +117,27 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         return false;
       }
     }
-    return true;
+
+    final currentTime = DateTime.now();
+    final backPressDuration = _lastBackPressTime == null
+        ? Duration.zero
+        : currentTime.difference(_lastBackPressTime!);
+
+    if (backPressDuration >= const Duration(seconds: 2)) {
+      _lastBackPressTime = currentTime;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tekan kembali untuk keluar'),
+          duration: Duration(seconds: 2),
+          backgroundColor: Colors.blue,
+        ),
+      );
+      return false;
+    } else {
+      _lastBackPressTime = null;
+      // Keluar dari aplikasi
+      return true;
+    }
   }
 
   Future<void> _refreshData() async {
@@ -424,7 +445,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       onCategorySelected: _onCategorySelected,
                                     ),
                                     showFoodLists: isSearchActive,
-                                    orderAgainItems: orderAgainItems, // Tambahkan parameter ini
+                                    orderAgainItems: orderAgainItems,
                                   ),
                                 ),
                                 if (!isSearchActive && !isKeyboardVisible)

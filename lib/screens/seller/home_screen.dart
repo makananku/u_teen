@@ -25,9 +25,33 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
   final List<int> _filterMonths = [1, 3, 6];
   String _selectedEventType = 'All'; // Default event type filter
   DateTimeRange? _customDateRange;
+  DateTime? _lastBackPressTime;
 
   void _confirmLogout(BuildContext context) {
     LogoutService.showLogoutConfirmation(context);
+  }
+
+  Future<bool> _onWillPop() async {
+    final currentTime = DateTime.now();
+    final backPressDuration = _lastBackPressTime == null
+        ? Duration.zero
+        : currentTime.difference(_lastBackPressTime!);
+
+    if (backPressDuration >= const Duration(seconds: 2)) {
+      _lastBackPressTime = currentTime;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tekan kembali untuk keluar'),
+          duration: Duration(seconds: 2),
+          backgroundColor: Colors.blue,
+        ),
+      );
+      return false;
+    } else {
+      _lastBackPressTime = null;
+      // Keluar dari aplikasi
+      return true;
+    }
   }
 
   @override
@@ -59,97 +83,154 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
         .where((order) => order.completedTime != null && order.completedTime!.isAfter(startOfMonth))
         .length;
 
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      body: CustomScrollView(
-        slivers: [
-          // Sliver App Bar
-          SliverAppBar(
-            expandedHeight: 180,
-            floating: false,
-            pinned: true,
-            stretch: true,
-            flexibleSpace: FlexibleSpaceBar(
-              stretchModes: const [StretchMode.zoomBackground],
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors.blue[800]!,
-                      Colors.blue[600]!,
-                    ],
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        backgroundColor: Colors.grey[50],
+        body: CustomScrollView(
+          slivers: [
+            // Sliver App Bar
+            SliverAppBar(
+              expandedHeight: 180,
+              floating: false,
+              pinned: true,
+              stretch: true,
+              flexibleSpace: FlexibleSpaceBar(
+                stretchModes: const [StretchMode.zoomBackground],
+                background: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.blue[800]!,
+                        Colors.blue[600]!,
+                      ],
+                    ),
+                  ),
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.storefront,
+                                  color: Colors.white,
+                                  size: 28,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      tenantName,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'By Libro',
+                                      style: TextStyle(
+                                        color: Colors.white.withOpacity(0.9),
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.logout, color: Colors.white),
+                                onPressed: () => _confirmLogout(context),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.calendar_today, size: 16, color: Colors.white),
+                                const SizedBox(width: 8),
+                                Text(
+                                  DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(DateTime.now()),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              ),
+            ),
+
+            SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.storefront,
-                                color: Colors.white,
-                                size: 28,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    tenantName,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'By Libro',
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.9),
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.logout, color: Colors.white),
-                              onPressed: () => _confirmLogout(context),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(12),
+                        const Text(
+                          'Sales Overview',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                           ),
-                          child: Row(
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          height: 140,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
                             children: [
-                              Icon(Icons.calendar_today, size: 16, color: Colors.white),
-                              const SizedBox(width: 8),
-                              Text(
-                                DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(DateTime.now()),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13,
-                                ),
+                              _buildMetricCard(
+                                context,
+                                value: todayCount.toString(),
+                                label: 'Today',
+                                icon: Icons.today,
+                                color: Colors.blue,
+                              ),
+                              const SizedBox(width: 12),
+                              _buildMetricCard(
+                                context,
+                                value: weekCount.toString(),
+                                label: 'This Week',
+                                icon: Icons.calendar_view_week,
+                                color: Colors.green,
+                              ),
+                              const SizedBox(width: 12),
+                              _buildMetricCard(
+                                context,
+                                value: monthCount.toString(),
+                                label: 'This Month',
+                                icon: Icons.calendar_month,
+                                color: Colors.orange,
                               ),
                             ],
                           ),
@@ -157,167 +238,113 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
                       ],
                     ),
                   ),
-                ),
-              ),
-            ),
-          ),
 
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Sales Overview',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                  // Order Status Buttons - Grid Layout
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Order Status',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        height: 140,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
+                        const SizedBox(height: 12),
+                        GridView.count(
+                          crossAxisCount: 2,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          mainAxisSpacing: 12,
+                          crossAxisSpacing: 12,
+                          childAspectRatio: 2.5,
                           children: [
-                            _buildMetricCard(
+                            _buildStatusButton(
                               context,
-                              value: todayCount.toString(),
-                              label: 'Today',
-                              icon: Icons.today,
+                              text: 'On Process',
+                              count: onProcessCount,
+                              icon: Icons.hourglass_top,
                               color: Colors.blue,
+                              onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const onprocess.OnProcessScreen()),
+                              ),
                             ),
-                            const SizedBox(width: 12),
-                            _buildMetricCard(
+                            _buildStatusButton(
                               context,
-                              value: weekCount.toString(),
-                              label: 'This Week',
-                              icon: Icons.calendar_view_week,
+                              text: 'Cancelled',
+                              count: cancelledCount,
+                              icon: Icons.cancel,
+                              color: Colors.red,
+                              onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const cancellation.CancellationScreen()),
+                              ),
+                            ),
+                            _buildStatusButton(
+                              context,
+                              text: 'Completed',
+                              count: completedCount,
+                              icon: Icons.check_circle,
                               color: Colors.green,
+                              onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const completed.CompletedScreen()),
+                              ),
                             ),
-                            const SizedBox(width: 12),
-                            _buildMetricCard(
+                            _buildStatusButton(
                               context,
-                              value: monthCount.toString(),
-                              label: 'This Month',
-                              icon: Icons.calendar_month,
-                              color: Colors.orange,
+                              text: 'My Ratings',
+                              count: 0,
+                              icon: Icons.star_rate,
+                              color: Colors.amber,
+                              onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const RatingScreen()),
+                              ),
                             ),
                           ],
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
 
-                // Order Status Buttons - Grid Layout
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Order Status',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      GridView.count(
-                        crossAxisCount: 2,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        mainAxisSpacing: 12,
-                        crossAxisSpacing: 12,
-                        childAspectRatio: 2.5,
-                        children: [
-                          _buildStatusButton(
-                            context,
-                            text: 'On Process',
-                            count: onProcessCount,
-                            icon: Icons.hourglass_top,
-                            color: Colors.blue,
-                            onPressed: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const onprocess.OnProcessScreen()),
-                            ),
-                          ),
-                          _buildStatusButton(
-                            context,
-                            text: 'Cancelled',
-                            count: cancelledCount,
-                            icon: Icons.cancel,
-                            color: Colors.red,
-                            onPressed: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const cancellation.CancellationScreen()),
-                            ),
-                          ),
-                          _buildStatusButton(
-                            context,
-                            text: 'Completed',
-                            count: completedCount,
-                            icon: Icons.check_circle,
-                            color: Colors.green,
-                            onPressed: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const completed.CompletedScreen()),
-                            ),
-                          ),
-                          _buildStatusButton(
-                            context,
-                            text: 'My Ratings',
-                            count: 0,
-                            icon: Icons.star_rate,
-                            color: Colors.amber,
-                            onPressed: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const RatingScreen()),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  // Calendar Events Section - Enhanced
+                  CalendarSection(
+                    selectedFilterIndex: _selectedFilterIndex,
+                    filterMonths: _filterMonths,
+                    selectedEventType: _selectedEventType,
+                    customDateRange: _customDateRange,
+                    onFilterChanged: (index) {
+                      setState(() {
+                        _selectedFilterIndex = index;
+                        _customDateRange = null; // Reset custom range when using predefined
+                      });
+                    },
+                    onEventTypeChanged: (type) {
+                      setState(() {
+                        _selectedEventType = type;
+                      });
+                    },
+                    onCustomDateRangeSelected: (range) {
+                      setState(() {
+                        _customDateRange = range;
+                        _selectedFilterIndex = -1; // Indicate custom range
+                      });
+                    },
                   ),
-                ),
-
-                // Calendar Events Section - Enhanced
-                CalendarSection(
-                  selectedFilterIndex: _selectedFilterIndex,
-                  filterMonths: _filterMonths,
-                  selectedEventType: _selectedEventType,
-                  customDateRange: _customDateRange,
-                  onFilterChanged: (index) {
-                    setState(() {
-                      _selectedFilterIndex = index;
-                      _customDateRange = null; // Reset custom range when using predefined
-                    });
-                  },
-                  onEventTypeChanged: (type) {
-                    setState(() {
-                      _selectedEventType = type;
-                    });
-                  },
-                  onCustomDateRangeSelected: (range) {
-                    setState(() {
-                      _customDateRange = range;
-                      _selectedFilterIndex = -1; // Indicate custom range
-                    });
-                  },
-                ),
-                const SizedBox(height: 20),
-              ],
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: SellerCustomBottomNavigation(
-        selectedIndex: 0,
-        context: context,
+          ],
+        ),
+        bottomNavigationBar: SellerCustomBottomNavigation(
+          selectedIndex: 0,
+          context: context,
+        ),
       ),
     );
   }
