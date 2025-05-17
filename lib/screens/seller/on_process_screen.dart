@@ -40,17 +40,16 @@ class OnProcessScreen extends StatelessWidget {
         backgroundColor: Colors.white, // Set white AppBar background
         title: const Text(
           'Processing Orders',
-          style: TextStyle(color: Colors.black), // Black title for contrast
+          style: TextStyle(
+              color: Colors.black,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
         ),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black), // Black icon
-          onPressed: () => Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const SellerHomeScreen(),
-            ),
-          ),
+          onPressed: () => Navigator.pop(context),
         ),
         elevation: 0, // Remove shadow for clean look
       ),

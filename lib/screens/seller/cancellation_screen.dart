@@ -21,15 +21,15 @@ class CancellationScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: const Text('Cancelled Orders'),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const SellerHomeScreen()),
+        title: const Text(
+          'Cancelled Orders',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
           ),
         ),
+        centerTitle: true,
       ),
       body: _buildOrderList(cancelledOrders),
     );

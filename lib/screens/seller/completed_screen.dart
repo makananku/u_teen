@@ -14,14 +14,15 @@ class CompletedScreen extends StatelessWidget {
     final orderProvider = Provider.of<OrderProvider>(context, listen: true);
     final authProvider = Provider.of<AuthProvider>(context, listen: true);
     final sellerEmail = authProvider.user?.email ?? '';
-    
+
     // Debugging: Print untuk memverifikasi data
     debugPrint('Seller Email: $sellerEmail');
     debugPrint('All Completed Orders: ${orderProvider.completedOrders.length}');
-    
-    final completedOrders = orderProvider.completedOrders
-        .where((order) => order.merchantEmail == sellerEmail)
-        .toList();
+
+    final completedOrders =
+        orderProvider.completedOrders
+            .where((order) => order.merchantEmail == sellerEmail)
+            .toList();
 
     debugPrint('Filtered Completed Orders: ${completedOrders.length}');
 
@@ -29,14 +30,18 @@ class CompletedScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: const Text('Completed Orders'),
+        title: const Text(
+          'Completed Orders',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const SellerHomeScreen()),
-          ),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: _buildOrderList(completedOrders),
@@ -60,14 +65,15 @@ class CompletedScreen extends StatelessWidget {
       );
     }
 
-      return ListView.builder(
+    return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: orders.length,
       itemBuilder: (context, index) {
         debugPrint('Showing order: ${orders[index].id}');
         return OrderCard(
           order: orders[index],
-          isSellerView: true, onTap: () {  },
+          isSellerView: true,
+          onTap: () {},
         );
       },
     );

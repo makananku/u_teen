@@ -21,7 +21,14 @@ class RatingScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white, // Set background putih untuk seluruh screen
       appBar: AppBar(
-        title: const Text('Customer Ratings'),
+        title: const Text(
+          'Customer Ratings',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.white, // Set background putih untuk AppBar
