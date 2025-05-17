@@ -13,8 +13,7 @@ class SellerEditProductScreen extends StatefulWidget {
   const SellerEditProductScreen({super.key, this.product});
 
   @override
-  State<SellerEditProductScreen> createState() =>
-      _SellerEditProductScreenState();
+  State<SellerEditProductScreen> createState() => _SellerEditProductScreenState();
 }
 
 class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
@@ -26,6 +25,7 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
   File? _imageFile;
   int _preparationTime = 5;
   bool _isUploading = false;
+  bool _isActive = true;
 
   // Time options for alternative selection
   final List<int> _timeOptions = [5, 10, 15, 20, 25, 30];
@@ -39,7 +39,9 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
   void initState() {
     super.initState();
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    _tenantName = authProvider.user?.name ?? 'My Tenant';
+    _tenantName = authProvider.tenantName ?? 'My Tenant'; // Ambil dari tenantName, fallback ke 'My Tenant'
+
+    _isActive = widget.product?.isActive ?? true;
 
     _nameController = TextEditingController(text: widget.product?.title ?? '');
     _descriptionController = TextEditingController(
@@ -142,6 +144,10 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
               _buildImageSection(),
               const SizedBox(height: 24),
 
+              // Product Status Toggle
+              _buildStatusToggle(),
+              const SizedBox(height: 16),
+
               // Product Name
               _buildInputSection(
                 title: 'Product Name',
@@ -151,8 +157,7 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
                     hintText: 'Enter product name',
                     border: InputBorder.none,
                   ),
-                  validator:
-                      (value) => value?.isEmpty ?? true ? 'Required' : null,
+                  validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
                 ),
               ),
               const SizedBox(height: 20),
@@ -185,13 +190,12 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
                     prefixText: 'Rp ',
                     border: InputBorder.none,
                   ),
-                  validator:
-                      (value) => value?.isEmpty ?? true ? 'Required' : null,
+                  validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
                 ),
               ),
               const SizedBox(height: 20),
 
-              // Preparation Time - Option 1: Enhanced Slider
+              // Preparation Time - Enhanced Slider
               _buildInputSection(
                 title: 'Preparation Time',
                 child: Column(
@@ -279,6 +283,49 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildStatusToggle() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.05),
+            spreadRadius: 1,
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            'Product Status',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.black54,
+            ),
+          ),
+          Switch(
+            value: _isActive,
+            onChanged: (value) {
+              setState(() {
+                _isActive = value;
+              });
+            },
+            activeColor: Colors.green,
+            inactiveThumbColor: Colors.grey,
+            inactiveTrackColor: Colors.grey.withOpacity(0.5),
+          ),
+        ],
       ),
     );
   }
@@ -417,18 +464,36 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
     });
 
     try {
-      // You can add your logic here to save or update the product.
-      // For example, call your provider to save the product.
-      // Example:
-      // await Provider.of<FoodProvider>(context, listen: false).saveProduct(...);
+      final foodProvider = Provider.of<FoodProvider>(context, listen: false);
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final sellerEmail = authProvider.sellerEmail ?? '';
 
-      // After saving, pop the screen or show a success message.
+      // Parse price to integer, removing dots
+      final price = int.parse(_priceController.text.replaceAll('.', ''));
+
+      final product = Product(
+        id: widget.product?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        title: _nameController.text,
+        subtitle: _descriptionController.text,
+        price: price.toString(),
+        imgUrl: _imageFile != null ? _imageFile!.path : widget.product?.imgUrl ?? '',
+        time: '$_preparationTime mins',
+        tenantName: _tenantName, // Diambil dari authProvider.tenantName
+        sellerEmail: sellerEmail,
+        isActive: _isActive,
+      );
+
+      if (widget.product == null) {
+        await foodProvider.addProduct(product);
+      } else {
+        await foodProvider.updateProduct(product);
+      }
+
       Navigator.of(context).pop();
     } catch (e) {
-      // Handle error, show a snackbar or dialog
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to save product: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save product: $e')),
+      );
     } finally {
       setState(() {
         _isUploading = false;

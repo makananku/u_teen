@@ -26,7 +26,7 @@ class FoodProvider with ChangeNotifier {
                 time: item['time'] ?? '',
                 imgUrl: item['imgUrl'] ?? '',
                 sellerEmail: item['sellerEmail'] ?? '',
-                String: null,
+                tenantName: item['tenantName'] ?? '',
               ),
             )
             .toList();
@@ -39,6 +39,15 @@ class FoodProvider with ChangeNotifier {
     _products = [];
     notifyListeners();
   }
+
+  void toggleProductStatus(String productId) {
+  final index = products.indexWhere((p) => p.id == productId);
+  if (index != -1) {
+    products[index].isActive = !products[index].isActive;
+    notifyListeners();
+    // Here you would typically also update the status in your backend
+  }
+}
 
   Future<void> addProduct(Product newProduct) async {
     _isLoading = true;

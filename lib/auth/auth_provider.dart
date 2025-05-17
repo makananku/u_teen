@@ -15,6 +15,7 @@ class AuthProvider with ChangeNotifier {
   bool get isSeller => _user?.userType == 'seller';
   bool get isCustomer => _user?.userType == 'customer';
   String? get sellerEmail => isSeller ? _user?.email : null;
+  String? get tenantName => isSeller ? _user?.name : null;
   String? get customerEmail => isCustomer ? _user?.email : null;
   String? get customerName => isCustomer ? _user?.name : null;
 

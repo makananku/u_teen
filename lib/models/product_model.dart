@@ -6,7 +6,8 @@ class Product {
   final String imgUrl;
   final String price;
   final String sellerEmail;
-
+  final String tenantName;
+  bool isActive;
   Product({
     required this.id,
     required this.title,
@@ -14,9 +15,10 @@ class Product {
     required this.time,
     required this.imgUrl,
     required this.price,
-    required this.sellerEmail, required String ,
+    required this.sellerEmail,
+    required this.tenantName,
+    this.isActive = true,
   });
-
   factory Product.fromMap(Map<String, dynamic> map) {
     return Product(
       id: map['id'] ?? '',
@@ -25,10 +27,10 @@ class Product {
       time: map['time'] ?? '',
       imgUrl: map['imgUrl'] ?? '',
       price: map['price'] ?? '',
-      sellerEmail: map['sellerEmail'] ?? '', String: null,
+      sellerEmail: map['sellerEmail'] ?? '',
+      tenantName: map['tenantName'] ?? '',
     );
   }
-
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -38,6 +40,7 @@ class Product {
       'imgUrl': imgUrl,
       'price': price,
       'sellerEmail': sellerEmail,
+      'tenantName': tenantName,
     };
   }
 }
