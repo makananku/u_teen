@@ -80,13 +80,8 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
       ),
       body: Column(
         children: [
-          // Summary Card
           _buildSummaryCard(),
-
-          // Tab buttons
           _buildTabBar(),
-
-          // Transaction list
           Expanded(
             child: _isLoading
                 ? Center(child: CircularProgressIndicator())
@@ -115,6 +110,12 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
     final totalOut = transactions
         .where((t) => t['type'] == 'Money Out')
         .fold(0.0, (sum, t) => sum + (t['amount'] as double));
+
+    final formatter = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
 
     return Container(
       margin: EdgeInsets.all(16),
@@ -150,15 +151,15 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
             children: [
               _buildSummaryItem(
                 'Total In',
-                '+Rp${NumberFormat('#,###').format(totalIn.round())}',
+                formatter.format(totalIn.round()),
               ),
               _buildSummaryItem(
                 'Total Out',
-                '-Rp${NumberFormat('#,###').format(totalOut.round())}',
+                formatter.format(totalOut.round()),
               ),
               _buildSummaryItem(
                 'Balance',
-                'Rp${NumberFormat('#,###').format((totalIn - totalOut).round())}',
+                formatter.format((totalIn - totalOut).round()),
               ),
             ],
           ),
@@ -247,6 +248,11 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
     final isMoneyIn = transaction['type'] == 'Money In';
     final dateFormat = DateFormat('dd MMM yyyy • HH:mm');
     final amount = transaction['amount'] as double;
+    final formatter = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
 
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -297,7 +303,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '${isMoneyIn ? '+' : '-'}Rp${NumberFormat('#,###').format(amount.round())}',
+                    '${isMoneyIn ? '+' : '-'} ${formatter.format(amount.round())}',
                     style: TextStyle(
                       color: isMoneyIn ? Colors.green : Colors.red,
                       fontWeight: FontWeight.bold,
@@ -401,46 +407,50 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
               ),
               _buildDetailRow(
                 'Amount',
-                '${transaction['type'] == 'Money In' ? '+' : '-'}Rp${NumberFormat('#,###').format((transaction['amount'] as double).round())}',
+                '${transaction['type'] == 'Money In' ? '+' : '-'} ${NumberFormat.currency(
+                  locale: 'id_ID',
+                  symbol: 'Rp ',
+                  decimalDigits: 0,
+                ).format((transaction['amount'] as double).round())}',
               ),
               _buildDetailRow('Status', transaction['status']),
               SizedBox(height: 30),
               SizedBox(
-  width: double.infinity,
-  child: ElevatedButton(
-    style: ElevatedButton.styleFrom(
-      padding: EdgeInsets.symmetric(vertical: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      backgroundColor: Colors.transparent,
-      shadowColor: Colors.transparent,
-      foregroundColor: Colors.white,
-    ),
-    onPressed: () => Navigator.pop(context),
-    child: Ink(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.blue[400]!, Colors.blue[600]!],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Container(
-        alignment: Alignment.center,
-        padding: EdgeInsets.symmetric(vertical: 16),
-        child: Text(
-          'Close',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-        ),
-      ),
-    ),
-  ),
-)
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: Ink(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.blue[400]!, Colors.blue[600]!],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Container(
+                      alignment: Alignment.center,
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Text(
+                        'Close',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         );
