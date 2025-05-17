@@ -221,6 +221,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 "Recommended for you",
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
+                  fontSize: 20,
                   color: Colors.black,
                 ),
               ),
@@ -253,6 +254,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
+                    fontSize: 20,
                   ),
                 ),
                 const SizedBox(height: 8),

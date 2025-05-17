@@ -98,7 +98,7 @@ class _SearchWidgetState extends State<SearchWidget> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
+            color: Colors.grey.withOpacity(0.4),
             blurRadius: 10,
             spreadRadius: 2,
             offset: const Offset(0, 4),
@@ -393,6 +393,7 @@ class _SearchWidgetState extends State<SearchWidget> {
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
+                  fontSize: 20,
                 ),
               ),
               const SizedBox(height: 4),
@@ -428,6 +429,7 @@ class _SearchWidgetState extends State<SearchWidget> {
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
+                  fontSize: 20,
                 ),
               ),
               const SizedBox(height: 4),
