@@ -138,35 +138,39 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
             children: [
               Lottie.asset(
                 'assets/animation/empty_order.json',
-                width: 250,
-                height: 250,
+                width: 280,
+                height: 280,
                 fit: BoxFit.contain,
+                animate: true,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               Text(
-                type == "Ongoing" ? "No Active Orders" : "No Order History",
-                style: const TextStyle(
-                  fontSize: 22,
+                type == "Ongoing" 
+                    ? "No Active Orders Yet" 
+                    : "No Order History",
+                style: TextStyle(
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: Colors.grey[800],
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: Text(
                   type == "Ongoing"
-                      ? "Your ongoing orders will appear here once you place an order"
-                      : "Your completed or cancelled orders will appear here for future reference",
+                      ? "Your upcoming orders will appear here once you place an order"
+                      : "Your completed orders will show up here for reference",
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
-                    color: Colors.black54,
+                    color: Colors.grey[600],
+                    height: 1.5,
                   ),
                 ),
               ),
-              const SizedBox(height: 30),
-              ElevatedButton.icon(
+              const SizedBox(height: 24),
+              ElevatedButton(
                 onPressed: () {
                   Navigator.pushReplacement(
                     context,
@@ -174,19 +178,36 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: Colors.blue[700],
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
                     vertical: 12,
                   ),
+                  elevation: 3,
+                  shadowColor: Colors.blue.withOpacity(0.3),
                 ),
-                icon: const Icon(Icons.shopping_bag, color: Colors.white),
-                label: const Text(
-                  "Order Now",
-                  style: TextStyle(color: Colors.white),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      type == "Ongoing" 
+                          ? Icons.restaurant 
+                          : Icons.history,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      type == "Ongoing" ? "Order Now" : "View Menu",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

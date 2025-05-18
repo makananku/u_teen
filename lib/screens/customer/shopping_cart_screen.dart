@@ -173,60 +173,71 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
         children: [
           Lottie.asset(
             'assets/animation/empty_cart.json',
-            width: 200,
-            height: 200,
+            width: 280,
+            height: 280,
             fit: BoxFit.contain,
             repeat: true,
+            animate: true,
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-            child: Column(
-              children: [
-                Text(
-                  "Your Shopping Cart is Empty",
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  "It looks like you haven't added any delicious food yet. "
-                  "Let's fill it up with tasty meals!",
-                  style: TextStyle(fontSize: 16, color: Colors.black54),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+          const SizedBox(height: 16),
+          Text(
+            "Hungry? Let's Fill Your Cart!",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[800],
             ),
           ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              "Your cart is waiting for delicious food. Start browsing our menu and add your favorites!",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[600],
+                height: 1.5,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
           ScaleTransition(
             scale: CurvedAnimation(
               parent: _emptyCartController,
               curve: Curves.elasticOut,
             ),
-            child: ElevatedButton.icon(
-              onPressed:
-                  () => Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HomeScreen()),
-                  ),
+            child: ElevatedButton(
+              onPressed: () => Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+              ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: Colors.blue[700],
+                foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
                   vertical: 12,
                 ),
-                elevation: 5,
+                elevation: 3,
+                shadowColor: Colors.blue.withOpacity(0.3),
               ),
-              icon: const Icon(Icons.restaurant, color: Colors.white),
-              label: const Text(
-                "Browse Foods",
-                style: TextStyle(fontSize: 16, color: Colors.white),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.search, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    "Explore Menu",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

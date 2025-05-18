@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:u_teen/auth/auth_provider.dart';
-import '../login_screen.dart'; 
+import '../login_screen.dart';
 import '../../widgets/customer/custom_bottom_navigation.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'home_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -28,13 +29,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
+  Future<bool> _onWillPop() async {
+    // Navigate to HomeScreen and clear the navigation stack
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+      (route) => false,
+    );
+    return false; // Prevent default pop behavior
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async {
-        Navigator.pop(context);
-        return Future.value(false);
-      },
+      onWillPop: _onWillPop,
       child: KeyboardVisibilityBuilder(
         builder: (context, isKeyboardVisible) {
           return Scaffold(
