@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/order_model.dart';
-import '../providers/order_provider.dart';
 import '../providers/rating_provider.dart';
+import '../utils/order_dialog_utils.dart';
 import 'rating/rating_dialog.dart';
 
 class OrderCard extends StatelessWidget {
@@ -60,14 +60,16 @@ class OrderCard extends StatelessWidget {
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         order.status.toUpperCase(),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -450,7 +452,7 @@ class OrderCard extends StatelessWidget {
               image: DecorationImage(
                 image: AssetImage(item.image),
                 fit: BoxFit.cover,
-                onError: (_, __) => Container(), // Fallback to background color
+                onError: (_, __) => Container(),
               ),
             ),
           ),
@@ -502,13 +504,14 @@ class OrderCard extends StatelessWidget {
               label: const Text('MARK AS READY'),
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
+                backgroundColor: Colors.green[700],
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
                 elevation: 2,
               ),
-              onPressed: () => _markAsReady(context, order),
+              onPressed: () => OrderDialogUtils.showMarkAsReadyDialog(context, order),
             ),
           ),
           const SizedBox(width: 12),
@@ -517,14 +520,14 @@ class OrderCard extends StatelessWidget {
               icon: const Icon(Icons.close, size: 20),
               label: const Text('CANCEL'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.red,
-                side: const BorderSide(color: Colors.red),
+                foregroundColor: Colors.grey[800],
+                side: BorderSide(color: Colors.grey[800]!),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              onPressed: () => _cancelOrder(context, order),
+              onPressed: () => OrderDialogUtils.showCancelOrderDialog(context, order),
             ),
           ),
         ],
@@ -628,281 +631,4 @@ class OrderCard extends StatelessWidget {
         return Icons.payment;
     }
   }
-
-  // Keep your existing _markAsReady, _cancelOrder, and other helper methods
-  // They can remain exactly the same as in your original code
-  // ...
 }
-
-  void _markAsReady(BuildContext context, Order order) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.check_circle, color: Colors.green, size: 48),
-              const SizedBox(height: 16),
-              const Text(
-                'Confirm Ready',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Are you sure you want to mark this order as ready for pickup?',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('CANCEL'),
-                  ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                    ),
-                    onPressed: () async {
-                      Navigator.pop(context);
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (context) => Dialog(
-                          backgroundColor: Colors.white,
-                          child: Padding(
-                            padding: const EdgeInsets.all(20),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                  height: 50,
-                                  width: 50,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 6,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.green,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-                                const Text('Marking order as ready...'),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-
-                      await Provider.of<OrderProvider>(context, listen: false)
-                          .updateOrderStatus(order.id, 'ready');
-
-                      if (context.mounted) {
-                        Navigator.pop(context);
-                        await _showSuccessAnimation(context);
-                      }
-                    },
-                    child: const Text(
-                      'CONFIRM',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _cancelOrder(BuildContext context, Order order) {
-    final reasonController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.cancel, color: Colors.red, size: 48),
-                const SizedBox(height: 16),
-                const Text(
-                  'Cancel Order',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text('Please provide a reason for cancellation:'),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: reasonController,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Cancellation Reason',
-                    hintText: 'E.g. Out of stock, kitchen closed',
-                  ),
-                  maxLines: 3,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a reason';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('DISCARD'),
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                      ),
-                      onPressed: () async {
-                        if (!formKey.currentState!.validate()) return;
-
-                        Navigator.pop(context);
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (context) => Dialog(
-                            backgroundColor: Colors.white,
-                            child: Padding(
-                              padding: const EdgeInsets.all(20),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SizedBox(
-                                    height: 50,
-                                    width: 50,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 6,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.red,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 20),
-                                  const Text('Cancelling order...'),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-
-                        await Provider.of<OrderProvider>(context, listen: false)
-                            .updateOrderStatus(
-                          order.id,
-                          'cancelled',
-                          reason: reasonController.text,
-                        );
-
-                        if (context.mounted) {
-                          Navigator.pop(context);
-                          await _showCancelledAnimation(context);
-                        }
-                      },
-                      child: const Text(
-                        'CONFIRM',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _showSuccessAnimation(BuildContext context) async {
-    await showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.check_circle, color: Colors.green, size: 60),
-              const SizedBox(height: 16),
-              const Text(
-                'Success!',                
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              const Text('Order marked as ready'),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _showCancelledAnimation(BuildContext context) async {
-    await showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.cancel, color: Colors.red, size: 60),
-              const SizedBox(height: 16),
-              const Text(
-                'Order Cancelled',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              const Text('The order has been cancelled'),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
