@@ -5,6 +5,7 @@ import '../models/order_model.dart';
 import '../providers/rating_provider.dart';
 import '../utils/order_dialog_utils.dart';
 import 'rating/rating_dialog.dart';
+import '../providers/theme_notifier.dart';
 
 class OrderCard extends StatelessWidget {
   final Order order;
@@ -20,6 +21,7 @@ class OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     final currencyFormat = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp ',
@@ -27,18 +29,19 @@ class OrderCard extends StatelessWidget {
     );
 
     return Card(
-      elevation: 4,
+      elevation: isDarkMode ? 0 : 4,
       margin: const EdgeInsets.only(bottom: 20),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
+      color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            gradient: _getStatusGradient(order.status),
+            gradient: _getStatusGradient(order.status, isDarkMode),
           ),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -84,15 +87,17 @@ class OrderCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDarkMode ? const Color(0xFF2A2A2A) : Colors.white,
                     borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+                    boxShadow: isDarkMode
+                        ? []
+                        : [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,16 +108,17 @@ class OrderCard extends StatelessWidget {
                           Icon(
                             isSellerView ? Icons.person : Icons.store,
                             size: 18,
-                            color: Colors.blueGrey,
+                            color: isDarkMode ? Colors.grey[400] : Colors.blueGrey,
                           ),
                           const SizedBox(width: 8),
                           Text(
                             isSellerView
                                 ? order.customerName
                                 : order.merchantName,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
+                              color: isDarkMode ? Colors.white : Colors.black,
                             ),
                           ),
                         ],
@@ -125,12 +131,14 @@ class OrderCard extends StatelessWidget {
                         title: 'Ordered',
                         time: order.createdAt,
                         isHighlighted: false,
+                        isDarkMode: isDarkMode,
                       ),
                       _buildTimelineItem(
                         icon: Icons.timer,
                         title: 'Pickup',
                         time: order.pickupTime,
                         isHighlighted: false,
+                        isDarkMode: isDarkMode,
                       ),
                       if (order.status == 'completed' && order.completedAt != null)
                         _buildTimelineItem(
@@ -138,6 +146,7 @@ class OrderCard extends StatelessWidget {
                           title: 'Completed',
                           time: order.completedAt!,
                           isHighlighted: true,
+                          isDarkMode: isDarkMode,
                         ),
                       if (order.status == 'ready' && order.readyAt != null)
                         _buildTimelineItem(
@@ -145,6 +154,7 @@ class OrderCard extends StatelessWidget {
                           title: 'Ready',
                           time: order.readyAt!,
                           isHighlighted: true,
+                          isDarkMode: isDarkMode,
                         ),
                       if (order.status == 'cancelled' && order.cancelledAt != null)
                         _buildTimelineItem(
@@ -152,6 +162,7 @@ class OrderCard extends StatelessWidget {
                           title: 'Cancelled',
                           time: order.cancelledAt!,
                           isHighlighted: true,
+                          isDarkMode: isDarkMode,
                         ),
 
                       // Payment method
@@ -163,13 +174,13 @@ class OrderCard extends StatelessWidget {
                               Icon(
                                 _getPaymentMethodIcon(order.paymentMethod),
                                 size: 16,
-                                color: Colors.blueGrey,
+                                color: isDarkMode ? Colors.grey[400] : Colors.blueGrey,
                               ),
                               const SizedBox(width: 8),
                               Text(
                                 'Paid with ${order.paymentMethod}',
                                 style: TextStyle(
-                                  color: Colors.grey[600],
+                                  color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                                   fontSize: 13,
                                 ),
                               ),
@@ -184,8 +195,9 @@ class OrderCard extends StatelessWidget {
                           icon: Icons.note,
                           title: isSellerView ? 'Customer Notes' : 'Your Notes',
                           content: order.notes!,
-                          color: Colors.blue[100]!,
-                          textColor: Colors.blue[800]!,
+                          color: isDarkMode ? Colors.blue[900]! : Colors.blue[100]!,
+                          textColor: isDarkMode ? Colors.blue[200]! : Colors.blue[800]!,
+                          isDarkMode: isDarkMode,
                         ),
                       ],
 
@@ -199,8 +211,9 @@ class OrderCard extends StatelessWidget {
                               ? 'Cancellation Reason'
                               : 'Order Cancelled',
                           content: order.cancellationReason!,
-                          color: Colors.red[100]!,
-                          textColor: Colors.red[800]!,
+                          color: isDarkMode ? Colors.red[900]! : Colors.red[100]!,
+                          textColor: isDarkMode ? Colors.red[200]! : Colors.red[800]!,
+                          isDarkMode: isDarkMode,
                         ),
                       ],
 
@@ -208,7 +221,7 @@ class OrderCard extends StatelessWidget {
                       if (order.status == 'completed' &&
                           (order.foodRating != null || order.appRating != null)) ...[
                         const SizedBox(height: 12),
-                        _buildRatingSection(),
+                        _buildRatingSection(isDarkMode),
                       ],
 
                       // Order items
@@ -216,7 +229,7 @@ class OrderCard extends StatelessWidget {
                       const Divider(height: 1),
                       const SizedBox(height: 12),
                       ...order.items
-                          .map((item) => _buildOrderItem(item, currencyFormat))
+                          .map((item) => _buildOrderItem(item, currencyFormat, isDarkMode))
                           .toList(),
 
                       // Total price
@@ -226,11 +239,12 @@ class OrderCard extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             'TOTAL',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
+                              color: isDarkMode ? Colors.white : Colors.black,
                             ),
                           ),
                           Text(
@@ -250,9 +264,9 @@ class OrderCard extends StatelessWidget {
                 // Action buttons
                 if (isSellerView &&
                     (order.status == 'pending' || order.status == 'processing'))
-                  _buildSellerActions(context),
+                  _buildSellerActions(context, isDarkMode),
                 if (!isSellerView && order.status == 'ready')
-                  _buildCustomerReadyAction(context),
+                  _buildCustomerReadyAction(context, isDarkMode),
               ],
             ),
           ),
@@ -266,6 +280,7 @@ class OrderCard extends StatelessWidget {
     required String title,
     required DateTime time,
     required bool isHighlighted,
+    required bool isDarkMode,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -275,7 +290,9 @@ class OrderCard extends StatelessWidget {
           Icon(
             icon,
             size: 16,
-            color: isHighlighted ? Colors.deepOrange : Colors.grey,
+            color: isHighlighted
+                ? Colors.deepOrange
+                : (isDarkMode ? Colors.grey[400] : Colors.grey),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -286,16 +303,19 @@ class OrderCard extends StatelessWidget {
                   title,
                   style: TextStyle(
                     fontSize: 13,
-                    color: isHighlighted ? Colors.black : Colors.grey[600],
-                    fontWeight:
-                        isHighlighted ? FontWeight.bold : FontWeight.normal,
+                    color: isHighlighted
+                        ? (isDarkMode ? Colors.white : Colors.black)
+                        : (isDarkMode ? Colors.grey[400] : Colors.grey[600]),
+                    fontWeight: isHighlighted ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),
                 Text(
                   DateFormat('dd MMM yyyy, HH:mm').format(time),
                   style: TextStyle(
                     fontSize: 12,
-                    color: isHighlighted ? Colors.black : Colors.grey[500],
+                    color: isHighlighted
+                        ? (isDarkMode ? Colors.white : Colors.black)
+                        : (isDarkMode ? Colors.grey[600] : Colors.grey[500]),
                   ),
                 ),
               ],
@@ -312,6 +332,7 @@ class OrderCard extends StatelessWidget {
     required String content,
     required Color color,
     required Color textColor,
+    required bool isDarkMode,
   }) {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -352,25 +373,25 @@ class OrderCard extends StatelessWidget {
     );
   }
 
-  Widget _buildRatingSection() {
+  Widget _buildRatingSection(bool isDarkMode) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.green[50],
+        color: isDarkMode ? Colors.green[900] : Colors.green[50],
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.star, color: Colors.amber, size: 16),
-              SizedBox(width: 8),
+              const Icon(Icons.star, color: Colors.amber, size: 16),
+              const SizedBox(width: 8),
               Text(
                 'Your Rating',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: Colors.green,
+                  color: isDarkMode ? Colors.green[200] : Colors.green,
                 ),
               ),
             ],
@@ -379,7 +400,13 @@ class OrderCard extends StatelessWidget {
           if (order.foodRating != null) ...[
             Row(
               children: [
-                const Text('Food: ', style: TextStyle(fontSize: 13)),
+                Text(
+                  'Food: ',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isDarkMode ? Colors.white : Colors.black,
+                  ),
+                ),
                 const Spacer(),
                 ...List.generate(
                   5,
@@ -397,7 +424,7 @@ class OrderCard extends StatelessWidget {
                 child: Text(
                   '"${order.foodNotes!}"',
                   style: TextStyle(
-                    color: Colors.grey[700],
+                    color: isDarkMode ? Colors.grey[400] : Colors.grey[700],
                     fontStyle: FontStyle.italic,
                     fontSize: 12,
                   ),
@@ -408,7 +435,13 @@ class OrderCard extends StatelessWidget {
           if (order.appRating != null) ...[
             Row(
               children: [
-                const Text('App Experience: ', style: TextStyle(fontSize: 13)),
+                Text(
+                  'App Experience: ',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isDarkMode ? Colors.white : Colors.black,
+                  ),
+                ),
                 const Spacer(),
                 ...List.generate(
                   5,
@@ -426,7 +459,7 @@ class OrderCard extends StatelessWidget {
                 child: Text(
                   '"${order.appNotes!}"',
                   style: TextStyle(
-                    color: Colors.grey[700],
+                    color: isDarkMode ? Colors.grey[400] : Colors.grey[700],
                     fontStyle: FontStyle.italic,
                     fontSize: 12,
                   ),
@@ -438,7 +471,7 @@ class OrderCard extends StatelessWidget {
     );
   }
 
-  Widget _buildOrderItem(OrderItem item, NumberFormat currencyFormat) {
+  Widget _buildOrderItem(OrderItem item, NumberFormat currencyFormat, bool isDarkMode) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -448,7 +481,7 @@ class OrderCard extends StatelessWidget {
             height: 60,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              color: Colors.grey[100],
+              color: isDarkMode ? Colors.grey[800] : Colors.grey[100],
               image: DecorationImage(
                 image: AssetImage(item.image),
                 fit: BoxFit.cover,
@@ -463,16 +496,17 @@ class OrderCard extends StatelessWidget {
               children: [
                 Text(
                   item.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
+                    color: isDarkMode ? Colors.white : Colors.black,
                   ),
                 ),
                 if (item.subtitle.isNotEmpty)
                   Text(
                     item.subtitle,
                     style: TextStyle(
-                      color: Colors.grey[600],
+                      color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                       fontSize: 12,
                     ),
                   ),
@@ -481,19 +515,24 @@ class OrderCard extends StatelessWidget {
           ),
           Text(
             '${item.quantity}x',
-            style: TextStyle(color: Colors.grey[600]),
+            style: TextStyle(
+              color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+            ),
           ),
           const SizedBox(width: 12),
           Text(
             currencyFormat.format(item.price),
-            style: const TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isDarkMode ? Colors.white : Colors.black,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSellerActions(BuildContext context) {
+  Widget _buildSellerActions(BuildContext context, bool isDarkMode) {
     return Padding(
       padding: const EdgeInsets.only(top: 16),
       child: Row(
@@ -509,7 +548,7 @@ class OrderCard extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                elevation: 2,
+                elevation: isDarkMode ? 0 : 2,
               ),
               onPressed: () => OrderDialogUtils.showMarkAsReadyDialog(context, order),
             ),
@@ -520,8 +559,8 @@ class OrderCard extends StatelessWidget {
               icon: const Icon(Icons.close, size: 20),
               label: const Text('CANCEL'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.grey[800],
-                side: BorderSide(color: Colors.grey[800]!),
+                foregroundColor: isDarkMode ? Colors.white : Colors.grey[800],
+                side: BorderSide(color: isDarkMode ? Colors.grey[600]! : Colors.grey[800]!),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -535,7 +574,7 @@ class OrderCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCustomerReadyAction(BuildContext context) {
+  Widget _buildCustomerReadyAction(BuildContext context, bool isDarkMode) {
     return Padding(
       padding: const EdgeInsets.only(top: 16),
       child: SizedBox(
@@ -550,7 +589,7 @@ class OrderCard extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            elevation: 2,
+            elevation: isDarkMode ? 0 : 2,
           ),
           onPressed: () {
             showDialog(
@@ -574,44 +613,85 @@ class OrderCard extends StatelessWidget {
     );
   }
 
-  LinearGradient _getStatusGradient(String status) {
-    switch (status) {
-      case 'completed':
-        return const LinearGradient(
-          colors: [Color(0xFF00C853), Color(0xFF5EFC82)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        );
-      case 'cancelled':
-        return const LinearGradient(
-          colors: [Color(0xFFFF5252), Color(0xFFFF867F)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        );
-      case 'ready':
-        return const LinearGradient(
-          colors: [Color(0xFF2979FF), Color(0xFF448AFF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        );
-      case 'pending':
-        return const LinearGradient(
-          colors: [Color(0xFFFFA000), Color(0xFFFFC046)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        );
-      case 'processing':
-        return const LinearGradient(
-          colors: [Color(0xFF7C4DFF), Color(0xFFB388FF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        );
-      default:
-        return const LinearGradient(
-          colors: [Color(0xFF9E9E9E), Color(0xFFE0E0E0)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        );
+  LinearGradient _getStatusGradient(String status, bool isDarkMode) {
+    if (isDarkMode) {
+      switch (status) {
+        case 'completed':
+          return const LinearGradient(
+            colors: [Color(0xFF007B37), Color(0xFF3EB872)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          );
+        case 'cancelled':
+          return const LinearGradient(
+            colors: [Color(0xFFB71C1C), Color(0xFFE05450)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          );
+        case 'ready':
+          return const LinearGradient(
+            colors: [Color(0xFF1565C0), Color(0xFF42A5F5)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          );
+        case 'pending':
+          return const LinearGradient(
+            colors: [Color(0xFFB76D00), Color(0xFFE0A32E)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          );
+        case 'processing':
+          return const LinearGradient(
+            colors: [Color(0xFF4A2C9C), Color(0xFF7E57C2)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          );
+        default:
+          return const LinearGradient(
+            colors: [Color(0xFF616161), Color(0xFF9E9E9E)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          );
+      }
+    } else {
+      switch (status) {
+        case 'completed':
+          return const LinearGradient(
+            colors: [Color(0xFF00C853), Color(0xFF5EFC82)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          );
+        case 'cancelled':
+          return const LinearGradient(
+            colors: [Color(0xFFFF5252), Color(0xFFFF867F)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          );
+        case 'ready':
+          return const LinearGradient(
+            colors: [Color(0xFF2979FF), Color(0xFF448AFF)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          );
+        case 'pending':
+          return const LinearGradient(
+            colors: [Color(0xFFFFA000), Color(0xFFFFC046)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          );
+        case 'processing':
+          return const LinearGradient(
+            colors: [Color(0xFF7C4DFF), Color(0xFFB388FF)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          );
+        default:
+          return const LinearGradient(
+            colors: [Color(0xFF9E9E9E), Color(0xFFE0E0E0)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          );
+      }
     }
   }
 

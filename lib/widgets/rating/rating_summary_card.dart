@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/theme_notifier.dart';
 import 'rating_stars.dart';
 
 class RatingSummaryCard extends StatelessWidget {
@@ -13,21 +15,23 @@ class RatingSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     return Card(
-      elevation: 4,
+      elevation: isDarkMode ? 0 : 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      color: Colors.white,
+      color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            const Text(
+            Text(
               'Your Overall Rating',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
+                color: isDarkMode ? Colors.white : Colors.black,
               ),
             ),
             const SizedBox(height: 16),
@@ -36,18 +40,18 @@ class RatingSummaryCard extends StatelessWidget {
               children: [
                 Text(
                   averageRating.toStringAsFixed(1),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 48,
                     fontWeight: FontWeight.bold,
-                    color: Colors.amber,
+                    color: isDarkMode ? Colors.amber[300] : Colors.amber,
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Text(
+                Text(
                   '/5',
                   style: TextStyle(
                     fontSize: 24,
-                    color: Colors.grey,
+                    color: isDarkMode ? Colors.grey[400] : Colors.grey,
                   ),
                 ),
               ],
@@ -57,8 +61,8 @@ class RatingSummaryCard extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'Based on $totalRatings ${totalRatings == 1 ? 'rating' : 'ratings'}',
-              style: const TextStyle(
-                color: Colors.grey,
+              style: TextStyle(
+                color: isDarkMode ? Colors.grey[400] : Colors.grey,
               ),
             ),
           ],

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:u_teen/auth/auth_provider.dart';
 import 'package:u_teen/providers/food_provider.dart';
 import 'package:u_teen/models/product_model.dart';
+import 'package:u_teen/providers/theme_notifier.dart';
 import 'dart:io';
 import 'package:flutter/services.dart';
 
@@ -102,136 +103,154 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: Text(
-          widget.product == null ? 'Add New Product' : 'Edit Product',
-          style: const TextStyle(
-            color: Colors.black,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: false,
-        iconTheme: const IconThemeData(color: Colors.black87),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: IconButton(
-              icon: _isUploading
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.save_rounded, size: 26),
-              onPressed: _isUploading ? null : _saveProduct,
-            ),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Product Image Section
-              _buildImageSection(),
-              const SizedBox(height: 24),
-
-              // Product Status Toggle
-              _buildStatusToggle(),
-              const SizedBox(height: 20),
-
-              // Product Name
-              _buildInputSection(
-                title: 'Product Name',
-                hintText: 'Enter product name',
-                controller: _nameController,
-                validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
-              ),
-              const SizedBox(height: 16),
-
-              // Description
-              _buildInputSection(
-                title: 'Description',
-                hintText: 'Enter product description',
-                controller: _descriptionController,
-                maxLines: 3,
-              ),
-              const SizedBox(height: 16),
-
-              // Price
-              _buildInputSection(
-                title: 'Price',
-                hintText: 'Enter price',
-                controller: _priceController,
-                keyboardType: TextInputType.number,
-                prefixText: 'Rp ',
-                validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
-              ),
-              const SizedBox(height: 16),
-
-              // Preparation Time
-              _buildTimeSection(),
-              const SizedBox(height: 28),
-
-              // Save Button
-              ElevatedButton(
-                onPressed: _isUploading ? null : _saveProduct,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6C63FF),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+    return ChangeNotifierProvider(
+      create: (context) => ThemeNotifier(),
+      child: Consumer<ThemeNotifier>(
+        builder: (context, themeNotifier, child) {
+          final isDarkMode = themeNotifier.isDarkMode;
+          return Theme(
+            data: themeNotifier.currentTheme,
+            child: Scaffold(
+              backgroundColor: isDarkMode ? const Color(0xFF121212) : const Color(0xFFF8FAFC),
+              appBar: AppBar(
+                title: Text(
+                  widget.product == null ? 'Add New Product' : 'Edit Product',
+                  style: TextStyle(
+                    color: isDarkMode ? Colors.white : Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
-                  elevation: 0,
-                  shadowColor: Colors.transparent,
                 ),
-                child: _isUploading
-                    ? const SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 3,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Text(
-                        widget.product == null ? 'ADD PRODUCT' : 'UPDATE PRODUCT',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
+                backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+                elevation: 0.5,
+                centerTitle: false,
+                iconTheme: IconThemeData(color: isDarkMode ? Colors.white : Colors.black87),
+                actions: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: IconButton(
+                      icon: _isUploading
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : Icon(Icons.save_rounded, size: 26, color: isDarkMode ? Colors.white : Colors.black87),
+                      onPressed: _isUploading ? null : _saveProduct,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
+              body: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Product Image Section
+                      _buildImageSection(isDarkMode),
+                      const SizedBox(height: 24),
+
+                      // Product Status Toggle
+                      _buildStatusToggle(isDarkMode),
+                      const SizedBox(height: 20),
+
+                      // Product Name
+                      _buildInputSection(
+                        title: 'Product Name',
+                        hintText: 'Enter product name',
+                        controller: _nameController,
+                        validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Description
+                      _buildInputSection(
+                        title: 'Description',
+                        hintText: 'Enter product description',
+                        controller: _descriptionController,
+                        maxLines: 3,
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Price
+                      _buildInputSection(
+                        title: 'Price',
+                        hintText: 'Enter price',
+                        controller: _priceController,
+                        keyboardType: TextInputType.number,
+                        prefixText: 'Rp ',
+                        validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                        isDarkMode: isDarkMode,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Preparation Time
+                      _buildTimeSection(isDarkMode),
+                      const SizedBox(height: 28),
+
+                      // Save Button
+                      ElevatedButton(
+                        onPressed: _isUploading ? null : _saveProduct,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6C63FF),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: isDarkMode ? 0 : 2,
+                        ),
+                        child: _isUploading
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 3,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : Text(
+                                widget.product == null ? 'ADD PRODUCT' : 'UPDATE PRODUCT',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildStatusToggle() {
+  Widget _buildStatusToggle(bool isDarkMode) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: isDarkMode
+            ? []
+            : [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -241,7 +260,7 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w500,
-              color: Colors.grey[800],
+              color: isDarkMode ? Colors.white : Colors.grey[800],
             ),
           ),
           Transform.scale(
@@ -250,8 +269,8 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
               value: _isActive,
               onChanged: (value) => setState(() => _isActive = value),
               activeColor: const Color(0xFF6C63FF),
-              inactiveThumbColor: Colors.grey[400],
-              inactiveTrackColor: Colors.grey[300],
+              inactiveThumbColor: isDarkMode ? Colors.grey[600] : Colors.grey[400],
+              inactiveTrackColor: isDarkMode ? Colors.grey[800] : Colors.grey[300],
             ),
           ),
         ],
@@ -269,7 +288,7 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
     }
   }
 
-  Widget _buildImageSection() {
+  Widget _buildImageSection(bool isDarkMode) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -280,7 +299,7 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w500,
-              color: Colors.grey[800],
+              color: isDarkMode ? Colors.white : Colors.grey[800],
             ),
           ),
         ),
@@ -290,26 +309,26 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
             height: 180,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: Colors.grey[100],
+              color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.grey[100],
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.grey[300]!,
+                color: isDarkMode ? Colors.grey[800]! : Colors.grey[300]!,
                 width: 1.5,
               ),
             ),
-            child: _buildImageContent(),
+            child: _buildImageContent(isDarkMode),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildImageContent() {
+  Widget _buildImageContent(bool isDarkMode) {
     if (_isUploading) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(
           strokeWidth: 2,
-          color: Color(0xFF6C63FF),
+          valueColor: AlwaysStoppedAnimation<Color>(isDarkMode ? Colors.white : const Color(0xFF6C63FF)),
         ),
       );
     }
@@ -328,25 +347,28 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
         child: Image.network(
           widget.product!.imgUrl,
           fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
+          errorBuilder: (context, error, stackTrace) => _buildPlaceholder(isDarkMode),
         ),
       );
     }
 
-    return _buildPlaceholder();
+    return _buildPlaceholder(isDarkMode);
   }
 
-  Widget _buildPlaceholder() {
+  Widget _buildPlaceholder(bool isDarkMode) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(Icons.add_photo_alternate_rounded,
-            size: 48, color: Colors.grey[400]),
+        Icon(
+          Icons.add_photo_alternate_rounded,
+          size: 48,
+          color: isDarkMode ? Colors.grey[600] : Colors.grey[400],
+        ),
         const SizedBox(height: 8),
         Text(
           'Tap to add image',
           style: TextStyle(
-            color: Colors.grey[500],
+            color: isDarkMode ? Colors.grey[400] : Colors.grey[500],
             fontSize: 14,
           ),
         ),
@@ -362,6 +384,7 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
     int maxLines = 1,
     TextInputType? keyboardType,
     String? Function(String?)? validator,
+    required bool isDarkMode,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -373,21 +396,23 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w500,
-              color: Colors.grey[800],
+              color: isDarkMode ? Colors.white : Colors.grey[800],
             ),
           ),
         ),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
             borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.05),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            boxShadow: isDarkMode
+                ? []
+                : [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
           ),
           child: TextFormField(
             controller: controller,
@@ -401,8 +426,9 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
               prefixText: prefixText,
               border: InputBorder.none,
               contentPadding: const EdgeInsets.all(16),
-              hintStyle: TextStyle(color: Colors.grey[500]),
+              hintStyle: TextStyle(color: isDarkMode ? Colors.grey[400] : Colors.grey[500]),
             ),
+            style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
             validator: validator,
           ),
         ),
@@ -410,7 +436,7 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
     );
   }
 
-  Widget _buildTimeSection() {
+  Widget _buildTimeSection(bool isDarkMode) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -421,38 +447,40 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w500,
-              color: Colors.grey[800],
+              color: isDarkMode ? Colors.white : Colors.grey[800],
             ),
           ),
         ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
             borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.05),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            boxShadow: isDarkMode
+                ? []
+                : [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
           ),
           child: Column(
             children: [
               Text(
                 '$_preparationTime mins',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF6C63FF),
+                  color: isDarkMode ? Colors.white : const Color(0xFF6C63FF),
                 ),
               ),
               const SizedBox(height: 12),
               SliderTheme(
                 data: SliderTheme.of(context).copyWith(
                   activeTrackColor: const Color(0xFF6C63FF),
-                  inactiveTrackColor: Colors.grey[200],
+                  inactiveTrackColor: isDarkMode ? Colors.grey[800] : Colors.grey[200],
                   thumbColor: const Color(0xFF6C63FF),
                   overlayColor: const Color(0x1A6C63FF),
                   thumbShape: const RoundSliderThumbShape(
@@ -481,9 +509,15 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Text('1 min', style: TextStyle(color: Colors.grey)),
-                    Text('30 mins', style: TextStyle(color: Colors.grey)),
+                  children: [
+                    Text(
+                      '1 min',
+                      style: TextStyle(color: isDarkMode ? Colors.grey[400] : Colors.grey),
+                    ),
+                    Text(
+                      '30 mins',
+                      style: TextStyle(color: isDarkMode ? Colors.grey[400] : Colors.grey),
+                    ),
                   ],
                 ),
               ),
@@ -534,6 +568,7 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
+          backgroundColor: Colors.red,
         ),
       );
     } finally {

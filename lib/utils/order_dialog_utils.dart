@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:u_teen/models/order_model.dart';
 import 'package:u_teen/providers/order_provider.dart';
+import 'package:u_teen/providers/theme_notifier.dart';
 
 class OrderDialogUtils {
   static void showMarkAsReadyDialog(BuildContext context, Order order) {
+    final isDarkMode = Provider.of<ThemeNotifier>(context, listen: false).isDarkMode;
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        backgroundColor: Colors.white,
+        backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -19,14 +21,21 @@ class OrderDialogUtils {
             children: [
               const Icon(Icons.check_circle, color: Colors.green, size: 48),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Confirm Ready',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: isDarkMode ? Colors.white : Colors.black,
+                ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Are you sure you want to mark this order as ready for pickup?',
                 textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                ),
               ),
               const SizedBox(height: 24),
               Row(
@@ -34,7 +43,12 @@ class OrderDialogUtils {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('CANCEL'),
+                    child: Text(
+                      'CANCEL',
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.grey[400] : Colors.grey[800],
+                      ),
+                    ),
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -43,6 +57,7 @@ class OrderDialogUtils {
                         horizontal: 24,
                         vertical: 12,
                       ),
+                      elevation: isDarkMode ? 0 : 2,
                     ),
                     onPressed: () async {
                       Navigator.pop(context);
@@ -50,7 +65,7 @@ class OrderDialogUtils {
                         context: context,
                         barrierDismissible: false,
                         builder: (context) => Dialog(
-                          backgroundColor: Colors.white,
+                          backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
                           child: Padding(
                             padding: const EdgeInsets.all(20),
                             child: Column(
@@ -67,7 +82,12 @@ class OrderDialogUtils {
                                   ),
                                 ),
                                 const SizedBox(height: 20),
-                                const Text('Marking order as ready...'),
+                                Text(
+                                  'Marking order as ready...',
+                                  style: TextStyle(
+                                    color: isDarkMode ? Colors.white : Colors.black,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -97,13 +117,14 @@ class OrderDialogUtils {
   }
 
   static void showCancelOrderDialog(BuildContext context, Order order) {
+    final isDarkMode = Provider.of<ThemeNotifier>(context, listen: false).isDarkMode;
     final reasonController = TextEditingController();
     final formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        backgroundColor: Colors.white,
+        backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -116,22 +137,47 @@ class OrderDialogUtils {
               children: [
                 const Icon(Icons.cancel, color: Colors.red, size: 48),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Cancel Order',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text('Please provide a reason for cancellation:'),
+                Text(
+                  'Please provide a reason for cancellation:',
+                  style: TextStyle(
+                    color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: reasonController,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    border: const OutlineInputBorder(),
                     labelText: 'Cancellation Reason',
                     hintText: 'E.g. Out of stock, kitchen closed',
+                    labelStyle: TextStyle(
+                      color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                    hintStyle: TextStyle(
+                      color: isDarkMode ? Colors.grey[600] : Colors.grey[400],
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDarkMode ? Colors.grey[600]! : Colors.grey[400]!,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDarkMode ? Colors.white : Colors.blue,
+                      ),
+                    ),
+                  ),
+                  style: TextStyle(
+                    color: isDarkMode ? Colors.white : Colors.black,
                   ),
                   maxLines: 3,
                   validator: (value) {
@@ -147,7 +193,12 @@ class OrderDialogUtils {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('DISCARD'),
+                      child: Text(
+                        'DISCARD',
+                        style: TextStyle(
+                          color: isDarkMode ? Colors.grey[400] : Colors.grey[800],
+                        ),
+                      ),
                     ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
@@ -156,6 +207,7 @@ class OrderDialogUtils {
                           horizontal: 24,
                           vertical: 12,
                         ),
+                        elevation: isDarkMode ? 0 : 2,
                       ),
                       onPressed: () async {
                         if (!formKey.currentState!.validate()) return;
@@ -165,7 +217,7 @@ class OrderDialogUtils {
                           context: context,
                           barrierDismissible: false,
                           builder: (context) => Dialog(
-                            backgroundColor: Colors.white,
+                            backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
                             child: Padding(
                               padding: const EdgeInsets.all(20),
                               child: Column(
@@ -182,7 +234,12 @@ class OrderDialogUtils {
                                     ),
                                   ),
                                   const SizedBox(height: 20),
-                                  const Text('Cancelling order...'),
+                                  Text(
+                                    'Cancelling order...',
+                                    style: TextStyle(
+                                      color: isDarkMode ? Colors.white : Colors.black,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -217,10 +274,11 @@ class OrderDialogUtils {
   }
 
   static Future<void> showSuccessAnimation(BuildContext context) async {
+    final isDarkMode = Provider.of<ThemeNotifier>(context, listen: false).isDarkMode;
     await showDialog(
       context: context,
       builder: (context) => Dialog(
-        backgroundColor: Colors.white,
+        backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -228,20 +286,29 @@ class OrderDialogUtils {
             children: [
               const Icon(Icons.check_circle, color: Colors.green, size: 60),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Success!',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: isDarkMode ? Colors.white : Colors.black,
+                ),
               ),
               const SizedBox(height: 8),
-              const Text('Order marked as ready'),
+              Text(
+                'Order marked as ready',
+                style: TextStyle(
+                  color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                ),
+              ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
                   foregroundColor: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  elevation: isDarkMode ? 0 : 2,
                 ),
                 child: const Text('OK'),
               ),
@@ -253,10 +320,11 @@ class OrderDialogUtils {
   }
 
   static Future<void> showCancelledAnimation(BuildContext context) async {
+    final isDarkMode = Provider.of<ThemeNotifier>(context, listen: false).isDarkMode;
     await showDialog(
       context: context,
       builder: (context) => Dialog(
-        backgroundColor: Colors.white,
+        backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -264,20 +332,29 @@ class OrderDialogUtils {
             children: [
               const Icon(Icons.cancel, color: Colors.red, size: 60),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Order Cancelled',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: isDarkMode ? Colors.white : Colors.black,
+                ),
               ),
               const SizedBox(height: 8),
-              const Text('The order has been cancelled'),
+              Text(
+                'The order has been cancelled',
+                style: TextStyle(
+                  color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                ),
+              ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  elevation: isDarkMode ? 0 : 2,
                 ),
                 child: const Text('OK'),
               ),

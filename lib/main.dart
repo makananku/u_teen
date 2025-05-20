@@ -21,6 +21,7 @@ void main() async {
   await initializeDateFormatting('id_ID', null);
 
   final prefs = await SharedPreferences.getInstance();
+  
 
   runApp(
     MultiProvider(
@@ -42,6 +43,7 @@ void main() async {
             Provider.of<OrderProvider>(context, listen: false),
           ),
         ),
+        
       ],
       child: const MyApp(),
     ),
@@ -54,6 +56,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,

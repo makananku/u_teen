@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/theme_notifier.dart';
 
 class EmptyStateWidget extends StatelessWidget {
   final IconData icon;
@@ -12,6 +14,7 @@ class EmptyStateWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -19,14 +22,14 @@ class EmptyStateWidget extends StatelessWidget {
           Icon(
             icon,
             size: 50,
-            color: Colors.grey[400],
+            color: isDarkMode ? Colors.grey[600] : Colors.grey[400],
           ),
           const SizedBox(height: 16),
           Text(
             message,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
-              color: Colors.grey,
+              color: isDarkMode ? Colors.grey[400] : Colors.grey,
             ),
           ),
         ],

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:u_teen/screens/seller/my_balance_screen.dart' as balance_screen;
 import 'package:u_teen/screens/seller/home_screen.dart' as home_screen;
 import 'package:u_teen/screens/seller/my_product_screen.dart' as product_screen;
 import 'package:u_teen/screens/seller/profile_screen.dart' as profile_screen;
+import 'package:u_teen/providers/theme_notifier.dart';
 
 class NavIndices {
   static const home = 0;
@@ -83,6 +85,9 @@ class _SellerCustomBottomNavigationState
 
   @override
   Widget build(BuildContext context) {
+    final themeNotifier = Provider.of<ThemeNotifier>(widget.context);
+    final isDarkMode = themeNotifier.isDarkMode;
+
     return Material(
       type: MaterialType.transparency,
       child: AnimatedContainer(
@@ -105,23 +110,25 @@ class _SellerCustomBottomNavigationState
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
                     borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF64748B).withOpacity(0.1),
-                        blurRadius: 16,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+                    boxShadow: isDarkMode
+                        ? []
+                        : [
+                            BoxShadow(
+                              color: const Color(0xFF64748B).withOpacity(0.1),
+                              blurRadius: 16,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildNavItem(Icons.home_outlined, 'Home', NavIndices.home),
-                      _buildNavItem(Icons.account_balance_wallet_outlined, 'Balance', NavIndices.balance),
-                      _buildNavItem(Icons.fastfood_outlined, 'Products', NavIndices.products),
-                      _buildNavItem(Icons.person_outline, 'Profile', NavIndices.profile),
+                      _buildNavItem(Icons.home_outlined, 'Home', NavIndices.home, isDarkMode),
+                      _buildNavItem(Icons.account_balance_wallet_outlined, 'Balance', NavIndices.balance, isDarkMode),
+                      _buildNavItem(Icons.fastfood_outlined, 'Products', NavIndices.products, isDarkMode),
+                      _buildNavItem(Icons.person_outline, 'Profile', NavIndices.profile, isDarkMode),
                     ],
                   ),
                 ),
@@ -133,9 +140,9 @@ class _SellerCustomBottomNavigationState
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, int index) {
+  Widget _buildNavItem(IconData icon, String label, int index, bool isDarkMode) {
     final isActive = _currentIndex == index;
-    
+
     return GestureDetector(
       onTap: () => _navigateToScreen(index),
       child: AnimatedContainer(
@@ -145,7 +152,11 @@ class _SellerCustomBottomNavigationState
           children: [
             Icon(
               icon,
-              color: isActive ? const Color(0xFF6366F1) : const Color(0xFF94A3B8),
+              color: isActive
+                  ? const Color(0xFF6366F1)
+                  : isDarkMode
+                      ? Colors.grey[400]
+                      : const Color(0xFF94A3B8),
               size: 24,
             ),
             const SizedBox(height: 4),
@@ -153,7 +164,11 @@ class _SellerCustomBottomNavigationState
               label,
               style: TextStyle(
                 fontSize: 12,
-                color: isActive ? const Color(0xFF6366F1) : const Color(0xFF94A3B8),
+                color: isActive
+                    ? const Color(0xFF6366F1)
+                    : isDarkMode
+                        ? Colors.grey[400]
+                        : const Color(0xFF94A3B8),
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
               ),
             ),

@@ -5,7 +5,8 @@ import 'package:u_teen/screens/seller/home_screen.dart';
 import 'package:u_teen/widgets/seller/custom_bottom_navigation.dart';
 import 'package:u_teen/screens/login_screen.dart';
 import 'package:u_teen/providers/rating_provider.dart';
-import 'package:u_teen/providers/order_provider.dart'; // Tambahkan import untuk OrderProvider
+import 'package:u_teen/providers/order_provider.dart';
+import 'package:u_teen/providers/theme_notifier.dart';
 
 class SellerProfileScreen extends StatefulWidget {
   const SellerProfileScreen({super.key});
@@ -18,67 +19,72 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
   bool _showBusinessInfo = false;
   bool _showStatisticInfo = false;
 
-  void _toggleInfo(String type) {
-    setState(() {
-      if (type == 'business') {
-        _showBusinessInfo = !_showBusinessInfo;
-      } else {
-        _showStatisticInfo = !_showStatisticInfo;
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const SellerHomeScreen()),
-        );
-        return false;
-      },
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
-        appBar: AppBar(
-          title: const Text(
-            'Merchant Profile',
-            style: TextStyle(
-              color: Color(0xFF1E293B),
-              fontSize: 20,
-              fontWeight: FontWeight.w600,         
-            ),
-          ),
-          centerTitle: true,
-          backgroundColor: Colors.white,
-          elevation: 0.5,
-        ),
-        body: Stack(
-          children: [
-            SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                children: [
-                  _buildProfileHeader(context),
-                  const SizedBox(height: 16),
-                  _buildBusinessStats(context),
-                  const SizedBox(height: 16),
-                  _buildAccountDetails(context),
-                  const SizedBox(height: 80),
-                ],
+    // Wrap with ChangeNotifierProvider to provide ThemeNotifier locally
+    return ChangeNotifierProvider(
+      create: (context) => ThemeNotifier(),
+      child: Consumer<ThemeNotifier>(
+        builder: (context, themeNotifier, child) {
+          final isDarkMode = themeNotifier.isDarkMode;
+          return Theme(
+            data: themeNotifier.currentTheme,
+            child: WillPopScope(
+              onWillPop: () async {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SellerHomeScreen()),
+                );
+                return false;
+              },
+              child: Scaffold(
+                backgroundColor: isDarkMode ? const Color(0xFF121212) : const Color(0xFFF8FAFC),
+                appBar: AppBar(
+                  title: Text(
+                    'Merchant Profile',
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.white : const Color(0xFF1E293B),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  centerTitle: true,
+                  backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+                  elevation: 0.5,
+                  iconTheme: IconThemeData(
+                    color: isDarkMode ? Colors.white : Colors.black,
+                  ),
+                ),
+                body: Stack(
+                  children: [
+                    SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Column(
+                        children: [
+                          _buildProfileHeader(context),
+                          const SizedBox(height: 16),
+                          _buildBusinessStats(context),
+                          const SizedBox(height: 16),
+                          _buildAccountDetails(context),
+                          const SizedBox(height: 80),
+                        ],
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: SellerCustomBottomNavigation(
+                        selectedIndex: NavIndices.profile,
+                        context: context,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: SellerCustomBottomNavigation(
-                selectedIndex: NavIndices.profile,
-                context: context,
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -87,12 +93,13 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
     final tenantName = authProvider.tenantName ?? 'Merchant';
     final email = authProvider.sellerEmail ?? 'No Email';
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
+      decoration: BoxDecoration(
+        color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+        borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(24),
           bottomRight: Radius.circular(24),
         ),
@@ -108,7 +115,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: const Color(0xFFE2E8F0),
+                    color: isDarkMode ? const Color(0xFF333333) : const Color(0xFFE2E8F0),
                     width: 3,
                   ),
                   gradient: const LinearGradient(
@@ -121,7 +128,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                   child: Image.asset(
                     'assets/images/merchant_avatar.png',
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Icon(
+                    errorBuilder: (context, error, stackTrace) => const Icon(
                       Icons.storefront,
                       size: 40,
                       color: Colors.white,
@@ -150,10 +157,10 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
           const SizedBox(height: 16),
           Text(
             tenantName,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF1E293B),
+              color: isDarkMode ? Colors.white : const Color(0xFF1E293B),
             ),
           ),
           const SizedBox(height: 4),
@@ -161,13 +168,10 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
             email,
             style: TextStyle(
               fontSize: 14,
-              color: const Color(0xFF64748B).withOpacity(0.8),
+              color: isDarkMode ? Colors.grey[400] : const Color(0xFF64748B).withOpacity(0.8),
             ),
           ),
           const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-          ),
         ],
       ),
     );
@@ -176,36 +180,39 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
   Widget _buildBusinessStats(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final ratingsProvider = Provider.of<RatingProvider>(context);
-    final orderProvider = Provider.of<OrderProvider>(context); // Ambil OrderProvider
+    final orderProvider = Provider.of<OrderProvider>(context);
     final merchantEmail = authProvider.sellerEmail ?? '';
     final averageRating = ratingsProvider.getAverageFoodRating(merchantEmail);
-    final totalSales = orderProvider.getCompletedOrdersForMerchant(merchantEmail).length; // Hitung total penjualan seumur hidup
+    final totalSales = orderProvider.getCompletedOrdersForMerchant(merchantEmail).length;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF64748B).withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: isDarkMode
+            ? []
+            : [
+                BoxShadow(
+                  color: const Color(0xFF64748B).withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Business Statistics',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF1E293B),
+                  color: isDarkMode ? Colors.white : const Color(0xFF1E293B),
                 ),
               ),
               GestureDetector(
@@ -214,12 +221,12 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFFE2E8F0).withOpacity(0.5),
+                    color: isDarkMode ? Colors.grey[800]!.withOpacity(0.5) : const Color(0xFFE2E8F0).withOpacity(0.5),
                   ),
                   child: Icon(
                     Icons.info_outline,
                     size: 16,
-                    color: const Color(0xFF64748B),
+                    color: isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
                   ),
                 ),
               ),
@@ -230,14 +237,14 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
               margin: const EdgeInsets.only(top: 8),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
+                color: isDarkMode ? const Color(0xFF333333) : const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Text(
+              child: Text(
                 'Statistics are updated daily at midnight',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Color(0xFF64748B),
+                  color: isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
                 ),
               ),
             ),
@@ -247,9 +254,10 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
               Expanded(
                 child: _buildStatCard(
                   'Total Sales',
-                  totalSales.toString(), // Gunakan totalSales dari OrderProvider
+                  totalSales.toString(),
                   Icons.trending_up,
                   const Color(0xFF10B981),
+                  isDarkMode,
                 ),
               ),
               const SizedBox(width: 12),
@@ -259,6 +267,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                   averageRating.toStringAsFixed(1),
                   Icons.star_rate,
                   const Color(0xFFF59E0B),
+                  isDarkMode,
                 ),
               ),
               const SizedBox(width: 12),
@@ -268,6 +277,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                   '24',
                   Icons.fastfood,
                   const Color(0xFF6366F1),
+                  isDarkMode,
                 ),
               ),
             ],
@@ -277,7 +287,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(String title, String value, IconData icon, Color color, bool isDarkMode) {
     bool showFullTitle = false;
     bool showFullValue = false;
 
@@ -307,7 +317,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
         return Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: isDarkMode ? color.withOpacity(0.15) : color.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -318,7 +328,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                   Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.2),
+                      color: isDarkMode ? color.withOpacity(0.3) : color.withOpacity(0.2),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -335,7 +345,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                         title,
                         style: TextStyle(
                           fontSize: 12,
-                          color: const Color(0xFF64748B),
+                          color: isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
                         ),
                         overflow: showFullTitle ? null : TextOverflow.ellipsis,
                         maxLines: showFullTitle ? null : 1,
@@ -367,34 +377,38 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
 
   Widget _buildAccountDetails(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
     final sellerNim = authProvider.sellerNim ?? 'Not Available';
     final phoneNumber = authProvider.user?.phoneNumber ?? 'Not Available';
+    final isDarkMode = themeNotifier.isDarkMode;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF64748B).withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: isDarkMode
+            ? []
+            : [
+                BoxShadow(
+                  color: const Color(0xFF64748B).withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Account Details',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF1E293B),
+                  color: isDarkMode ? Colors.white : const Color(0xFF1E293B),
                 ),
               ),
               GestureDetector(
@@ -403,12 +417,12 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFFE2E8F0).withOpacity(0.5),
+                    color: isDarkMode ? Colors.grey[800]!.withOpacity(0.5) : const Color(0xFFE2E8F0).withOpacity(0.5),
                   ),
                   child: Icon(
                     Icons.info_outline,
                     size: 16,
-                    color: const Color(0xFF64748B),
+                    color: isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
                   ),
                 ),
               ),
@@ -419,14 +433,14 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
               margin: const EdgeInsets.only(top: 8),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
+                color: isDarkMode ? const Color(0xFF333333) : const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Text(
+              child: Text(
                 'Update your business details in the UMN Merchant Portal',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Color(0xFF64748B),
+                  color: isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
                 ),
               ),
             ),
@@ -436,6 +450,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
             title: 'MERCHANT ID',
             value: sellerNim,
             iconColor: const Color(0xFF8B5CF6),
+            isDarkMode: isDarkMode,
           ),
           const SizedBox(height: 12),
           _buildDetailItem(
@@ -443,6 +458,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
             title: 'CONTACT NUMBER',
             value: phoneNumber,
             iconColor: const Color(0xFF0EA5E9),
+            isDarkMode: isDarkMode,
           ),
           const SizedBox(height: 12),
           _buildDetailItem(
@@ -450,9 +466,12 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
             title: 'BUSINESS EMAIL',
             value: authProvider.sellerEmail ?? 'Not Available',
             iconColor: const Color(0xFFEC4899),
+            isDarkMode: isDarkMode,
           ),
+          const SizedBox(height: 12),
+          _buildDarkModeToggle(context, isDarkMode, themeNotifier),
           const SizedBox(height: 16),
-          _buildLogoutButton(context),
+          _buildLogoutButton(context, isDarkMode),
         ],
       ),
     );
@@ -463,14 +482,15 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
     required String title,
     required String value,
     required Color iconColor,
+    required bool isDarkMode,
   }) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: isDarkMode ? const Color(0xFF333333) : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFFE2E8F0),
+          color: isDarkMode ? const Color(0xFF444444) : const Color(0xFFE2E8F0),
           width: 1,
         ),
       ),
@@ -480,7 +500,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
+              color: isDarkMode ? iconColor.withOpacity(0.2) : iconColor.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -498,16 +518,16 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                   title,
                   style: TextStyle(
                     fontSize: 12,
-                    color: const Color(0xFF64748B),
+                    color: isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: Color(0xFF1E293B),
+                    color: isDarkMode ? Colors.white : const Color(0xFF1E293B),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -519,7 +539,71 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
     );
   }
 
-  Widget _buildLogoutButton(BuildContext context) {
+  Widget _buildDarkModeToggle(BuildContext context, bool isDarkMode, ThemeNotifier themeNotifier) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDarkMode ? const Color(0xFF333333) : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDarkMode ? const Color(0xFF444444) : const Color(0xFFE2E8F0),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: isDarkMode ? const Color(0xFF6366F1).withOpacity(0.2) : const Color(0xFF6366F1).withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isDarkMode ? Icons.dark_mode : Icons.light_mode,
+              color: const Color(0xFF6366F1),
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'THEME',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  isDarkMode ? 'Dark Mode' : 'Light Mode',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDarkMode ? Colors.white : const Color(0xFF1E293B),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: isDarkMode,
+            onChanged: (value) {
+              themeNotifier.toggleTheme();
+            },
+            activeColor: const Color(0xFF6366F1),
+            inactiveThumbColor: const Color(0xFFE2E8F0),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLogoutButton(BuildContext context, bool isDarkMode) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
@@ -527,7 +611,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
           showDialog(
             context: context,
             builder: (context) => Dialog(
-              backgroundColor: Colors.white,
+              backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -540,31 +624,31 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFEE2E2),
+                        color: const Color(0xFFFEE2E2).withOpacity(isDarkMode ? 0.2 : 1),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.logout,
                         size: 40,
-                        color: const Color(0xFFDC2626),
+                        color: Color(0xFFDC2626),
                       ),
                     ),
                     const SizedBox(height: 20),
-                    const Text(
+                    Text(
                       'Logout Confirmation',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF1E293B),
+                        color: isDarkMode ? Colors.white : const Color(0xFF1E293B),
                       ),
                     ),
                     const SizedBox(height: 12),
-                    const Text(
+                    Text(
                       'Are you sure you want to logout from your merchant account?',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Color(0xFF64748B),
+                        color: isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -575,17 +659,17 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                             onPressed: () => Navigator.pop(context),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
-                              side: const BorderSide(
-                                color: Color(0xFFE2E8F0),
+                              side: BorderSide(
+                                color: isDarkMode ? const Color(0xFF444444) : const Color(0xFFE2E8F0),
                               ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text(
+                            child: Text(
                               'Cancel',
                               style: TextStyle(
-                                color: Color(0xFF64748B),
+                                color: isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
                               ),
                             ),
                           ),
@@ -640,13 +724,13 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
           );
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
+          backgroundColor: isDarkMode ? const Color(0xFF333333) : Colors.white,
           foregroundColor: const Color(0xFFDC2626),
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: const BorderSide(
-              color: Color(0xFFFECACA),
+            side: BorderSide(
+              color: isDarkMode ? const Color(0xFF444444) : const Color(0xFFFECACA),
               width: 1.5,
             ),
           ),
@@ -667,5 +751,15 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
         ),
       ),
     );
+  }
+
+  void _toggleInfo(String type) {
+    setState(() {
+      if (type == 'business') {
+        _showBusinessInfo = !_showBusinessInfo;
+      } else {
+        _showStatisticInfo = !_showStatisticInfo;
+      }
+    });
   }
 }

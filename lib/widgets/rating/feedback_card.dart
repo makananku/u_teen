@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/theme_notifier.dart';
 
 class FeedbackCard extends StatelessWidget {
   final String feedback;
@@ -10,14 +12,15 @@ class FeedbackCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      color: Colors.white, // Set background color to white
+      elevation: isDarkMode ? 0 : 2,
+      color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: Colors.grey.shade200, // Add subtle border
+          color: isDarkMode ? Colors.grey[700]! : Colors.grey.shade200,
           width: 1,
         ),
       ),
@@ -27,18 +30,19 @@ class FeedbackCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              children: const [
-                Icon(Icons.format_quote, 
-                  color: Colors.blueGrey, // Slightly darker icon color
+              children: [
+                Icon(
+                  Icons.format_quote,
+                  color: isDarkMode ? Colors.grey[400] : Colors.blueGrey,
                   size: 24,
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Text(
                   'Customer Feedback',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.blueGrey, // Matching text color
-                    fontSize: 14, // Slightly smaller font
+                    color: isDarkMode ? Colors.grey[400] : Colors.blueGrey,
+                    fontSize: 14,
                   ),
                 ),
               ],
@@ -46,9 +50,10 @@ class FeedbackCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               feedback,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
-                height: 1.4, // Better line spacing
+                height: 1.4,
+                color: isDarkMode ? Colors.white : Colors.black,
               ),
             ),
           ],

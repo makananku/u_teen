@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:u_teen/providers/order_provider.dart';
 import 'package:u_teen/auth/auth_provider.dart';
 import 'package:u_teen/utils/formatters.dart';
+import 'package:u_teen/providers/theme_notifier.dart';
 
 class SellerBalanceScreen extends StatefulWidget {
   const SellerBalanceScreen({super.key});
@@ -31,7 +32,9 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
       (method) => method.id == 'gopay',
       orElse: () => paymentMethods.first,
     );
-    _calculateBalance();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _calculateBalance();
+    });
   }
 
   void _calculateBalance() {
@@ -46,187 +49,198 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const SellerHomeScreen()),
-        );
-        return false;
-      },
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          title: const Text(
-            'My Balance',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          centerTitle: true,
-          backgroundColor: Colors.white,
-          elevation: 0,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.history, color: Colors.black),
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => TransactionHistoryScreen(),
-                ),
-              ),
-            ),
-          ],
-        ),
-        body: Stack(
-          children: [
-            SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 200),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+    return ChangeNotifierProvider(
+      create: (context) => ThemeNotifier(),
+      child: Consumer<ThemeNotifier>(
+        builder: (context, themeNotifier, child) {
+          final isDarkMode = themeNotifier.isDarkMode;
+          return Theme(
+            data: themeNotifier.currentTheme,
+            child: WillPopScope(
+              onWillPop: () async {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SellerHomeScreen()),
+                );
+                return false;
+              },
+              child: Scaffold(
+                backgroundColor: isDarkMode ? const Color(0xFF121212) : const Color(0xFFF8FAFC),
+                appBar: AppBar(
+                  title: Text(
+                    'My Balance',
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.white : Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [Colors.blue[700]!, Colors.blue[400]!],
+                  ),
+                  centerTitle: true,
+                  backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+                  elevation: 0.5,
+                  actions: [
+                    IconButton(
+                      icon: Icon(Icons.history, color: isDarkMode ? Colors.white : Colors.black),
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TransactionHistoryScreen(),
                         ),
-                        borderRadius: BorderRadius.circular(16),
                       ),
-                      padding: const EdgeInsets.all(20),
+                    ),
+                  ],
+                ),
+                body: Stack(
+                  children: [
+                    SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 200),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.account_balance_wallet,
-                                color: Colors.white70,
+                          Card(
+                            elevation: isDarkMode ? 0 : 4,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            color: isDarkMode ? const Color(0xFF1E1E1E) : null,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: isDarkMode
+                                      ? [const Color(0xFF1E3A8A), const Color(0xFF1E40AF)]
+                                      : [Colors.blue[700]!, Colors.blue[400]!],
+                                ),
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                              SizedBox(width: 8),
-                              Text(
-                                'Balance Available',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.white.withOpacity(0.9),
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.account_balance_wallet,
+                                        color: Colors.white70,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Balance Available',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.white.withOpacity(0.9),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    Formatters.currencyFormat.format(_balance),
+                                    style: const TextStyle(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  ElevatedButton(
+                                    onPressed: _selectedMethod != null ? () => _withdrawFunds(context) : null,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: isDarkMode ? const Color(0xFF333333) : Colors.white,
+                                      foregroundColor: Colors.blue,
+                                      minimumSize: const Size(double.infinity, 50),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      elevation: isDarkMode ? 0 : 2,
+                                    ),
+                                    child: Text(
+                                      'Withdraw',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDarkMode ? Colors.white : Colors.blue,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'Withdrawal Method',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: isDarkMode ? Colors.white : Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Column(
+                            children: paymentMethods.map((method) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: PaymentMethodCard(
+                                  method: method,
+                                  isSelected: _selectedMethod?.id == method.id,
+                                  onTap: () {
+                                    setState(() => _selectedMethod = method);
+                                    HapticFeedback.lightImpact();
+                                  },
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                          if (_selectedMethod?.id == 'gopay') const Padding(padding: EdgeInsets.only(top: 8)),
+                          const SizedBox(height: 16),
+                          Column(
+                            children: [
+                              if (paymentMethods.isEmpty) ...[
+                                Image.asset('assets/empty_payment.png', height: 150),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No Payment Methods Available',
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                                const SizedBox(height: 20),
+                              ],
+                              OutlinedButton.icon(
+                                onPressed: _addNewPaymentMethod,
+                                icon: Icon(Icons.add, color: isDarkMode ? Colors.white : Colors.blue),
+                                label: Text(
+                                  'Add Withdrawal Method',
+                                  style: TextStyle(color: isDarkMode ? Colors.white : Colors.blue),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(color: isDarkMode ? Colors.grey[600]! : Colors.blue),
+                                  minimumSize: const Size(double.infinity, 50),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                          SizedBox(height: 12),
-                          Text(
-                            Formatters.currencyFormat.format(_balance),
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          SizedBox(height: 20),
-                          ElevatedButton(
-                            onPressed:
-                                _selectedMethod != null
-                                    ? () => _withdrawFunds(context)
-                                    : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: Colors.blue,
-                              minimumSize: const Size(double.infinity, 50),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              elevation: 2,
-                            ),
-                            child: const Text(
-                              'Withdraw',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Withdrawal Method',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Column(
-                    children: paymentMethods.map((method) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: PaymentMethodCard(
-                          method: method,
-                          isSelected: _selectedMethod?.id == method.id,
-                          onTap: () {
-                            setState(() => _selectedMethod = method);
-                            HapticFeedback.lightImpact();
-                          },
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  if (_selectedMethod?.id == 'gopay')
-                    Padding(padding: const EdgeInsets.only(top: 8)),
-                  const SizedBox(height: 16),
-                  Column(
-                    children: [
-                      if (paymentMethods.isEmpty) ...[
-                        Image.asset('assets/empty_payment.png', height: 150),
-                        SizedBox(height: 16),
-                        Text(
-                          'No Payment Methods Available',
-                          style: TextStyle(color: Colors.grey[600]),
-                        ),
-                        SizedBox(height: 20),
-                      ],
-                      OutlinedButton.icon(
-                        onPressed: _addNewPaymentMethod,
-                        icon: const Icon(Icons.add, color: Colors.blue),
-                        label: const Text(
-                          'Add Withdrawal Method',
-                          style: TextStyle(color: Colors.blue),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Colors.blue),
-                          minimumSize: const Size(double.infinity, 50),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
+                    Positioned(
+                      bottom: 8,
+                      left: 0,
+                      right: 0,
+                      child: SellerCustomBottomNavigation(
+                        selectedIndex: NavIndices.balance,
+                        context: context,
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
             ),
-            Positioned(
-              bottom: 8,
-              left: 0,
-              right: 0,
-              child: SellerCustomBottomNavigation(
-                selectedIndex: NavIndices.balance,
-                context: context,
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -234,9 +248,10 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
   void _withdrawFunds(BuildContext context) {
     if (_balance <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Balance is insufficient for withdrawal'),
+        SnackBar(
+          content: const Text('Balance is insufficient for withdrawal'),
           behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
         ),
       );
       return;
@@ -267,6 +282,7 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
   }
 
   void _showWithdrawalSuccess(double amount) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -296,28 +312,13 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
     );
   }
 
-  void _showWithdrawalError() {
+  void _addNewPaymentMethod() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.error_outline, color: Colors.white),
-            SizedBox(width: 10),
-            Text('Withdrawal failed. Please try again.'),
-          ],
-        ),
-        backgroundColor: Colors.red,
+        content: const Text('Add new payment method feature coming soon!'),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
-  }
-
-  void _addNewPaymentMethod() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Add new payment method feature coming soon!'),
-        behavior: SnackBarBehavior.floating,
+        backgroundColor: isDarkMode ? Colors.blueGrey[800] : Colors.blue,
       ),
     );
   }

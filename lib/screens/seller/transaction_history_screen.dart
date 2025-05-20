@@ -3,8 +3,11 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:u_teen/providers/order_provider.dart';
 import 'package:u_teen/auth/auth_provider.dart';
+import 'package:u_teen/providers/theme_notifier.dart';
 
 class TransactionHistoryScreen extends StatefulWidget {
+  const TransactionHistoryScreen({super.key});
+
   @override
   _TransactionHistoryPageState createState() => _TransactionHistoryPageState();
 }
@@ -22,91 +25,114 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
 
   void _loadTransactions() async {
     setState(() => _isLoading = true);
-    
+
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final sellerEmail = authProvider.user?.email ?? '';
-    
+
     final allTransactions = orderProvider.getTransactionsForMerchant(sellerEmail);
-    
+
     transactions = allTransactions.map((order) {
       final isWithdrawal = order.customerName == 'Withdrawal';
       return {
         'id': order.id,
-        'title': isWithdrawal 
+        'title': isWithdrawal
             ? 'Withdrawal to ${order.paymentMethod}'
             : 'Payment by ${order.customerName}',
         'date': isWithdrawal ? order.orderTime : (order.completedTime ?? order.orderTime),
         'amount': order.totalPrice,
         'type': isWithdrawal ? 'Money Out' : 'Money In',
-        'status': isWithdrawal 
+        'status': isWithdrawal
             ? (order.status == 'processed' ? 'Processed' : 'Completed')
             : (order.status == 'completed' ? 'Completed' : 'Processing'),
         'order': order,
       };
     }).toList();
-    
+
     setState(() => _isLoading = false);
   }
 
   @override
   Widget build(BuildContext context) {
-    final filteredTransactions = transactions.where((transaction) {
-      return selectedTab == 'All' || transaction['type'] == selectedTab;
-    }).toList();
+    return ChangeNotifierProvider(
+      create: (context) => ThemeNotifier(),
+      child: Consumer<ThemeNotifier>(
+        builder: (context, themeNotifier, child) {
+          final isDarkMode = themeNotifier.isDarkMode;
+          final filteredTransactions = transactions.where((transaction) {
+            return selectedTab == 'All' || transaction['type'] == selectedTab;
+          }).toList();
 
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: Text(
-          'Transaction History',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        centerTitle: true,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Colors.blue[700]!, Colors.blue[400]!],
+          return Theme(
+            data: themeNotifier.currentTheme,
+            child: Scaffold(
+              backgroundColor: isDarkMode ? const Color(0xFF121212) : const Color(0xFFF8FAFC),
+              appBar: AppBar(
+                title: Text(
+                  'Transaction History',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                centerTitle: true,
+                flexibleSpace: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: isDarkMode
+                          ? [const Color(0xFF1E3A8A), const Color(0xFF1E40AF)]
+                          : [Colors.blue[700]!, Colors.blue[400]!],
+                    ),
+                  ),
+                ),
+                elevation: 0,
+              ),
+              body: Column(
+                children: [
+                  _buildSummaryCard(isDarkMode),
+                  _buildTabBar(isDarkMode),
+                  Expanded(
+                    child: _isLoading
+                        ? Center(
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                isDarkMode ? Colors.white : Colors.blue,
+                              ),
+                            ),
+                          )
+                        : filteredTransactions.isEmpty
+                            ? _buildEmptyState(isDarkMode)
+                            : ListView.builder(
+                                padding: const EdgeInsets.only(top: 8),
+                                itemCount: filteredTransactions.length,
+                                itemBuilder: (context, index) {
+                                  return _buildTransactionCard(
+                                    filteredTransactions[index],
+                                    isDarkMode,
+                                  );
+                                },
+                              ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ),
-        elevation: 0,
-      ),
-      body: Column(
-        children: [
-          _buildSummaryCard(),
-          _buildTabBar(),
-          Expanded(
-            child: _isLoading
-                ? Center(child: CircularProgressIndicator())
-                : filteredTransactions.isEmpty
-                    ? _buildEmptyState()
-                    : ListView.builder(
-                        padding: EdgeInsets.only(top: 8),
-                        itemCount: filteredTransactions.length,
-                        itemBuilder: (context, index) {
-                          return _buildTransactionCard(
-                            filteredTransactions[index],
-                          );
-                        },
-                      ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildSummaryCard() {
+  Widget _buildSummaryCard(bool isDarkMode) {
     final totalIn = transactions
         .where((t) => t['type'] == 'Money In')
         .fold(0.0, (sum, t) => sum + (t['amount'] as double));
-    
+
     final totalOut = transactions
         .where((t) => t['type'] == 'Money Out')
         .fold(0.0, (sum, t) => sum + (t['amount'] as double));
@@ -118,22 +144,26 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
     );
 
     return Container(
-      margin: EdgeInsets.all(16),
-      padding: EdgeInsets.all(16),
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Colors.blue[600]!, Colors.blue[400]!],
+          colors: isDarkMode
+              ? [const Color(0xFF1E3A8A), const Color(0xFF1E40AF)]
+              : [Colors.blue[600]!, Colors.blue[400]!],
         ),
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue.withOpacity(0.2),
-            blurRadius: 10,
-            offset: Offset(0, 5),
-          ),
-        ],
+        boxShadow: isDarkMode
+            ? []
+            : [
+                BoxShadow(
+                  color: Colors.blue.withOpacity(0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
       ),
       child: Column(
         children: [
@@ -145,7 +175,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -173,12 +203,12 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
       children: [
         Text(
           label,
-          style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12),
+          style: const TextStyle(color: Colors.white70, fontSize: 12),
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Text(
           value,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -188,24 +218,24 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
     );
   }
 
-  Widget _buildTabBar() {
+  Widget _buildTabBar(bool isDarkMode) {
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.grey[200],
+        color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.grey[200],
         borderRadius: BorderRadius.circular(30),
       ),
       child: Row(
         children: [
-          _buildTabButton('All', Icons.list_alt),
-          _buildTabButton('Money In', Icons.arrow_downward),
-          _buildTabButton('Money Out', Icons.arrow_upward),
+          _buildTabButton('All', Icons.list_alt, isDarkMode),
+          _buildTabButton('Money In', Icons.arrow_downward, isDarkMode),
+          _buildTabButton('Money Out', Icons.arrow_upward, isDarkMode),
         ],
       ),
     );
   }
 
-  Widget _buildTabButton(String tab, IconData icon) {
+  Widget _buildTabButton(String tab, IconData icon, bool isDarkMode) {
     final isSelected = selectedTab == tab;
     return Expanded(
       child: GestureDetector(
@@ -215,8 +245,8 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
           });
         },
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          margin: EdgeInsets.all(4),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          margin: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             color: isSelected ? Colors.blue : Colors.transparent,
             borderRadius: BorderRadius.circular(25),
@@ -227,13 +257,13 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
               Icon(
                 icon,
                 size: 18,
-                color: isSelected ? Colors.white : Colors.blue,
+                color: isSelected ? Colors.white : (isDarkMode ? Colors.white : Colors.blue),
               ),
-              SizedBox(width: 6),
+              const SizedBox(width: 6),
               Text(
                 tab,
                 style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.blue,
+                  color: isSelected ? Colors.white : (isDarkMode ? Colors.white : Colors.blue),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -244,7 +274,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
     );
   }
 
-  Widget _buildTransactionCard(Map<String, dynamic> transaction) {
+  Widget _buildTransactionCard(Map<String, dynamic> transaction, bool isDarkMode) {
     final isMoneyIn = transaction['type'] == 'Money In';
     final dateFormat = DateFormat('dd MMM yyyy • HH:mm');
     final amount = transaction['amount'] as double;
@@ -255,15 +285,15 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
     );
 
     return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      elevation: 1,
-      color: Colors.white,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      elevation: isDarkMode ? 0 : 1,
+      color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () => _showTransactionDetails(transaction),
+        onTap: () => _showTransactionDetails(transaction, isDarkMode),
         child: Padding(
-          padding: EdgeInsets.all(12),
+          padding: const EdgeInsets.all(12),
           child: Row(
             children: [
               Container(
@@ -271,7 +301,9 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
                 height: 40,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isMoneyIn ? Colors.green[50] : Colors.red[50],
+                  color: isMoneyIn
+                      ? (isDarkMode ? Colors.green[900] : Colors.green[50])
+                      : (isDarkMode ? Colors.red[900] : Colors.red[50]),
                 ),
                 child: Icon(
                   isMoneyIn ? Icons.arrow_downward : Icons.arrow_upward,
@@ -279,7 +311,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
                   size: 20,
                 ),
               ),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -289,12 +321,16 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
+                        color: isDarkMode ? Colors.white : Colors.black,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
                       dateFormat.format(transaction['date']),
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
@@ -310,12 +346,11 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
                       fontSize: 15,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: _getStatusColor(transaction['status'])
-                          .withOpacity(0.1),
+                      color: _getStatusColor(transaction['status']).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
@@ -335,21 +370,31 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(bool isDarkMode) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.receipt_long, size: 60, color: Colors.grey[300]),
-          SizedBox(height: 16),
+          Icon(
+            Icons.receipt_long,
+            size: 60,
+            color: isDarkMode ? Colors.grey[600] : Colors.grey[300],
+          ),
+          const SizedBox(height: 16),
           Text(
             'No transactions found',
-            style: TextStyle(color: Colors.grey, fontSize: 16),
+            style: TextStyle(
+              color: isDarkMode ? Colors.grey[400] : Colors.grey,
+              fontSize: 16,
+            ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             'When you have transactions, they\'ll appear here',
-            style: TextStyle(color: Colors.grey[400], fontSize: 12),
+            style: TextStyle(
+              color: isDarkMode ? Colors.grey[600] : Colors.grey[400],
+              fontSize: 12,
+            ),
           ),
         ],
       ),
@@ -369,15 +414,15 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
     }
   }
 
-  void _showTransactionDetails(Map<String, dynamic> transaction) {
+  void _showTransactionDetails(Map<String, dynamic> transaction, bool isDarkMode) {
     showModalBottomSheet(
       context: context,
       builder: (context) {
         return Container(
-          padding: EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -388,22 +433,27 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
                   width: 60,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: isDarkMode ? Colors.grey[800] : Colors.grey[300],
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Text(
                 'Transaction Details',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDarkMode ? Colors.white : Colors.black,
+                ),
               ),
-              SizedBox(height: 20),
-              _buildDetailRow('Transaction ID', transaction['id']),
-              _buildDetailRow('Type', transaction['type']),
+              const SizedBox(height: 20),
+              _buildDetailRow('Transaction ID', transaction['id'], isDarkMode),
+              _buildDetailRow('Type', transaction['type'], isDarkMode),
               _buildDetailRow(
                 'Date',
                 DateFormat('dd MMMM yyyy, HH:mm').format(transaction['date']),
+                isDarkMode,
               ),
               _buildDetailRow(
                 'Amount',
@@ -412,14 +462,15 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
                   symbol: 'Rp ',
                   decimalDigits: 0,
                 ).format((transaction['amount'] as double).round())}',
+                isDarkMode,
               ),
-              _buildDetailRow('Status', transaction['status']),
-              SizedBox(height: 30),
+              _buildDetailRow('Status', transaction['status'], isDarkMode),
+              const SizedBox(height: 30),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -431,7 +482,9 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
                   child: Ink(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Colors.blue[400]!, Colors.blue[600]!],
+                        colors: isDarkMode
+                            ? [const Color(0xFF1E3A8A), const Color(0xFF1E40AF)]
+                            : [Colors.blue[400]!, Colors.blue[600]!],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -439,8 +492,8 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
                     ),
                     child: Container(
                       alignment: Alignment.center,
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      child: Text(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: const Text(
                         'Close',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
@@ -456,25 +509,28 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
         );
       },
       isScrollControlled: true,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(String label, String value, bool isDarkMode) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
           Text(
             '$label: ',
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: Colors.grey[600],
+              color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
             ),
           ),
-          Text(value, style: TextStyle(color: Colors.grey[800])),
+          Text(
+            value,
+            style: TextStyle(color: isDarkMode ? Colors.white : Colors.grey[800]),
+          ),
         ],
       ),
     );

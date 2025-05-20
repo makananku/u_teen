@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/payment_method.dart';
+import '../../providers/theme_notifier.dart';
 import 'package:flutter/services.dart';
 
 class PaymentMethodCard extends StatefulWidget {
@@ -33,30 +35,28 @@ class _PaymentMethodCardState extends State<PaymentMethodCard>
       duration: const Duration(milliseconds: 200),
     );
 
-    // Initialize all animations in initState
     _initializeAnimations();
 
-    // Start animation if widget is already selected
     if (widget.isSelected) {
       _controller.forward();
     }
   }
 
   void _initializeAnimations() {
+    final isDarkMode = Provider.of<ThemeNotifier>(context, listen: false).isDarkMode;
     _scaleAnimation = Tween<double>(
       begin: 1.0,
       end: 0.98,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     _elevationAnimation = Tween<double>(
-      begin: 2,
-      end: 6,
+      begin: isDarkMode ? 0 : 2,
+      end: isDarkMode ? 0 : 6,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     _colorAnimation = ColorTween(
-      begin: Colors.white,
-      end:
-          widget.method.primaryColor?.withOpacity(0.05) ??
+      begin: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+      end: widget.method.primaryColor?.withOpacity(0.05) ??
           Colors.blue.withOpacity(0.05),
     ).animate(_controller);
   }
@@ -68,7 +68,6 @@ class _PaymentMethodCardState extends State<PaymentMethodCard>
       widget.isSelected ? _controller.forward() : _controller.reverse();
     }
 
-    // Reinitialize animations if the method changed
     if (widget.method != oldWidget.method) {
       _initializeAnimations();
     }
@@ -82,25 +81,27 @@ class _PaymentMethodCardState extends State<PaymentMethodCard>
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
         return Transform.scale(
           scale: _scaleAnimation.value,
           child: Card(
-            elevation: widget.isSelected ? 4 : 2, // Elevation lebih subtle
+            elevation: _elevationAnimation.value,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
               side: BorderSide(
-                color:
-                    widget.isSelected
-                        ? widget.method.primaryColor?.withOpacity(0.5) ??
-                            Colors.blue.withOpacity(0.5)
+                color: widget.isSelected
+                    ? widget.method.primaryColor?.withOpacity(0.5) ??
+                        Colors.blue.withOpacity(0.5)
+                    : isDarkMode
+                        ? Colors.grey[700]!
                         : Colors.grey[200]!,
                 width: widget.isSelected ? 1.2 : 0.8,
               ),
             ),
-            color: Colors.white, // Warna tetap putih
+            color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
             child: InkWell(
               borderRadius: BorderRadius.circular(12),
               onTap: () {
@@ -111,17 +112,15 @@ class _PaymentMethodCardState extends State<PaymentMethodCard>
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    // Logo payment method
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
-                        color:
-                            widget.isSelected
-                                ? (widget.method.primaryColor?.withOpacity(
-                                      0.1,
-                                    ) ??
-                                    Colors.blue.withOpacity(0.1))
+                        color: widget.isSelected
+                            ? (widget.method.primaryColor?.withOpacity(0.1) ??
+                                Colors.blue.withOpacity(0.1))
+                            : isDarkMode
+                                ? Colors.grey[800]
                                 : Colors.grey[100],
                       ),
                       child: Image.asset(
@@ -140,10 +139,10 @@ class _PaymentMethodCardState extends State<PaymentMethodCard>
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
-                              color:
-                                  widget.isSelected
-                                      ? widget.method.primaryColor ??
-                                          Colors.blue
+                              color: widget.isSelected
+                                  ? widget.method.primaryColor ?? Colors.blue
+                                  : isDarkMode
+                                      ? Colors.white
                                       : Colors.black87,
                             ),
                           ),
@@ -152,12 +151,11 @@ class _PaymentMethodCardState extends State<PaymentMethodCard>
                             widget.method.description,
                             style: TextStyle(
                               fontSize: 13,
-                              color:
-                                  widget.isSelected
-                                      ? widget.method.primaryColor?.withOpacity(
-                                            0.8,
-                                          ) ??
-                                          Colors.blue.withOpacity(0.8)
+                              color: widget.isSelected
+                                  ? widget.method.primaryColor?.withOpacity(0.8) ??
+                                      Colors.blue.withOpacity(0.8)
+                                  : isDarkMode
+                                      ? Colors.grey[400]
                                       : Colors.grey[600],
                             ),
                           ),
@@ -169,8 +167,7 @@ class _PaymentMethodCardState extends State<PaymentMethodCard>
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: (widget.method.primaryColor ??
-                                        Colors.blue)
+                                color: (widget.method.primaryColor ?? Colors.blue)
                                     .withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(4),
                               ),
@@ -179,8 +176,7 @@ class _PaymentMethodCardState extends State<PaymentMethodCard>
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
-                                  color:
-                                      widget.method.primaryColor ?? Colors.blue,
+                                  color: widget.method.primaryColor ?? Colors.blue,
                                 ),
                               ),
                             ),
@@ -188,43 +184,39 @@ class _PaymentMethodCardState extends State<PaymentMethodCard>
                         ],
                       ),
                     ),
-                    // Animated checkmark
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
-                      transitionBuilder:
-                          (child, animation) => ScaleTransition(
-                            scale: animation,
-                            child: FadeTransition(
-                              opacity: animation,
-                              child: child,
-                            ),
-                          ),
-                      child:
-                          widget.isSelected
-                              ? Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color:
-                                      widget.method.primaryColor ?? Colors.blue,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.check,
-                                  color: Colors.white,
-                                  size: 16,
-                                ),
-                              )
-                              : Container(
-                                width: 24,
-                                height: 24,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.grey[300]!,
-                                    width: 1.5,
-                                  ),
+                      transitionBuilder: (child, animation) => ScaleTransition(
+                        scale: animation,
+                        child: FadeTransition(
+                          opacity: animation,
+                          child: child,
+                        ),
+                      ),
+                      child: widget.isSelected
+                          ? Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: widget.method.primaryColor ?? Colors.blue,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            )
+                          : Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: isDarkMode ? Colors.grey[700]! : Colors.grey[300]!,
+                                  width: 1.5,
                                 ),
                               ),
+                            ),
                     ),
                   ],
                 ),

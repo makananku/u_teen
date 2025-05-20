@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/order_model.dart';
+import '../../providers/theme_notifier.dart';
 
 class RatingDistributionCard extends StatelessWidget {
   final List<Order> ratedOrders;
@@ -11,6 +13,7 @@ class RatingDistributionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     final ratingCounts = [0, 0, 0, 0, 0];
     for (var order in ratedOrders) {
       if (order.foodRating != null && order.foodRating! > 0) {
@@ -21,11 +24,11 @@ class RatingDistributionCard extends StatelessWidget {
     final maxCount = ratingCounts.reduce((a, b) => a > b ? a : b);
 
     return Card(
-      elevation: 2,
+      elevation: isDarkMode ? 0 : 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      color: Colors.white,
+      color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -42,17 +45,24 @@ class RatingDistributionCard extends StatelessWidget {
                     width: 20,
                     child: Text(
                       '${5 - index}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isDarkMode ? Colors.white : Colors.black,
+                      ),
                     ),
                   ),
-                  const Icon(Icons.star, color: Colors.amber, size: 16),
+                  Icon(
+                    Icons.star,
+                    color: isDarkMode ? Colors.amber[300] : Colors.amber,
+                    size: 16,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: LinearProgressIndicator(
                       value: maxCount == 0 ? 0 : count / maxCount,
-                      backgroundColor: Colors.grey[200],
+                      backgroundColor: isDarkMode ? Colors.grey[700] : Colors.grey[200],
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        Colors.amber.withOpacity(0.6),
+                        isDarkMode ? Colors.amber[300]!.withOpacity(0.6) : Colors.amber.withOpacity(0.6),
                       ),
                       minHeight: 8,
                       borderRadius: BorderRadius.circular(4),
@@ -63,7 +73,10 @@ class RatingDistributionCard extends StatelessWidget {
                     width: 40,
                     child: Text(
                       '${percentage.toStringAsFixed(0)}%',
-                      style: const TextStyle(fontSize: 12),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDarkMode ? Colors.grey[400] : Colors.black,
+                      ),
                     ),
                   ),
                 ],
