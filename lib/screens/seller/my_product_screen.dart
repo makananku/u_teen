@@ -8,6 +8,7 @@ import 'package:u_teen/widgets/seller/custom_bottom_navigation.dart';
 import 'package:u_teen/models/product_model.dart';
 import 'package:u_teen/widgets/seller/product_card.dart';
 import 'package:u_teen/providers/theme_notifier.dart';
+import 'package:u_teen/utils/app_theme.dart';
 
 class SellerMyProductScreen extends StatefulWidget {
   const SellerMyProductScreen({super.key});
@@ -27,71 +28,65 @@ class _SellerMyProductScreenState extends State<SellerMyProductScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => ThemeNotifier(),
-      child: Consumer<ThemeNotifier>(
-        builder: (context, themeNotifier, child) {
-          final isDarkMode = themeNotifier.isDarkMode;
-          return Theme(
-            data: themeNotifier.currentTheme,
-            child: WillPopScope(
-              onWillPop: () async {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SellerHomeScreen()),
-                );
-                return false;
-              },
-              child: Scaffold(
-                backgroundColor: isDarkMode ? const Color(0xFF121212) : const Color(0xFFF8FAFC),
-                appBar: AppBar(
-                  title: Text(
-                    'My Product',
-                    style: TextStyle(
-                      color: isDarkMode ? Colors.white : Colors.black,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  centerTitle: true,
-                  backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
-                  elevation: 0.5,
-                  iconTheme: IconThemeData(color: isDarkMode ? Colors.white : Colors.black87),
-                  actions: [
-                    IconButton(
-                      icon: Icon(Icons.add, color: isDarkMode ? Colors.white : Colors.black87),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SellerEditProductScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-                body: Stack(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-                      child: _buildContent(context),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: SellerCustomBottomNavigation(
-                        selectedIndex: NavIndices.products,
-                        context: context,
-                      ),
-                    ),
-                  ],
-                ),
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
+    final isDarkMode = themeNotifier.isDarkMode;
+    return Theme(
+      data: themeNotifier.currentTheme,
+      child: WillPopScope(
+        onWillPop: () async {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const SellerHomeScreen()),
+          );
+          return false;
+        },
+        child: Scaffold(
+          backgroundColor: AppTheme.getBackground(isDarkMode),
+          appBar: AppBar(
+            title: Text(
+              'My Product',
+              style: TextStyle(
+                color: AppTheme.getPrimaryText(isDarkMode),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
             ),
-          );
-        },
+            centerTitle: true,
+            backgroundColor: AppTheme.getCard(isDarkMode),
+            elevation: 0.5,
+            iconTheme: IconThemeData(color: AppTheme.getPrimaryText(isDarkMode)),
+            actions: [
+              IconButton(
+                icon: Icon(Icons.add, color: AppTheme.getPrimaryText(isDarkMode)),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SellerEditProductScreen(),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          body: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+                child: _buildContent(context),
+              ),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: SellerCustomBottomNavigation(
+                  selectedIndex: NavIndices.products,
+                  context: context,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -106,7 +101,7 @@ class _SellerMyProductScreenState extends State<SellerMyProductScreen> {
     if (foodProvider.isLoading) {
       return Center(
         child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(isDarkMode ? Colors.white : Colors.black87),
+          valueColor: AlwaysStoppedAnimation<Color>(AppTheme.getPrimaryText(isDarkMode)),
         ),
       );
     }
@@ -116,7 +111,7 @@ class _SellerMyProductScreenState extends State<SellerMyProductScreen> {
         child: Text(
           'No products found. Add your first product!',
           style: TextStyle(
-            color: isDarkMode ? Colors.grey[400] : Colors.grey.shade600,
+            color: AppTheme.getSecondaryText(isDarkMode),
             fontSize: 16,
           ),
         ),

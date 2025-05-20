@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:u_teen/models/product_model.dart';
+import 'package:u_teen/providers/theme_notifier.dart';
+import 'package:u_teen/utils/app_theme.dart';
+import 'dart:io';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -17,13 +21,14 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      color: Colors.white, // Atur background Card menjadi putih
+      color: AppTheme.getCard(isDarkMode),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () {},
@@ -40,7 +45,7 @@ class ProductCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
+                      color: AppTheme.getSecondaryText(isDarkMode).withOpacity(0.1),
                       spreadRadius: 1,
                       blurRadius: 8,
                       offset: const Offset(0, 2),
@@ -49,10 +54,7 @@ class ProductCard extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
-                    product.imgUrl,
-                    fit: BoxFit.cover,
-                  ),
+                  child: _buildImage(),
                 ),
               ),
               const SizedBox(width: 16),
@@ -66,10 +68,10 @@ class ProductCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             product.title,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
-                              color: Colors.black87,
+                              color: AppTheme.getPrimaryText(isDarkMode),
                             ),
                           ),
                         ),
@@ -77,17 +79,16 @@ class ProductCard extends StatelessWidget {
                         GestureDetector(
                           onTap: onToggleStatus,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
                               color: product.isActive
-                                  ? Colors.green.withOpacity(0.1)
-                                  : Colors.grey.withOpacity(0.1),
+                                  ? AppTheme.getSnackBarSuccess(isDarkMode).withOpacity(0.1)
+                                  : AppTheme.getDisabled(isDarkMode).withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
                                 color: product.isActive
-                                    ? Colors.green
-                                    : Colors.grey,
+                                    ? AppTheme.getSnackBarSuccess(isDarkMode)
+                                    : AppTheme.getDisabled(isDarkMode),
                                 width: 1,
                               ),
                             ),
@@ -95,8 +96,8 @@ class ProductCard extends StatelessWidget {
                               product.isActive ? 'Active' : 'Inactive',
                               style: TextStyle(
                                 color: product.isActive
-                                    ? Colors.green.shade700
-                                    : Colors.grey.shade700,
+                                    ? AppTheme.getSnackBarSuccess(isDarkMode)
+                                    : AppTheme.getDisabled(isDarkMode),
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -110,7 +111,7 @@ class ProductCard extends StatelessWidget {
                       product.subtitle,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey.shade600,
+                        color: AppTheme.getSecondaryText(isDarkMode),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -118,10 +119,9 @@ class ProductCard extends StatelessWidget {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
+                            color: AppTheme.getButton(isDarkMode).withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -129,16 +129,15 @@ class ProductCard extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: Colors.blue.shade800,
+                              color: AppTheme.getButton(isDarkMode),
                             ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.orange.withOpacity(0.1),
+                            color: AppTheme.getRating(isDarkMode).withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
@@ -146,14 +145,14 @@ class ProductCard extends StatelessWidget {
                               Icon(
                                 Icons.access_time,
                                 size: 14,
-                                color: Colors.orange.shade700,
+                                color: AppTheme.getRating(isDarkMode),
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 product.time,
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.orange.shade700,
+                                  color: AppTheme.getRating(isDarkMode),
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -172,12 +171,12 @@ class ProductCard extends StatelessWidget {
                     icon: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
+                        color: AppTheme.getButton(isDarkMode).withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.edit,
-                        color: Colors.blue.shade700,
+                        color: AppTheme.getButton(isDarkMode),
                         size: 20,
                       ),
                     ),
@@ -187,12 +186,12 @@ class ProductCard extends StatelessWidget {
                     icon: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
+                        color: AppTheme.getSnackBarError(isDarkMode).withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.delete,
-                        color: Colors.red.shade700,
+                        color: AppTheme.getSnackBarError(isDarkMode),
                         size: 20,
                       ),
                     ),
@@ -202,6 +201,59 @@ class ProductCard extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImage() {
+    if (product.imgUrl.isEmpty) {
+      return Container(
+        color: Colors.grey[200],
+        child: Icon(
+          Icons.image_not_supported,
+          color: Colors.grey[600],
+          size: 50,
+        ),
+      );
+    }
+    if (product.imgUrl.startsWith('http')) {
+      return Image.network(
+        product.imgUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: Colors.grey[200],
+          child: Icon(
+            Icons.image_not_supported,
+            color: Colors.grey[600],
+            size: 50,
+          ),
+        ),
+      );
+    }
+    if (File(product.imgUrl).existsSync()) {
+      return Image.file(
+        File(product.imgUrl),
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: Colors.grey[200],
+          child: Icon(
+            Icons.image_not_supported,
+            color: Colors.grey[600],
+            size: 50,
+          ),
+        ),
+      );
+    }
+    return Image.asset(
+      product.imgUrl,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => Container(
+        color: Colors.grey[200],
+        child: Icon(
+          Icons.image_not_supported,
+          color: Colors.grey[600],
+          size: 50,
         ),
       ),
     );

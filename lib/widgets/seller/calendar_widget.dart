@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:u_teen/providers/theme_notifier.dart';
 import 'package:u_teen/services/calendar_service.dart' as calendar_service;
+import 'package:u_teen/utils/app_theme.dart';
 import '../../utils/calendar_utils.dart';
 import 'package:intl/intl.dart';
 
@@ -28,23 +31,31 @@ class CalendarSection extends StatefulWidget {
 }
 
 class _CalendarSectionState extends State<CalendarSection> {
-  final Map<String, Color> _filterColors = {
-    'All': Colors.blueAccent,
-    'Holidays': Colors.redAccent,
-    'Exams': Colors.orangeAccent,
-    'Events': Colors.purpleAccent,
-  };
+  late Map<String, Color> _filterColors;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
+    _filterColors = {
+      'All': AppTheme.getButton(isDarkMode),
+      'Holidays': AppTheme.getSnackBarError(isDarkMode),
+      'Exams': AppTheme.getRating(isDarkMode),
+      'Events': AppTheme.getSnackBarSuccess(isDarkMode),
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.getCard(isDarkMode),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: AppTheme.getSecondaryText(isDarkMode).withOpacity(0.1),
             blurRadius: 10,
             spreadRadius: 2,
             offset: const Offset(0, 4),
@@ -65,7 +76,7 @@ class _CalendarSectionState extends State<CalendarSection> {
                     Text(
                       'ACADEMIC CALENDAR',
                       style: TextStyle(
-                        color: Colors.grey[600],
+                        color: AppTheme.getSecondaryText(isDarkMode),
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1,
@@ -101,10 +112,14 @@ class _CalendarSectionState extends State<CalendarSection> {
                   ),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 40),
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 40),
                   child: Center(
-                    child: CircularProgressIndicator(),
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppTheme.getButton(isDarkMode),
+                      ),
+                    ),
                   ),
                 );
               }
@@ -114,7 +129,7 @@ class _CalendarSectionState extends State<CalendarSection> {
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                   child: Text(
                     'Error loading calendar events',
-                    style: TextStyle(color: Colors.red[700]),
+                    style: TextStyle(color: AppTheme.getSnackBarError(isDarkMode)),
                   ),
                 );
               }
@@ -177,7 +192,7 @@ class _CalendarSectionState extends State<CalendarSection> {
                             child: Text(
                               'No events in the selected period',
                               style: TextStyle(
-                                color: Colors.grey[600],
+                                color: AppTheme.getSecondaryText(isDarkMode),
                                 fontSize: 14,
                               ),
                             ),
@@ -212,12 +227,13 @@ class CalendarFilterButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     return PopupMenuButton<String>(
-      color: Colors.white,
+      color: AppTheme.getCard(isDarkMode),
       icon: Container(
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: Colors.blue[50],
+          color: AppTheme.getButton(isDarkMode).withOpacity(0.1),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
@@ -226,7 +242,7 @@ class CalendarFilterButton extends StatelessWidget {
             Text(
               'Filter',
               style: TextStyle(
-                color: Colors.blue[700],
+                color: AppTheme.getButton(isDarkMode),
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
               ),
@@ -235,7 +251,7 @@ class CalendarFilterButton extends StatelessWidget {
             Icon(
               Icons.filter_list,
               size: 16,
-              color: Colors.blue[700],
+              color: AppTheme.getButton(isDarkMode),
             ),
           ],
         ),
@@ -252,9 +268,12 @@ class CalendarFilterButton extends StatelessWidget {
           value: '0',
           child: Row(
             children: [
-              Icon(Icons.calendar_view_month, color: Colors.blue[700]),
+              Icon(Icons.calendar_view_month, color: AppTheme.getButton(isDarkMode)),
               const SizedBox(width: 8),
-              const Text('1 Month'),
+              Text(
+                '1 Month',
+                style: TextStyle(color: AppTheme.getPrimaryText(isDarkMode)),
+              ),
             ],
           ),
         ),
@@ -262,9 +281,12 @@ class CalendarFilterButton extends StatelessWidget {
           value: '1',
           child: Row(
             children: [
-              Icon(Icons.calendar_view_week, color: Colors.green[700]),
+              Icon(Icons.calendar_view_week, color: AppTheme.getSnackBarSuccess(isDarkMode)),
               const SizedBox(width: 8),
-              const Text('3 Months'),
+              Text(
+                '3 Months',
+                style: TextStyle(color: AppTheme.getPrimaryText(isDarkMode)),
+              ),
             ],
           ),
         ),
@@ -272,9 +294,12 @@ class CalendarFilterButton extends StatelessWidget {
           value: '2',
           child: Row(
             children: [
-              Icon(Icons.calendar_today, color: Colors.orange[700]),
+              Icon(Icons.calendar_today, color: AppTheme.getRating(isDarkMode)),
               const SizedBox(width: 8),
-              const Text('6 Months'),
+              Text(
+                '6 Months',
+                style: TextStyle(color: AppTheme.getPrimaryText(isDarkMode)),
+              ),
             ],
           ),
         ),
@@ -282,9 +307,12 @@ class CalendarFilterButton extends StatelessWidget {
           value: 'custom',
           child: Row(
             children: [
-              Icon(Icons.date_range, color: Colors.purple[700]),
+              Icon(Icons.date_range, color: AppTheme.getSnackBarError(isDarkMode)),
               const SizedBox(width: 8),
-              const Text('Custom Range...'),
+              Text(
+                'Custom Range...',
+                style: TextStyle(color: AppTheme.getPrimaryText(isDarkMode)),
+              ),
             ],
           ),
         ),
@@ -307,6 +335,7 @@ class DateRangeDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     final now = DateTime.now();
     late String rangeText;
 
@@ -325,18 +354,18 @@ class DateRangeDisplay extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.blue[50],
+        color: AppTheme.getButton(isDarkMode).withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.calendar_month, size: 16, color: Colors.blue[700]),
+          Icon(Icons.calendar_month, size: 16, color: AppTheme.getButton(isDarkMode)),
           const SizedBox(width: 8),
           Text(
             rangeText,
             style: TextStyle(
-              color: Colors.blue[700],
+              color: AppTheme.getButton(isDarkMode),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -364,17 +393,18 @@ class EventTypeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: ChoiceChip(
         label: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: isSelected ? Colors.white : color),
+            Icon(icon, size: 16, color: isSelected ? AppTheme.getPrimaryText(!isDarkMode) : color),
             const SizedBox(width: 4),
             Text(
               label,
-              style: TextStyle(color: isSelected ? Colors.white : color),
+              style: TextStyle(color: isSelected ? AppTheme.getPrimaryText(!isDarkMode) : color),
             ),
           ],
         ),
@@ -385,7 +415,7 @@ class EventTypeChip extends StatelessWidget {
         selectedColor: color,
         backgroundColor: color.withOpacity(0.1),
         labelStyle: TextStyle(
-          color: isSelected ? Colors.white : color,
+          color: isSelected ? AppTheme.getPrimaryText(!isDarkMode) : color,
           fontSize: 12,
           fontWeight: FontWeight.bold,
         ),
@@ -405,6 +435,7 @@ class EventItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     final icon = CalendarUtils.getEventIcon(event.summary);
     final color = CalendarUtils.getEventColor(event.summary);
 
@@ -430,9 +461,10 @@ class EventItem extends StatelessWidget {
         ),
         title: Text(
           event.summary,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 14,
+            color: AppTheme.getPrimaryText(isDarkMode),
           ),
         ),
         subtitle: Column(
@@ -443,19 +475,19 @@ class EventItem extends StatelessWidget {
               event.description,
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: AppTheme.getSecondaryText(isDarkMode),
               ),
             ),
             const SizedBox(height: 4),
             Row(
               children: [
-                Icon(Icons.calendar_month, size: 12, color: Colors.grey[500]),
+                Icon(Icons.calendar_month, size: 12, color: AppTheme.getSecondaryText(isDarkMode)),
                 const SizedBox(width: 4),
                 Text(
                   event.formattedDateRange,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey[700],
+                    color: AppTheme.getSecondaryText(isDarkMode),
                   ),
                 ),
               ],
@@ -483,6 +515,7 @@ class EventItem extends StatelessWidget {
 }
 
 void showCustomDateRangePicker(BuildContext context, ValueChanged<DateTimeRange> onSelected) async {
+  final isDarkMode = Provider.of<ThemeNotifier>(context, listen: false).isDarkMode;
   final DateTimeRange? selectedRange = await showDateRangePicker(
     context: context,
     firstDate: DateTime.now(),
@@ -490,13 +523,25 @@ void showCustomDateRangePicker(BuildContext context, ValueChanged<DateTimeRange>
     builder: (context, child) {
       return Theme(
         data: ThemeData.light().copyWith(
-          colorScheme: ColorScheme.light(
-            primary: Colors.blue[700]!,
-            onPrimary: Colors.white,
-            surface: Colors.white,
-            onSurface: Colors.black87,
+          colorScheme: ColorScheme(
+            brightness: isDarkMode ? Brightness.dark : Brightness.light,
+            primary: AppTheme.getButton(isDarkMode),
+            onPrimary: AppTheme.getPrimaryText(!isDarkMode),
+            surface: AppTheme.getCard(isDarkMode),
+            onSurface: AppTheme.getPrimaryText(isDarkMode),
+            secondary: AppTheme.getSecondaryText(isDarkMode),
+            onSecondary: AppTheme.getPrimaryText(!isDarkMode),
+            error: AppTheme.getSnackBarError(isDarkMode),
+            onError: AppTheme.getPrimaryText(!isDarkMode),
+            background: AppTheme.getBackground(isDarkMode),
+            onBackground: AppTheme.getPrimaryText(isDarkMode),
           ),
-          dialogBackgroundColor: Colors.white,
+          dialogBackgroundColor: AppTheme.getCard(isDarkMode),
+          textButtonTheme: TextButtonThemeData(
+            style: TextButton.styleFrom(
+              foregroundColor: AppTheme.getButton(isDarkMode),
+            ),
+          ),
         ),
         child: child!,
       );

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:u_teen/models/payment_method.dart';
+import 'package:u_teen/providers/theme_notifier.dart';
+import 'package:u_teen/utils/app_theme.dart';
 import 'package:u_teen/utils/thousand_separator_formatter.dart';
 import 'package:u_teen/utils/formatters.dart';
 import 'package:u_teen/widgets/withdraw/quick_amount_button.dart';
@@ -44,12 +47,13 @@ class _WithdrawalDialogState extends State<WithdrawalDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     return Dialog(
       insetPadding: const EdgeInsets.all(20),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.getCard(isDarkMode),
       child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -62,21 +66,22 @@ class _WithdrawalDialogState extends State<WithdrawalDialog> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
+                      color: AppTheme.getButton(isDarkMode).withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.account_balance_wallet,
                       size: 32,
-                      color: Colors.blue,
+                      color: AppTheme.getButton(isDarkMode),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Withdraw Funds',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
+                      color: AppTheme.getPrimaryText(isDarkMode),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -84,7 +89,7 @@ class _WithdrawalDialogState extends State<WithdrawalDialog> {
                     'Available Balance: ${Formatters.currencyFormat.format(widget.balance)}',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[600],
+                      color: AppTheme.getSecondaryText(isDarkMode),
                     ),
                   ),
                 ],
@@ -95,14 +100,31 @@ class _WithdrawalDialogState extends State<WithdrawalDialog> {
                 decoration: InputDecoration(
                   labelText: 'Withdrawal Amount',
                   prefixText: 'Rp ',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  labelStyle: TextStyle(
+                    color: AppTheme.getSecondaryText(isDarkMode),
                   ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: AppTheme.getSecondaryText(isDarkMode),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: AppTheme.getButton(isDarkMode),
+                    ),
+                  ),
+                  filled: true,
+                  fillColor: AppTheme.getCard(isDarkMode),
                 ),
                 inputFormatters: [
                   ThousandSeparatorInputFormatter(),
                 ],
                 controller: _amountController,
+                style: TextStyle(
+                  color: AppTheme.getPrimaryText(isDarkMode),
+                ),
                 onChanged: (value) {
                   final parsed = double.tryParse(value.replaceAll('.', '')) ?? 0;
                   setState(() {
@@ -177,8 +199,11 @@ class _WithdrawalDialogState extends State<WithdrawalDialog> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.grey[50],
+                  color: AppTheme.getCard(isDarkMode),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppTheme.getSecondaryText(isDarkMode).withOpacity(0.3),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,7 +212,7 @@ class _WithdrawalDialogState extends State<WithdrawalDialog> {
                       'Withdraw to',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[600],
+                        color: AppTheme.getSecondaryText(isDarkMode),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -196,8 +221,11 @@ class _WithdrawalDialogState extends State<WithdrawalDialog> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AppTheme.getCard(isDarkMode),
                             borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: AppTheme.getSecondaryText(isDarkMode).withOpacity(0.3),
+                            ),
                           ),
                           child: Image.asset(
                             widget.selectedMethod.iconPath,
@@ -208,9 +236,10 @@ class _WithdrawalDialogState extends State<WithdrawalDialog> {
                         const SizedBox(width: 12),
                         Text(
                           widget.selectedMethod.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
+                            color: AppTheme.getPrimaryText(isDarkMode),
                           ),
                         ),
                       ],
@@ -220,7 +249,7 @@ class _WithdrawalDialogState extends State<WithdrawalDialog> {
                       widget.userGopayNumber,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[600],
+                        color: AppTheme.getSecondaryText(isDarkMode),
                       ),
                     ),
                   ],
@@ -237,12 +266,15 @@ class _WithdrawalDialogState extends State<WithdrawalDialog> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        side: const BorderSide(color: Colors.grey),
+                        side: BorderSide(
+                          color: AppTheme.getSecondaryText(isDarkMode),
+                        ),
+                        foregroundColor: AppTheme.getPrimaryText(isDarkMode),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Cancel',
                         style: TextStyle(
-                          color: Colors.black,
+                          color: AppTheme.getPrimaryText(isDarkMode),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -258,17 +290,17 @@ class _WithdrawalDialogState extends State<WithdrawalDialog> {
                               widget.onWithdraw(_withdrawalAmount);
                             },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                        backgroundColor: AppTheme.getButton(isDarkMode),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        elevation: 0,
+                        elevation: isDarkMode ? 0 : 2,
+                        foregroundColor: AppTheme.getPrimaryText(!isDarkMode),
                       ),
                       child: const Text(
                         'Confirm',
                         style: TextStyle(
-                          color: Colors.white,
                           fontWeight: FontWeight.w500,
                         ),
                       ),

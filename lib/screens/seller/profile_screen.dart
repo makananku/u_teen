@@ -21,70 +21,63 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Wrap with ChangeNotifierProvider to provide ThemeNotifier locally
-    return ChangeNotifierProvider(
-      create: (context) => ThemeNotifier(),
-      child: Consumer<ThemeNotifier>(
-        builder: (context, themeNotifier, child) {
-          final isDarkMode = themeNotifier.isDarkMode;
-          return Theme(
-            data: themeNotifier.currentTheme,
-            child: WillPopScope(
-              onWillPop: () async {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SellerHomeScreen()),
-                );
-                return false;
-              },
-              child: Scaffold(
-                backgroundColor: isDarkMode ? const Color(0xFF121212) : const Color(0xFFF8FAFC),
-                appBar: AppBar(
-                  title: Text(
-                    'Merchant Profile',
-                    style: TextStyle(
-                      color: isDarkMode ? Colors.white : const Color(0xFF1E293B),
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  centerTitle: true,
-                  backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
-                  elevation: 0.5,
-                  iconTheme: IconThemeData(
-                    color: isDarkMode ? Colors.white : Colors.black,
-                  ),
-                ),
-                body: Stack(
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
+    final isDarkMode = themeNotifier.isDarkMode;
+    return Theme(
+      data: themeNotifier.currentTheme,
+      child: WillPopScope(
+        onWillPop: () async {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const SellerHomeScreen()),
+          );
+          return false;
+        },
+        child: Scaffold(
+          backgroundColor: isDarkMode ? const Color(0xFF121212) : const Color(0xFFF8FAFC),
+          appBar: AppBar(
+            title: Text(
+              'Merchant Profile',
+              style: TextStyle(
+                color: isDarkMode ? Colors.white : const Color(0xFF1E293B),
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            centerTitle: true,
+            backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+            elevation: 0.5,
+            iconTheme: IconThemeData(
+              color: isDarkMode ? Colors.white : Colors.black,
+            ),
+          ),
+          body: Stack(
+            children: [
+              SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
                   children: [
-                    SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      child: Column(
-                        children: [
-                          _buildProfileHeader(context),
-                          const SizedBox(height: 16),
-                          _buildBusinessStats(context),
-                          const SizedBox(height: 16),
-                          _buildAccountDetails(context),
-                          const SizedBox(height: 80),
-                        ],
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: SellerCustomBottomNavigation(
-                        selectedIndex: NavIndices.profile,
-                        context: context,
-                      ),
-                    ),
+                    _buildProfileHeader(context),
+                    const SizedBox(height: 16),
+                    _buildBusinessStats(context),
+                    const SizedBox(height: 16),
+                    _buildAccountDetails(context),
+                    const SizedBox(height: 80),
                   ],
                 ),
               ),
-            ),
-          );
-        },
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: SellerCustomBottomNavigation(
+                  selectedIndex: NavIndices.profile,
+                  context: context,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

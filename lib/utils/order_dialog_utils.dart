@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:u_teen/models/order_model.dart';
 import 'package:u_teen/providers/order_provider.dart';
 import 'package:u_teen/providers/theme_notifier.dart';
+import 'package:u_teen/utils/app_theme.dart';
 
 class OrderDialogUtils {
   static void showMarkAsReadyDialog(BuildContext context, Order order) {
@@ -10,7 +11,7 @@ class OrderDialogUtils {
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+        backgroundColor: AppTheme.getCard(isDarkMode),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -19,14 +20,14 @@ class OrderDialogUtils {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.check_circle, color: Colors.green, size: 48),
+              Icon(Icons.check_circle, color: AppTheme.getSnackBarSuccess(isDarkMode), size: 48),
               const SizedBox(height: 16),
               Text(
                 'Confirm Ready',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: isDarkMode ? Colors.white : Colors.black,
+                  color: AppTheme.getPrimaryText(isDarkMode),
                 ),
               ),
               const SizedBox(height: 8),
@@ -34,7 +35,7 @@ class OrderDialogUtils {
                 'Are you sure you want to mark this order as ready for pickup?',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                  color: AppTheme.getSecondaryText(isDarkMode),
                 ),
               ),
               const SizedBox(height: 24),
@@ -46,13 +47,13 @@ class OrderDialogUtils {
                     child: Text(
                       'CANCEL',
                       style: TextStyle(
-                        color: isDarkMode ? Colors.grey[400] : Colors.grey[800],
+                        color: AppTheme.getSecondaryText(isDarkMode),
                       ),
                     ),
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
+                      backgroundColor: AppTheme.getSnackBarSuccess(isDarkMode),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
                         vertical: 12,
@@ -65,7 +66,7 @@ class OrderDialogUtils {
                         context: context,
                         barrierDismissible: false,
                         builder: (context) => Dialog(
-                          backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+                          backgroundColor: AppTheme.getCard(isDarkMode),
                           child: Padding(
                             padding: const EdgeInsets.all(20),
                             child: Column(
@@ -77,7 +78,7 @@ class OrderDialogUtils {
                                   child: CircularProgressIndicator(
                                     strokeWidth: 6,
                                     valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.green,
+                                      AppTheme.getSnackBarSuccess(isDarkMode),
                                     ),
                                   ),
                                 ),
@@ -85,7 +86,7 @@ class OrderDialogUtils {
                                 Text(
                                   'Marking order as ready...',
                                   style: TextStyle(
-                                    color: isDarkMode ? Colors.white : Colors.black,
+                                    color: AppTheme.getPrimaryText(isDarkMode),
                                   ),
                                 ),
                               ],
@@ -102,9 +103,9 @@ class OrderDialogUtils {
                         await showSuccessAnimation(context);
                       }
                     },
-                    child: const Text(
+                    child: Text(
                       'CONFIRM',
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(color: AppTheme.getPrimaryText(!isDarkMode)),
                     ),
                   ),
                 ],
@@ -124,7 +125,7 @@ class OrderDialogUtils {
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+        backgroundColor: AppTheme.getCard(isDarkMode),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -135,21 +136,21 @@ class OrderDialogUtils {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.cancel, color: Colors.red, size: 48),
+                Icon(Icons.cancel, color: AppTheme.getSnackBarError(isDarkMode), size: 48),
                 const SizedBox(height: 16),
                 Text(
                   'Cancel Order',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: isDarkMode ? Colors.white : Colors.black,
+                    color: AppTheme.getPrimaryText(isDarkMode),
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Please provide a reason for cancellation:',
                   style: TextStyle(
-                    color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                    color: AppTheme.getSecondaryText(isDarkMode),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -160,24 +161,24 @@ class OrderDialogUtils {
                     labelText: 'Cancellation Reason',
                     hintText: 'E.g. Out of stock, kitchen closed',
                     labelStyle: TextStyle(
-                      color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                      color: AppTheme.getSecondaryText(isDarkMode),
                     ),
                     hintStyle: TextStyle(
-                      color: isDarkMode ? Colors.grey[600] : Colors.grey[400],
+                      color: AppTheme.getSecondaryText(isDarkMode),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: isDarkMode ? Colors.grey[600]! : Colors.grey[400]!,
+                        color: AppTheme.getSecondaryText(isDarkMode),
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: isDarkMode ? Colors.white : Colors.blue,
+                        color: AppTheme.getButton(isDarkMode),
                       ),
                     ),
                   ),
                   style: TextStyle(
-                    color: isDarkMode ? Colors.white : Colors.black,
+                    color: AppTheme.getPrimaryText(isDarkMode),
                   ),
                   maxLines: 3,
                   validator: (value) {
@@ -196,13 +197,13 @@ class OrderDialogUtils {
                       child: Text(
                         'DISCARD',
                         style: TextStyle(
-                          color: isDarkMode ? Colors.grey[400] : Colors.grey[800],
+                          color: AppTheme.getSecondaryText(isDarkMode),
                         ),
                       ),
                     ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
+                        backgroundColor: AppTheme.getSnackBarError(isDarkMode),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 24,
                           vertical: 12,
@@ -217,7 +218,7 @@ class OrderDialogUtils {
                           context: context,
                           barrierDismissible: false,
                           builder: (context) => Dialog(
-                            backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+                            backgroundColor: AppTheme.getCard(isDarkMode),
                             child: Padding(
                               padding: const EdgeInsets.all(20),
                               child: Column(
@@ -229,7 +230,7 @@ class OrderDialogUtils {
                                     child: CircularProgressIndicator(
                                       strokeWidth: 6,
                                       valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.red,
+                                        AppTheme.getSnackBarError(isDarkMode),
                                       ),
                                     ),
                                   ),
@@ -237,7 +238,7 @@ class OrderDialogUtils {
                                   Text(
                                     'Cancelling order...',
                                     style: TextStyle(
-                                      color: isDarkMode ? Colors.white : Colors.black,
+                                      color: AppTheme.getPrimaryText(isDarkMode),
                                     ),
                                   ),
                                 ],
@@ -258,9 +259,9 @@ class OrderDialogUtils {
                           await showCancelledAnimation(context);
                         }
                       },
-                      child: const Text(
+                      child: Text(
                         'CONFIRM',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: AppTheme.getPrimaryText(!isDarkMode)),
                       ),
                     ),
                   ],
@@ -278,35 +279,35 @@ class OrderDialogUtils {
     await showDialog(
       context: context,
       builder: (context) => Dialog(
-        backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+        backgroundColor: AppTheme.getCard(isDarkMode),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.check_circle, color: Colors.green, size: 60),
+              Icon(Icons.check_circle, color: AppTheme.getSnackBarSuccess(isDarkMode), size: 60),
               const SizedBox(height: 16),
               Text(
                 'Success!',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: isDarkMode ? Colors.white : Colors.black,
+                  color: AppTheme.getPrimaryText(isDarkMode),
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 'Order marked as ready',
                 style: TextStyle(
-                  color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                  color: AppTheme.getSecondaryText(isDarkMode),
                 ),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
+                  backgroundColor: AppTheme.getSnackBarSuccess(isDarkMode),
+                  foregroundColor: AppTheme.getPrimaryText(!isDarkMode),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   elevation: isDarkMode ? 0 : 2,
                 ),
@@ -324,35 +325,35 @@ class OrderDialogUtils {
     await showDialog(
       context: context,
       builder: (context) => Dialog(
-        backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+        backgroundColor: AppTheme.getCard(isDarkMode),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.cancel, color: Colors.red, size: 60),
+              Icon(Icons.cancel, color: AppTheme.getSnackBarError(isDarkMode), size: 60),
               const SizedBox(height: 16),
               Text(
                 'Order Cancelled',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: isDarkMode ? Colors.white : Colors.black,
+                  color: AppTheme.getPrimaryText(isDarkMode),
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 'The order has been cancelled',
                 style: TextStyle(
-                  color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                  color: AppTheme.getSecondaryText(isDarkMode),
                 ),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
+                  backgroundColor: AppTheme.getSnackBarError(isDarkMode),
+                  foregroundColor: AppTheme.getPrimaryText(!isDarkMode),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   elevation: isDarkMode ? 0 : 2,
                 ),

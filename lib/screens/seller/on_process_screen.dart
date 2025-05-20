@@ -6,42 +6,37 @@ import 'package:u_teen/providers/order_provider.dart';
 import 'package:u_teen/widgets/order_card.dart';
 import 'package:u_teen/widgets/seller/empty_state_widget.dart';
 import 'package:u_teen/providers/theme_notifier.dart';
+import 'package:u_teen/utils/app_theme.dart';
 
 class OnProcessScreen extends StatelessWidget {
   const OnProcessScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => ThemeNotifier(),
-      child: Consumer<ThemeNotifier>(
-        builder: (context, themeNotifier, child) {
-          final isDarkMode = themeNotifier.isDarkMode;
-          return Theme(
-            data: themeNotifier.currentTheme,
-            child: Scaffold(
-              backgroundColor: isDarkMode ? const Color(0xFF121212) : const Color(0xFFF8FAFC),
-              appBar: AppBar(
-                backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
-                title: Text(
-                  'Processing Orders',
-                  style: TextStyle(
-                    color: isDarkMode ? Colors.white : Colors.black,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                centerTitle: true,
-                leading: IconButton(
-                  icon: Icon(Icons.arrow_back, color: isDarkMode ? Colors.white : Colors.black),
-                  onPressed: () => Navigator.pop(context),
-                ),
-                elevation: isDarkMode ? 0 : 0.5,
-              ),
-              body: _buildOrderList(context),
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
+    final isDarkMode = themeNotifier.isDarkMode;
+    return Theme(
+      data: themeNotifier.currentTheme,
+      child: Scaffold(
+        backgroundColor: AppTheme.getBackground(isDarkMode),
+        appBar: AppBar(
+          backgroundColor: AppTheme.getCard(isDarkMode),
+          title: Text(
+            'Processing Orders',
+            style: TextStyle(
+              color: AppTheme.getPrimaryText(isDarkMode),
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
             ),
-          );
-        },
+          ),
+          centerTitle: true,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: AppTheme.getPrimaryText(isDarkMode)),
+            onPressed: () => Navigator.pop(context),
+          ),
+          elevation: isDarkMode ? 0 : 0.5,
+        ),
+        body: _buildOrderList(context),
       ),
     );
   }

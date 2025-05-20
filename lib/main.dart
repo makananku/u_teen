@@ -14,6 +14,7 @@ import 'screens/login_screen.dart';
 import 'screens/customer/home_screen.dart';
 import 'screens/seller/home_screen.dart';
 import 'providers/rating_provider.dart';
+import 'providers/theme_notifier.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +22,6 @@ void main() async {
   await initializeDateFormatting('id_ID', null);
 
   final prefs = await SharedPreferences.getInstance();
-  
 
   runApp(
     MultiProvider(
@@ -43,7 +43,7 @@ void main() async {
             Provider.of<OrderProvider>(context, listen: false),
           ),
         ),
-        
+        ChangeNotifierProvider(create: (context) => ThemeNotifier()),
       ],
       child: const MyApp(),
     ),
@@ -55,13 +55,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
     return MaterialApp(
-      
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        fontFamily: 'Poppins',
-      ),
+      theme: themeNotifier.currentTheme, // Use ThemeNotifier for app-wide theme
+      themeMode: ThemeMode.light, // Force light mode for the entire app
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -85,6 +83,16 @@ class AuthWrapper extends StatelessWidget {
       future: auth.initialize(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasError) {
+            return Scaffold(
+              body: Center(
+                child: Text(
+                  'Error initializing app: ${snapshot.error}',
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+            );
+          }
           return const SplashScreen();
         }
         return const Scaffold(
@@ -108,18 +116,18 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   late AnimationController _logoController;
   late Animation<double> _logoScale;
   late Animation<double> _logoOpacity;
-  late Animation<double> _logoFadeOut; // Untuk menghilangkan logo
+  late Animation<double> _logoFadeOut;
 
   late AnimationController _textController;
   late Animation<Offset> _textSlide;
   late Animation<double> _textOpacity;
 
-  late AnimationController _textShiftController; // Untuk pergeseran teks ke atas
-  late Animation<Offset> _textShift; // Pergeseran teks ke atas
+  late AnimationController _textShiftController;
+  late Animation<Offset> _textShift;
 
   late AnimationController _bgController;
   late Animation<Color?> _bgColor;
-  late Animation<Color?> _textColor; // Untuk transisi warna teks
+  late Animation<Color?> _textColor;
 
   late AnimationController _buttonController;
   late Animation<double> _buttonScale;
@@ -146,7 +154,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       end: 0.0,
     ).animate(CurvedAnimation(
       parent: _logoController,
-      curve: const Interval(0.8, 1.0, curve: Curves.easeOut), // Fade out di akhir
+      curve: const Interval(0.8, 1.0, curve: Curves.easeOut),
     ));
 
     _textController = AnimationController(
@@ -166,11 +174,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
     _textShiftController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000), // Durasi lebih lama untuk pergeseran halus
+      duration: const Duration(milliseconds: 1000),
     );
     _textShift = Tween<Offset>(
       begin: Offset.zero,
-      end: const Offset(0, -1.5), // Geser lebih jauh untuk menggantikan posisi logo
+      end: const Offset(0, -1.5),
     ).animate(
       CurvedAnimation(parent: _textShiftController, curve: Curves.easeInOutQuad),
     );
@@ -222,10 +230,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _textController.forward();
 
     await Future.delayed(const Duration(milliseconds: 800));
+    if (!mounted) return; // Check if widget is still mounted
     _bgController.forward().then((_) {
-      // Setelah latar belakang selesai, mulai animasi pergeseran teks dan fade out logo
-      _logoController.reverse(); // Memudarkan logo
-      _textShiftController.forward(); // Geser teks ke atas
+      if (!mounted) return; // Check again before accessing context
+      _logoController.reverse();
+      _textShiftController.forward();
 
       final auth = Provider.of<AuthProvider>(context, listen: false);
       if (auth.isLoggedIn) {
@@ -254,85 +263,90 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: Listenable.merge([
-        _logoController,
-        _textController,
-        _textShiftController,
-        _bgController,
-        _buttonController,
-      ]),
-      builder: (context, child) {
-        return Scaffold(
-          backgroundColor: _bgColor.value,
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ScaleTransition(
-                  scale: _logoScale,
-                  child: FadeTransition(
-                    opacity: Tween<double>(
-                      begin: 0.0,
-                      end: 1.0,
-                    ).animate(
-                      CurvedAnimation(
-                        parent: _logoController,
-                        curve: const Interval(0.0, 1.0, curve: Curves.easeInOut),
-                      ),
-                    ), // Kembalikan kombinasi fade in dan fade out
-                    child: Image.asset(
-                      'assets/logo/u.png',
-                      width: 100,
-                      height: 100,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const FlutterLogo(size: 100);
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 30),
-                SlideTransition(
-                  position: _textSlide,
-                  child: SlideTransition(
-                    position: _textShift, // Animasi pergeseran ke atas
-                    child: FadeTransition(
-                      opacity: _textOpacity,
-                      child: Column(
-                        children: [
-                          Text(
-                            'U-Teen',
-                            style: TextStyle(
-                              fontSize: 36,
-                              fontWeight: FontWeight.bold,
-                              color: _textColor.value,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'UMN Canteen',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: _bgController.value < 0.5
-                                  ? Colors.white70
-                                  : Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                if (_bgController.isCompleted) ...[
-                  const SizedBox(height: 100),
-                  _buildAnimatedAuthButtons(),
-                ],
-              ],
+    return Theme(
+      data: ThemeData.light().copyWith(
+        scaffoldBackgroundColor: _bgColor.value,
+        textTheme: ThemeData.light().textTheme.apply(
+              bodyColor: _textColor.value,
+              displayColor: _textColor.value,
             ),
-          ),
-        );
-      },
+        iconTheme: const IconThemeData(color: Colors.blue),
+      ),
+      child: AnimatedBuilder(
+        animation: Listenable.merge([
+          _logoController,
+          _textController,
+          _textShiftController,
+          _bgController,
+          _buttonController,
+        ]),
+        builder: (context, child) {
+          return Scaffold(
+            backgroundColor: _bgColor.value,
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ScaleTransition(
+                    scale: _logoScale,
+                    child: FadeTransition(
+                      opacity: _logoOpacity,
+                      child: FadeTransition(
+                        opacity: _logoFadeOut,
+                        child: Image.asset(
+                          'assets/logo/u.png',
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const FlutterLogo(size: 100);
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  SlideTransition(
+                    position: _textSlide,
+                    child: SlideTransition(
+                      position: _textShift,
+                      child: FadeTransition(
+                        opacity: _textOpacity,
+                        child: Column(
+                          children: [
+                            Text(
+                              'U-Teen',
+                              style: TextStyle(
+                                fontSize: 36,
+                                fontWeight: FontWeight.bold,
+                                color: _textColor.value,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'UMN Canteen',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: _bgController.value < 0.5
+                                    ? Colors.white70
+                                    : Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (_bgController.isCompleted) ...[
+                    const SizedBox(height: 100),
+                    _buildAnimatedAuthButtons(),
+                  ],
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
