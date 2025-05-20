@@ -4,7 +4,6 @@ import 'package:u_teen/models/order_model.dart';
 import 'package:provider/provider.dart';
 import 'package:u_teen/providers/order_provider.dart';
 import 'package:u_teen/widgets/order_card.dart';
-import 'package:u_teen/screens/seller/home_screen.dart';
 
 class CancellationScreen extends StatelessWidget {
   const CancellationScreen({super.key});

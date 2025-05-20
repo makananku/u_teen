@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/notification_model.dart';
-import '../models/order_model.dart';
 
 class NotificationProvider with ChangeNotifier {
   final List<NotificationModel> _notifications = [];

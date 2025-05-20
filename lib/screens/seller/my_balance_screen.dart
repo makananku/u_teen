@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import 'package:u_teen/screens/seller/home_screen.dart';
 import 'package:u_teen/models/payment_method.dart';
 import 'package:u_teen/data/payment_methods_data.dart';

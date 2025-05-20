@@ -7,7 +7,6 @@ import 'package:u_teen/screens/seller/cancellation_screen.dart' as cancellation;
 import 'package:u_teen/screens/seller/completed_screen.dart' as completed;
 import 'package:u_teen/screens/seller/on_process_screen.dart' as onprocess;
 import 'package:u_teen/screens/seller/rating_screen.dart';
-import 'package:u_teen/widgets/status_button.dart';
 import 'package:u_teen/widgets/seller/calendar_widget.dart';
 import 'package:u_teen/widgets/seller/custom_bottom_navigation.dart';
 import 'package:provider/provider.dart';

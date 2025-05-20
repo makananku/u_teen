@@ -6,7 +6,6 @@ import 'package:lottie/lottie.dart';
 import '../../auth/auth_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../models/notification_model.dart';
-import 'home_screen.dart';
 
 class NotificationScreen extends StatelessWidget {
   const NotificationScreen({super.key});

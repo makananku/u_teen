@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:u_teen/models/payment_method.dart';
 import 'package:u_teen/utils/thousand_separator_formatter.dart';

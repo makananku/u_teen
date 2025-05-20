@@ -1,0 +1,61 @@
+Date : 2025-05-20 16:00:23
+Directory : c:\Users\Acer\u_teen
+Total : 19 files,  569 codes, 5 comments, 109 blanks, all 683 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| CMake    |          8 |        463 |          0 |         92 |        555 |
+| Dart     |         11 |        106 |          5 |         17 |        128 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++---------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                | files      | code       | comment    | blank      | total      |
++---------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                   |         19 |        569 |          5 |        109 |        683 |
+| lib                                                                 |         11 |        106 |          5 |         17 |        128 |
+| lib\screens                                                         |          5 |       -244 |          1 |         -2 |       -245 |
+| lib\screens\customer                                                |          4 |         10 |          1 |          1 |         12 |
+| lib\screens\seller                                                  |          1 |       -254 |          0 |         -3 |       -257 |
+| lib\utils                                                           |          2 |         41 |          4 |          9 |         54 |
+| lib\widgets                                                         |          4 |        309 |          0 |         10 |        319 |
+| lib\widgets (Files)                                                 |          1 |         72 |          0 |          3 |         75 |
+| lib\widgets\seller                                                  |          1 |        -72 |          0 |         -3 |        -75 |
+| lib\widgets\withdraw                                                |          2 |        309 |          0 |         10 |        319 |
+| linux                                                               |          4 |        223 |          0 |         47 |        270 |
+| linux (Files)                                                       |          1 |        104 |          0 |         25 |        129 |
+| linux\flutter                                                       |          2 |         98 |          0 |         16 |        114 |
+| linux\runner                                                        |          1 |         21 |          0 |          6 |         27 |
+| windows                                                             |          4 |        240 |          0 |         45 |        285 |
+| windows (Files)                                                     |          1 |         89 |          0 |         20 |        109 |
+| windows\flutter                                                     |          2 |        117 |          0 |         18 |        135 |
+| windows\runner                                                      |          1 |         34 |          0 |          7 |         41 |
++---------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++---------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                            | language | code       | comment    | blank      | total      |
++---------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| c:\Users\Acer\u_teen\lib\screens\customer\my_orders_screen.dart     | Dart     |         21 |          0 |          0 |         21 |
+| c:\Users\Acer\u_teen\lib\screens\customer\notification_screen.dart  | Dart     |        -27 |          0 |          0 |        -27 |
+| c:\Users\Acer\u_teen\lib\screens\customer\profile_screen.dart       | Dart     |          5 |          1 |          1 |          7 |
+| c:\Users\Acer\u_teen\lib\screens\customer\shopping_cart_screen.dart | Dart     |         11 |          0 |          0 |         11 |
+| c:\Users\Acer\u_teen\lib\screens\seller\my_balance_screen.dart      | Dart     |       -254 |          0 |         -3 |       -257 |
+| c:\Users\Acer\u_teen\lib\utils\formatters.dart                      | Dart     |          9 |          0 |          2 |         11 |
+| c:\Users\Acer\u_teen\lib\utils\thousand_separator_formatter.dart    | Dart     |         32 |          4 |          7 |         43 |
+| c:\Users\Acer\u_teen\lib\widgets\seller\status_button.dart          | Dart     |        -72 |          0 |         -3 |        -75 |
+| c:\Users\Acer\u_teen\lib\widgets\status_button.dart                 | Dart     |         72 |          0 |          3 |         75 |
+| c:\Users\Acer\u_teen\lib\widgets\withdraw\quick_amount_button.dart  | Dart     |         30 |          0 |          3 |         33 |
+| c:\Users\Acer\u_teen\lib\widgets\withdraw\withdrawal_dialog.dart    | Dart     |        279 |          0 |          7 |        286 |
+| c:\Users\Acer\u_teen\linux\CMakeLists.txt                           | CMake    |        104 |          0 |         25 |        129 |
+| c:\Users\Acer\u_teen\linux\flutter\CMakeLists.txt                   | CMake    |         79 |          0 |         10 |         89 |
+| c:\Users\Acer\u_teen\linux\flutter\generated_plugins.cmake          | CMake    |         19 |          0 |          6 |         25 |
+| c:\Users\Acer\u_teen\linux\runner\CMakeLists.txt                    | CMake    |         21 |          0 |          6 |         27 |
+| c:\Users\Acer\u_teen\windows\CMakeLists.txt                         | CMake    |         89 |          0 |         20 |        109 |
+| c:\Users\Acer\u_teen\windows\flutter\CMakeLists.txt                 | CMake    |         98 |          0 |         12 |        110 |
+| c:\Users\Acer\u_teen\windows\flutter\generated_plugins.cmake        | CMake    |         19 |          0 |          6 |         25 |
+| c:\Users\Acer\u_teen\windows\runner\CMakeLists.txt                  | CMake    |         34 |          0 |          7 |         41 |
+| Total                                                               |          |        569 |          5 |        109 |        683 |
++---------------------------------------------------------------------+----------+------------+------------+------------+------------+

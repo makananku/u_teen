@@ -3,7 +3,6 @@ import 'package:u_teen/auth/auth_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:u_teen/providers/order_provider.dart';
 import 'package:u_teen/widgets/order_card.dart';
-import 'package:u_teen/screens/seller/home_screen.dart';
 import '../../models/order_model.dart';
 
 class CompletedScreen extends StatelessWidget {
