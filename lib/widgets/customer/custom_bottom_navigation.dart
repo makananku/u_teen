@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import '../../screens/customer/home_screen.dart';
 import '../../screens/customer/my_orders_screen.dart';
 import '../../screens/customer/shopping_cart_screen.dart';
 import '../../screens/customer/profile_screen.dart';
+import '../../utils/app_theme.dart';
+import '../../providers/theme_notifier.dart';
 
 class CustomBottomNavigation extends StatefulWidget {
   final int selectedIndex;
@@ -75,6 +78,8 @@ class _CustomBottomNavigationState extends State<CustomBottomNavigation> with Ti
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
+
     return KeyboardVisibilityBuilder(
       builder: (context, isKeyboardVisible) {
         return Material(
@@ -101,11 +106,11 @@ class _CustomBottomNavigationState extends State<CustomBottomNavigation> with Ti
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppTheme.getCard(isDarkMode),
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF64748B).withOpacity(0.1),
+                            color: AppTheme.getShadow(isDarkMode).withOpacity(0.1),
                             blurRadius: 16,
                             offset: const Offset(0, 4),
                           ),
@@ -114,10 +119,10 @@ class _CustomBottomNavigationState extends State<CustomBottomNavigation> with Ti
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _buildNavItem(Icons.home_outlined, 'Home', 0),
-                          _buildNavItem(Icons.receipt_long_outlined, 'Orders', 1),
-                          _buildNavItem(Icons.shopping_bag_outlined, 'Cart', 2),
-                          _buildNavItem(Icons.person_outline, 'Profile', 3),
+                          _buildNavItem(Icons.home_outlined, 'Home', 0, isDarkMode),
+                          _buildNavItem(Icons.receipt_long_outlined, 'Orders', 1, isDarkMode),
+                          _buildNavItem(Icons.shopping_bag_outlined, 'Cart', 2, isDarkMode),
+                          _buildNavItem(Icons.person_outline, 'Profile', 3, isDarkMode),
                         ],
                       ),
                     ),
@@ -131,9 +136,9 @@ class _CustomBottomNavigationState extends State<CustomBottomNavigation> with Ti
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, int index) {
+  Widget _buildNavItem(IconData icon, String label, int index, bool isDarkMode) {
     final isActive = _currentIndex == index;
-    
+
     return GestureDetector(
       onTap: () => _navigateToScreen(index),
       child: AnimatedContainer(
@@ -143,7 +148,7 @@ class _CustomBottomNavigationState extends State<CustomBottomNavigation> with Ti
           children: [
             Icon(
               icon,
-              color: isActive ? const Color(0xFF6366F1) : const Color(0xFF94A3B8),
+              color: isActive ? AppTheme.getAccentPurple(isDarkMode) : AppTheme.getInactive(isDarkMode),
               size: 24,
             ),
             const SizedBox(height: 4),
@@ -151,7 +156,7 @@ class _CustomBottomNavigationState extends State<CustomBottomNavigation> with Ti
               label,
               style: TextStyle(
                 fontSize: 12,
-                color: isActive ? const Color(0xFF6366F1) : const Color(0xFF94A3B8),
+                color: isActive ? AppTheme.getAccentPurple(isDarkMode) : AppTheme.getInactive(isDarkMode),
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
               ),
             ),

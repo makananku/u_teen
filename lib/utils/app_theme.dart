@@ -9,7 +9,7 @@ class AppTheme {
   static const Color lightTertiaryText = Color.fromRGBO(97, 97, 97, 1);
   static const Color lightIcon = Colors.grey;
   static const Color lightBorder = Color(0xFFF5F5F5); // Colors.grey.shade100
-  static const Color lightButton = Colors.blue;
+  static const Color lightButton = Color(0xFF6C63FF); // Standardized to match other files
   static const Color lightRating = Color(0xFFF59E0B);
   static const Color lightProgressBackground = Color.fromRGBO(238, 238, 238, 1);
   static const Color lightProgressValue = Color(0xFFF59E0B);
@@ -36,6 +36,10 @@ class AppTheme {
   static const Color lightAccentTeal = Color(0xFF00796B); // Colors.teal[600]
   static const Color lightAccentRedLight = Color(0xFFFFEBEE); // Colors.red.shade50
   static const Color lightAccentRedDark = Color(0xFFB71C1C); // Colors.red[900]
+  static const Color lightShadow = Color(0xFF64748B); // Shadow color
+  static const Color lightInactive = Color(0xFF94A3B8); // Inactive icon/text
+  static const Color lightBadge = Color(0xFFFB5607); // Notification badge
+  static const Color lightSnackBarInfo = Color(0xFF3A86FF); // SnackBar info
 
   // Dark mode colors
   static const Color darkBackground = Color(0xFF121212);
@@ -45,7 +49,7 @@ class AppTheme {
   static const Color darkTertiaryText = Color.fromRGBO(158, 158, 158, 1);
   static const Color darkIcon = Color.fromRGBO(117, 117, 117, 1);
   static const Color darkBorder = Color(0xFF333333);
-  static const Color darkButton = Colors.blue;
+  static const Color darkButton = Color(0xFF6C63FF); // Standardized
   static const Color darkRating = Color.fromRGBO(255, 215, 0, 1);
   static const Color darkProgressBackground = Color.fromRGBO(66, 66, 66, 1);
   static const Color darkProgressValue = Color.fromRGBO(255, 215, 0, 1);
@@ -73,6 +77,10 @@ class AppTheme {
   static const Color darkAccentTeal = Color(0xFF00796B); // Colors.teal[600]
   static const Color darkAccentRedLight = Color(0xFFCF6679); // Colors.red.shade50 equivalent
   static const Color darkAccentRedDark = Color(0xFFB71C1C); // Colors.red[900]
+  static const Color darkShadow = Color(0xFF4B5EAA); // Adjusted for dark mode
+  static const Color darkInactive = Color(0xFF6B7280); // Adjusted for dark mode
+  static const Color darkBadge = Color(0xFFFB5607);
+  static const Color darkSnackBarInfo = Color(0xFF3A86FF);
 
   // Get colors based on dark mode
   static Color getBackground(bool isDarkMode) => isDarkMode ? darkBackground : lightBackground;
@@ -110,4 +118,8 @@ class AppTheme {
   static Color getAccentTeal(bool isDarkMode) => isDarkMode ? darkAccentTeal : lightAccentTeal;
   static Color getAccentRedLight(bool isDarkMode) => isDarkMode ? darkAccentRedLight : lightAccentRedLight;
   static Color getAccentRedDark(bool isDarkMode) => isDarkMode ? darkAccentRedDark : lightAccentRedDark;
+  static Color getShadow(bool isDarkMode) => isDarkMode ? darkShadow : lightShadow;
+  static Color getInactive(bool isDarkMode) => isDarkMode ? darkInactive : lightInactive;
+  static Color getBadge(bool isDarkMode) => isDarkMode ? darkBadge : lightBadge;
+  static Color getSnackBarInfo(bool isDarkMode) => isDarkMode ? darkSnackBarInfo : lightSnackBarInfo;
 }

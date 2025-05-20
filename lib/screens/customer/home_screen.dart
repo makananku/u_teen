@@ -8,6 +8,8 @@ import '../../providers/favorite_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/order_provider.dart';
 import '../../widgets/customer/custom_bottom_navigation.dart';
+import '../../utils/app_theme.dart';
+import '../../providers/theme_notifier.dart';
 import '../../models/cart_item.dart';
 import '../../models/favorite_item.dart';
 import 'favorite_screen.dart';
@@ -126,10 +128,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     if (backPressDuration >= const Duration(seconds: 2)) {
       _lastBackPressTime = currentTime;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Press back again to exit'),
-          duration: Duration(seconds: 2),
-          backgroundColor: Color(0xFF3A86FF),
+        SnackBar(
+          content: Text('Press back again to exit', style: TextStyle(color: AppTheme.getPrimaryText(true))),
+          duration: const Duration(seconds: 2),
+          backgroundColor: AppTheme.getSnackBarInfo(false),
         ),
       );
       return false;
@@ -202,7 +204,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
-  Widget _buildMainContent(ThemeData theme) {
+  Widget _buildMainContent(ThemeData theme, bool isDarkMode) {
     final orderProvider = Provider.of<OrderProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
     final customerName = authProvider.user?.name ?? '';
@@ -222,14 +224,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
-                  color: Colors.black,
+                  color: AppTheme.getPrimaryText(isDarkMode),
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 "Delicious meals just for you",
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey.shade600,
+                  color: AppTheme.getSecondaryText(isDarkMode),
                 ),
               ),
             ],
@@ -253,7 +255,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   "Order Again",
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: AppTheme.getPrimaryText(isDarkMode),
                     fontSize: 20,
                   ),
                 ),
@@ -261,7 +263,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 Text(
                   "Your favorite meals",
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey.shade600,
+                    color: AppTheme.getSecondaryText(isDarkMode),
                   ),
                 ),
               ],
@@ -315,33 +317,34 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final theme = Theme.of(context);
     final orderProvider = Provider.of<OrderProvider>(context);
     final orderAgainItems = orderProvider.getOrderAgainItemsForCustomer(customerName);
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
 
     return WillPopScope(
       onWillPop: _onWillPop,
       child: KeyboardVisibilityProvider(
         child: Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: AppTheme.getCard(isDarkMode),
           appBar: AppBar(
             title: Text(
               'Home',
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
-                color: Colors.black,
+                color: AppTheme.getPrimaryText(isDarkMode),
               ),
             ),
             centerTitle: true,
             leading: IconButton(
               icon: Stack(
                 children: [
-                  const Icon(Icons.favorite_border, color: Colors.black),
+                  Icon(Icons.favorite_border, color: AppTheme.getPrimaryText(isDarkMode)),
                   if (favoriteProvider.favoriteItems.isNotEmpty)
                     Positioned(
                       right: 0,
                       child: Container(
                         padding: const EdgeInsets.all(2),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFB5607),
+                          color: AppTheme.getBadge(isDarkMode),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         constraints: const BoxConstraints(
@@ -350,8 +353,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ),
                         child: Text(
                           '${favoriteProvider.favoriteItems.length}',
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: AppTheme.getPrimaryText(!isDarkMode),
                             fontSize: 8,
                           ),
                           textAlign: TextAlign.center,
@@ -373,14 +376,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               IconButton(
                 icon: Stack(
                   children: [
-                    const Icon(Icons.notifications_outlined, color: Colors.black),
+                    Icon(Icons.notifications_outlined, color: AppTheme.getPrimaryText(isDarkMode)),
                     if (unreadNotificationCount > 0)
                       Positioned(
                         right: 0,
                         child: Container(
                           padding: const EdgeInsets.all(2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFB5607),
+                            color: AppTheme.getBadge(isDarkMode),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           constraints: const BoxConstraints(
@@ -389,8 +392,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           ),
                           child: Text(
                             '$unreadNotificationCount',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: AppTheme.getPrimaryText(!isDarkMode),
                               fontSize: 8,
                             ),
                             textAlign: TextAlign.center,
@@ -402,131 +405,159 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const NotificationScreen(),
-                    ),
-                  );
-                },
-              ),
-            ],
-            elevation: 0,
-            backgroundColor: Colors.white,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+                  MaterialPageRoute(
+                    builder: (context) => const NotificationScreen(),
+                  ),
+                );
+              },
             ),
+          ],
+          elevation: 0,
+          backgroundColor: AppTheme.getCard(isDarkMode),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
           ),
-          body: LayoutBuilder(
-            builder: (context, constraints) {
-              return KeyboardVisibilityBuilder(
-                builder: (context, isKeyboardVisible) {
-                  this.isKeyboardVisible = isKeyboardVisible;
+        ),
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            return KeyboardVisibilityBuilder(
+              builder: (context, isKeyboardVisible) {
+                this.isKeyboardVisible = isKeyboardVisible;
 
-                  return GestureDetector(
-                    onTap: () {
-                      if (isDetailVisible) _closeDetailBox();
-                      setState(() {
-                        isSearchActive = false;
-                        _searchFocusNode.unfocus();
-                      });
-                    },
-                    child: Stack(
-                      children: [
-                        SingleChildScrollView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minHeight: constraints.maxHeight,
-                            ),
-                            child: Column(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 16,
-                                  ),
-                                  child: SearchWidget(
-                                    searchController: _searchController,
-                                    onSearchSubmitted: _handleSearch,
-                                    onFillSearchBar: _fillSearchBar,
-                                    onRemoveRecentSearch: _removeRecentSearch,
-                                    onFoodItemTap: (
+                return GestureDetector(
+                  onTap: () {
+                    if (isDetailVisible) _closeDetailBox();
+                    setState(() {
+                      isSearchActive = false;
+                      _searchFocusNode.unfocus();
+                    });
+                  },
+                  child: Stack(
+                    children: [
+                      SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                                child: SearchWidget(
+                                  searchController: _searchController,
+                                  onSearchSubmitted: _handleSearch,
+                                  onFillSearchBar: _fillSearchBar,
+                                  onRemoveRecentSearch: _removeRecentSearch,
+                                  onFoodItemTap: (
+                                    title,
+                                    price,
+                                    imgUrl,
+                                    subtitle,
+                                    sellerEmail,
+                                  ) {
+                                    _handleFoodItemTap(
                                       title,
                                       price,
                                       imgUrl,
                                       subtitle,
                                       sellerEmail,
-                                    ) {
-                                      _handleFoodItemTap(
-                                        title,
-                                        price,
-                                        imgUrl,
-                                        subtitle,
-                                        sellerEmail,
-                                      );
-                                    },
-                                    isSearchActive: isSearchActive,
-                                    focusNode: _searchFocusNode,
-                                    categorySelector: CategorySelector(
-                                      selectedCategory: selectedCategory,
-                                      onCategorySelected: _onCategorySelected,
-                                    ),
-                                    showFoodLists: isSearchActive,
-                                    orderAgainItems: orderAgainItems,
+                                    );
+                                  },
+                                  isSearchActive: isSearchActive,
+                                  focusNode: _searchFocusNode,
+                                  categorySelector: CategorySelector(
+                                    selectedCategory: selectedCategory,
+                                    onCategorySelected: _onCategorySelected,
                                   ),
+                                  showFoodLists: isSearchActive,
+                                  orderAgainItems: orderAgainItems,
                                 ),
-                                if (!isSearchActive && !isKeyboardVisible)
-                                  _buildMainContent(theme),
-                              ],
+                              ),
+                              if (!isSearchActive && !isKeyboardVisible)
+                                _buildMainContent(theme, isDarkMode),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (isDetailVisible)
+                        Positioned.fill(
+                          child: GestureDetector(
+                            onTap: _closeDetailBox,
+                            child: Container(
+                              color: AppTheme.getPrimaryText(isDarkMode).withOpacity(0.4),
                             ),
                           ),
                         ),
-                        if (isDetailVisible)
-                          Positioned.fill(
-                            child: GestureDetector(
-                              onTap: _closeDetailBox,
-                              child: Container(
-                                color: Colors.black.withOpacity(0.4),
-                              ),
-                            ),
-                          ),
-                        if (isDetailVisible)
-                          Positioned(
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            child: DetailBox(
-                              selectedFoodItem: selectedFoodItem,
-                              selectedFoodPrice: selectedFoodPrice,
-                              selectedFoodImgUrl: selectedFoodImgUrl,
-                              selectedFoodSubtitle: selectedFoodSubtitle,
-                              onAddToCart: () {
-                                final cartProvider = Provider.of<CartProvider>(
-                                  context,
-                                  listen: false,
-                                );
-                                final foodItem = FoodData.getFoodItems('All').firstWhere(
-                                  (item) =>
-                                      item['title'] == selectedFoodItem &&
-                                      item['imgUrl'] == selectedFoodImgUrl,
-                                );
-                                cartProvider.addToCart(
-                                  CartItem(
-                                    name: selectedFoodItem,
-                                    price: int.parse(
-                                      selectedFoodPrice.replaceAll(".", ""),
-                                    ),
-                                    image: selectedFoodImgUrl,
-                                    subtitle: selectedFoodSubtitle,
-                                    sellerEmail: foodItem['sellerEmail'] ?? '',
+                      if (isDetailVisible)
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: DetailBox(
+                            selectedFoodItem: selectedFoodItem,
+                            selectedFoodPrice: selectedFoodPrice,
+                            selectedFoodImgUrl: selectedFoodImgUrl,
+                            selectedFoodSubtitle: selectedFoodSubtitle,
+                            onAddToCart: () {
+                              final cartProvider = Provider.of<CartProvider>(
+                                context,
+                                listen: false,
+                              );
+                              final foodItem = FoodData.getFoodItems('All').firstWhere(
+                                (item) =>
+                                    item['title'] == selectedFoodItem &&
+                                    item['imgUrl'] == selectedFoodImgUrl,
+                              );
+                              cartProvider.addToCart(
+                                CartItem(
+                                  name: selectedFoodItem,
+                                  price: int.parse(
+                                    selectedFoodPrice.replaceAll(".", ""),
                                   ),
-                                );
-                                _closeDetailBox();
+                                  image: selectedFoodImgUrl,
+                                  subtitle: selectedFoodSubtitle,
+                                  sellerEmail: foodItem['sellerEmail'] ?? '',
+                                ),
+                              );
+                              _closeDetailBox();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    "$selectedFoodItem added to cart!",
+                                    style: TextStyle(
+                                      color: AppTheme.getPrimaryText(!isDarkMode),
+                                    ),
+                                  ),
+                                  duration: const Duration(seconds: 2),
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  backgroundColor: AppTheme.getSnackBarInfo(isDarkMode),
+                                ),
+                              );
+                            },
+                            onAddToFavorites: () {
+                              final favoriteProvider =
+                                  Provider.of<FavoriteProvider>(
+                                    context,
+                                    listen: false,
+                                  );
+                              if (favoriteProvider.favoriteItems.any(
+                                (item) =>
+                                    item.name == selectedFoodItem &&
+                                    item.image == selectedFoodImgUrl,
+                              )) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
-                                      "$selectedFoodItem added to cart!",
-                                      style: const TextStyle(
-                                        color: Colors.white,
+                                      "$selectedFoodItem is already in your favorites",
+                                      style: TextStyle(
+                                        color: AppTheme.getPrimaryText(!isDarkMode),
                                       ),
                                     ),
                                     duration: const Duration(seconds: 2),
@@ -534,94 +565,68 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
-                                    backgroundColor: const Color(0xFF3A86FF),
+                                    backgroundColor: AppTheme.getSnackBarInfo(isDarkMode),
                                   ),
                                 );
-                              },
-                              onAddToFavorites: () {
-                                final favoriteProvider =
-                                    Provider.of<FavoriteProvider>(
-                                      context,
-                                      listen: false,
-                                    );
-                                if (favoriteProvider.favoriteItems.any(
-                                  (item) =>
-                                      item.name == selectedFoodItem &&
-                                      item.image == selectedFoodImgUrl,
-                                )) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        "$selectedFoodItem is already in your favorites",
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                        ),
+                              } else {
+                                favoriteProvider.addToFavorites(
+                                  FavoriteItem(
+                                    name: selectedFoodItem,
+                                    price: selectedFoodPrice,
+                                    image: selectedFoodImgUrl,
+                                    subtitle: selectedFoodSubtitle,
+                                  ),
+                                );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      "Added to favorites!",
+                                      style: TextStyle(
+                                        color: AppTheme.getPrimaryText(!isDarkMode),
                                       ),
-                                      duration: const Duration(seconds: 2),
-                                      behavior: SnackBarBehavior.floating,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      backgroundColor: const Color(0xFF3A86FF),
                                     ),
-                                  );
-                                } else {
-                                  favoriteProvider.addToFavorites(
-                                    FavoriteItem(
-                                      name: selectedFoodItem,
-                                      price: selectedFoodPrice,
-                                      image: selectedFoodImgUrl,
-                                      subtitle: selectedFoodSubtitle,
+                                    duration: const Duration(seconds: 2),
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                                  );
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: const Text(
-                                        "Added to favorites!",
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                      duration: const Duration(seconds: 2),
-                                      behavior: SnackBarBehavior.floating,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      backgroundColor: const Color(0xFF3A86FF),
-                                    ),
-                                  );
-                                }
-                              },
-                              onClose: _closeDetailBox,
-                            ),
+                                    backgroundColor: AppTheme.getSnackBarInfo(isDarkMode),
+                                  ),
+                                );
+                              }
+                            },
+                            onClose: _closeDetailBox,
                           ),
-                      ],
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-          floatingActionButtonLocation:
-              FloatingActionButtonLocation.centerDocked,
-          floatingActionButton: AnimatedPositioned(
+                        ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        ),
+        floatingActionButtonLocation:
+            FloatingActionButtonLocation.centerDocked,
+        floatingActionButton: AnimatedPositioned(
+          duration: const Duration(milliseconds: 300),
+          bottom:
+              isKeyboardVisible ? MediaQuery.of(context).viewInsets.bottom + 16 : 0,
+          left: 0,
+          right: 0,
+          child: AnimatedOpacity(
+            opacity: isDetailVisible ? 0 : 1,
             duration: const Duration(milliseconds: 300),
-            bottom:
-                isKeyboardVisible ? MediaQuery.of(context).viewInsets.bottom + 16 : 0,
-            left: 0,
-            right: 0,
-            child: AnimatedOpacity(
-              opacity: isDetailVisible ? 0 : 1,
-              duration: const Duration(milliseconds: 300),
-              child: IgnorePointer(
-                ignoring: isDetailVisible,
-                child: CustomBottomNavigation(
-                  selectedIndex: 0,
-                  context: context,
-                ),
+            child: IgnorePointer(
+              ignoring: isDetailVisible,
+              child: CustomBottomNavigation(
+                selectedIndex: 0,
+                context: context,
               ),
             ),
           ),
         ),
       ),
+    )
     );
   }
 }

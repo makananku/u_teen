@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:lottie/lottie.dart';
 import '../../providers/cart_provider.dart';
 import '../../models/cart_item.dart';
+import '../../utils/app_theme.dart';
+import '../../providers/theme_notifier.dart';
 import 'home_screen.dart';
 import 'payment_screen.dart';
 import '../../widgets/customer/custom_bottom_navigation.dart';
@@ -37,14 +39,16 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
+
     return WillPopScope(
       onWillPop: _handleWillPop,
       child: KeyboardVisibilityBuilder(
         builder: (context, isKeyboardVisible) {
           return Scaffold(
-            backgroundColor: Colors.grey[50],
-            appBar: _buildAppBar(context),
-            body: _buildBody(context),
+            backgroundColor: AppTheme.getDetailBackground(isDarkMode),
+            appBar: _buildAppBar(context, isDarkMode),
+            body: _buildBody(context, isDarkMode),
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.centerDocked,
             floatingActionButton: CustomBottomNavigation(
@@ -65,61 +69,59 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
     return false;
   }
 
-  AppBar _buildAppBar(BuildContext context) {
+  AppBar _buildAppBar(BuildContext context, bool isDarkMode) {
     final cartProvider = Provider.of<CartProvider>(context);
 
     return AppBar(
-      title: const Text(
-            'My Cart',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+      title: Text(
+        'My Cart',
+        style: TextStyle(
+          color: AppTheme.getPrimaryText(isDarkMode),
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       centerTitle: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.getCard(isDarkMode),
       elevation: 0,
       actions: [
         if (cartProvider.cartItems.isNotEmpty)
           IconButton(
-            icon: const Icon(Icons.delete_outline, color: Colors.black),
+            icon: Icon(Icons.delete_outline, color: AppTheme.getPrimaryText(isDarkMode)),
             onPressed: () => _showClearCartDialog(context),
           ),
       ],
     );
   }
 
-  Widget _buildBody(BuildContext context) {
+  Widget _buildBody(BuildContext context, bool isDarkMode) {
     final cartProvider = Provider.of<CartProvider>(context);
 
     return Column(
       children: [
-        if (cartProvider.cartItems.isNotEmpty) _buildSummaryCard(cartProvider),
+        if (cartProvider.cartItems.isNotEmpty) _buildSummaryCard(cartProvider, isDarkMode),
         Expanded(
           child: RefreshIndicator(
-            onRefresh:
-                () async => await Future.delayed(const Duration(seconds: 1)),
-            child:
-                cartProvider.cartItems.isEmpty
-                    ? _buildEmptyCartView()
-                    : _buildCartItemsList(cartProvider),
+            onRefresh: () async => await Future.delayed(const Duration(seconds: 1)),
+            child: cartProvider.cartItems.isEmpty
+                ? _buildEmptyCartView(isDarkMode)
+                : _buildCartItemsList(cartProvider, isDarkMode),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildSummaryCard(CartProvider cartProvider) {
+  Widget _buildSummaryCard(CartProvider cartProvider, bool isDarkMode) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.getCard(isDarkMode),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppTheme.getPrimaryText(isDarkMode).withOpacity(0.05),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -133,13 +135,14 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
             children: [
               Text(
                 'Total Items',
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                style: TextStyle(fontSize: 14, color: AppTheme.getSecondaryText(isDarkMode)),
               ),
               Text(
                 '${cartProvider.totalItems}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
+                  color: AppTheme.getPrimaryText(isDarkMode),
                 ),
               ),
             ],
@@ -149,14 +152,14 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
             children: [
               Text(
                 'Total Price',
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                style: TextStyle(fontSize: 14, color: AppTheme.getSecondaryText(isDarkMode)),
               ),
               Text(
                 'Rp${cartProvider.totalPrice}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.blue,
+                  color: AppTheme.getButton(isDarkMode),
                 ),
               ),
             ],
@@ -166,7 +169,7 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
     );
   }
 
-  Widget _buildEmptyCartView() {
+  Widget _buildEmptyCartView(bool isDarkMode) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -185,7 +188,7 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
+              color: AppTheme.getTextDark(isDarkMode),
             ),
           ),
           const SizedBox(height: 12),
@@ -196,7 +199,7 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey[600],
+                color: AppTheme.getSecondaryText(isDarkMode),
                 height: 1.5,
               ),
             ),
@@ -213,8 +216,8 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
                 MaterialPageRoute(builder: (context) => const HomeScreen()),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue[700],
-                foregroundColor: Colors.white,
+                backgroundColor: AppTheme.getAccentBlue(isDarkMode),
+                foregroundColor: AppTheme.getPrimaryText(!isDarkMode),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -223,18 +226,19 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
                   vertical: 12,
                 ),
                 elevation: 3,
-                shadowColor: Colors.blue.withOpacity(0.3),
+                shadowColor: AppTheme.getButton(isDarkMode).withOpacity(0.3),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.search, size: 20),
-                  SizedBox(width: 8),
+                  Icon(Icons.search, size: 20, color: AppTheme.getPrimaryText(!isDarkMode)),
+                  const SizedBox(width: 8),
                   Text(
                     "Explore Menu",
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
+                      color: AppTheme.getPrimaryText(!isDarkMode),
                     ),
                   ),
                 ],
@@ -246,18 +250,19 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
     );
   }
 
-  Widget _buildCartItemsList(CartProvider cartProvider) {
+  Widget _buildCartItemsList(CartProvider cartProvider, bool isDarkMode) {
     return ListView(
       padding: const EdgeInsets.only(bottom: 100),
       children: [
         const SizedBox(height: 8),
-        ..._buildGroupedCartItems(cartProvider.groupedItems),
+        ..._buildGroupedCartItems(cartProvider.groupedItems, isDarkMode),
       ],
     );
   }
 
   List<Widget> _buildGroupedCartItems(
     Map<String, List<CartItem>> groupedItems,
+    bool isDarkMode,
   ) {
     return groupedItems.entries.map((entry) {
       final subtitle = entry.key;
@@ -270,38 +275,38 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildMerchantHeader(subtitle),
-          ...items.map((item) => _buildCartItemCard(item)),
-          _buildCheckoutButton(items, totalPrice),
+          _buildMerchantHeader(subtitle, isDarkMode),
+          ...items.map((item) => _buildCartItemCard(item, isDarkMode)),
+          _buildCheckoutButton(items, totalPrice, isDarkMode),
           const SizedBox(height: 16),
         ],
       );
     }).toList();
   }
 
-  Widget _buildMerchantHeader(String subtitle) {
+  Widget _buildMerchantHeader(String subtitle, bool isDarkMode) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Text(
         subtitle,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          color: Colors.black87,
+          color: AppTheme.getTextMedium(isDarkMode),
         ),
       ),
     );
   }
 
-  Widget _buildCartItemCard(CartItem item) {
+  Widget _buildCartItemCard(CartItem item, bool isDarkMode) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.getCard(isDarkMode),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppTheme.getPrimaryText(isDarkMode).withOpacity(0.05),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -312,12 +317,12 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
         direction: DismissDirection.endToStart,
         background: Container(
           decoration: BoxDecoration(
-            color: Colors.red[100],
+            color: AppTheme.getAccentRedLight(isDarkMode),
             borderRadius: BorderRadius.circular(12),
           ),
           alignment: Alignment.centerRight,
           padding: const EdgeInsets.only(right: 20),
-          child: const Icon(Icons.delete, color: Colors.red),
+          child: Icon(Icons.delete, color: AppTheme.getSnackBarError(isDarkMode)),
         ),
         confirmDismiss: (direction) => _confirmDismiss(item),
         onDismissed: (direction) => _handleDismissed(item),
@@ -340,16 +345,16 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
           ),
           title: Text(
             item.name,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w600,
-              color: Colors.black87,
+              color: AppTheme.getTextMedium(isDarkMode),
             ),
           ),
           subtitle: Text(
             'Rp${item.price}',
-            style: TextStyle(color: Colors.grey[600]),
+            style: TextStyle(color: AppTheme.getSecondaryText(isDarkMode)),
           ),
-          trailing: _buildQuantityControls(item),
+          trailing: _buildQuantityControls(item, isDarkMode),
         ),
       ),
     );
@@ -358,26 +363,29 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
   Future<bool?> _confirmDismiss(CartItem item) {
     return showDialog<bool>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text("Remove from cart?"),
-            content: Text(
-              "Are you sure you want to remove ${item.name} from your cart?",
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text("Cancel"),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text(
-                  "Remove",
-                  style: TextStyle(color: Colors.red),
-                ),
-              ),
-            ],
+      builder: (context) {
+        final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
+        return AlertDialog(
+          title: Text("Remove from cart?", style: TextStyle(color: AppTheme.getPrimaryText(isDarkMode))),
+          content: Text(
+            "Are you sure you want to remove ${item.name} from your cart?",
+            style: TextStyle(color: AppTheme.getSecondaryText(isDarkMode)),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text("Cancel", style: TextStyle(color: AppTheme.getTextMedium(isDarkMode))),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(
+                "Remove",
+                style: TextStyle(color: AppTheme.getSnackBarError(isDarkMode)),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -394,19 +402,19 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
     );
   }
 
-  Widget _buildQuantityControls(CartItem item) {
+  Widget _buildQuantityControls(CartItem item, bool isDarkMode) {
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.blue[50],
+        color: AppTheme.getAccentBlueLight(isDarkMode),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            icon: const Icon(Icons.remove, size: 18, color: Colors.blue),
+            icon: Icon(Icons.remove, size: 18, color: AppTheme.getButton(isDarkMode)),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
             onPressed: () => cartProvider.decreaseQuantity(item),
@@ -415,11 +423,15 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
               item.quantity.toString(),
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.getPrimaryText(isDarkMode),
+              ),
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.add, size: 18, color: Colors.blue),
+            icon: Icon(Icons.add, size: 18, color: AppTheme.getButton(isDarkMode)),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
             onPressed: () => cartProvider.increaseQuantity(item),
@@ -429,14 +441,14 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
     );
   }
 
-  Widget _buildCheckoutButton(List<CartItem> items, int totalPrice) {
+  Widget _buildCheckoutButton(List<CartItem> items, int totalPrice, bool isDarkMode) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ElevatedButton(
         onPressed: () => _navigateToPayment(items, totalPrice),
         style: ElevatedButton.styleFrom(
           minimumSize: const Size(double.infinity, 50),
-          backgroundColor: Colors.blue,
+          backgroundColor: AppTheme.getButton(isDarkMode),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -445,26 +457,26 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.fastfood_rounded,
               size: 20,
-              color: Colors.white,
+              color: AppTheme.getPrimaryText(!isDarkMode),
             ),
             const SizedBox(width: 8),
             Text(
               'Checkout (${items.length} items)',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
-                color: Colors.white,
+                color: AppTheme.getPrimaryText(!isDarkMode),
                 fontWeight: FontWeight.w600,
               ),
             ),
             const Spacer(),
             Text(
               'Rp$totalPrice',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
-                color: Colors.white,
+                color: AppTheme.getPrimaryText(!isDarkMode),
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -478,46 +490,49 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder:
-            (context) => PaymentScreen(items: items, totalPrice: totalPrice),
+        builder: (context) => PaymentScreen(items: items, totalPrice: totalPrice),
       ),
     );
   }
 
   void _showClearCartDialog(BuildContext context) {
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
 
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text("Clear cart?"),
-            content: const Text(
-              "Are you sure you want to remove all items from your cart?",
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text("Cancel"),
-              ),
-              TextButton(
-                onPressed: () {
-                  cartProvider.clearCart();
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text('Cart cleared!'),
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  );
-                },
-                child: const Text("Clear", style: TextStyle(color: Colors.red)),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: Text("Clear cart?", style: TextStyle(color: AppTheme.getPrimaryText(isDarkMode))),
+        content: Text(
+          "Are you sure you want to remove all items from your cart?",
+          style: TextStyle(color: AppTheme.getSecondaryText(isDarkMode)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text("Cancel", style: TextStyle(color: AppTheme.getTextMedium(isDarkMode))),
           ),
+          TextButton(
+            onPressed: () {
+              cartProvider.clearCart();
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('Cart cleared!'),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              );
+            },
+            child: Text(
+              "Clear",
+              style: TextStyle(color: AppTheme.getSnackBarError(isDarkMode)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -4,6 +4,8 @@ import 'package:lottie/lottie.dart';
 import '../../auth/auth_provider.dart';
 import '../../widgets/customer/custom_bottom_navigation.dart';
 import '../../providers/order_provider.dart';
+import '../../utils/app_theme.dart';
+import '../../providers/theme_notifier.dart';
 import '../../models/order_model.dart';
 import '../../widgets/order_card.dart';
 import 'home_screen.dart';
@@ -36,6 +38,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
     final orderProvider = Provider.of<OrderProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
     final customerName = authProvider.user?.name ?? '';
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
 
     // Get orders for this customer
     final ongoingOrders = orderProvider.orders
@@ -69,32 +72,32 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
         return false;
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.getCard(isDarkMode),
         appBar: AppBar(
-          title: const Text(
+          title: Text(
             'My Orders',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: AppTheme.getPrimaryText(isDarkMode),
             ),
           ),
           centerTitle: true,
-          backgroundColor: Colors.white,
+          backgroundColor: AppTheme.getCard(isDarkMode),
           elevation: 0,
           bottom: TabBar(
             controller: _tabController,
-            labelColor: Colors.blue,
-            unselectedLabelColor: Colors.black,
-            indicatorColor: Colors.blue,
+            labelColor: AppTheme.getButton(isDarkMode),
+            unselectedLabelColor: AppTheme.getPrimaryText(isDarkMode),
+            indicatorColor: AppTheme.getButton(isDarkMode),
             tabs: const [Tab(text: "Ongoing"), Tab(text: "History")],
           ),
         ),
         body: TabBarView(
           controller: _tabController,
           children: [
-            _buildOrderList(ongoingOrders, "Ongoing"),
-            _buildOrderList(historyOrders, "History"),
+            _buildOrderList(ongoingOrders, "Ongoing", isDarkMode),
+            _buildOrderList(historyOrders, "History", isDarkMode),
           ],
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -106,9 +109,9 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
     );
   }
 
-  Widget _buildOrderList(List<Order> orders, String type) {
+  Widget _buildOrderList(List<Order> orders, String type, bool isDarkMode) {
     if (orders.isEmpty) {
-      return _buildEmptyOrderView(type);
+      return _buildEmptyOrderView(type, isDarkMode);
     }
 
     return RefreshIndicator(
@@ -126,7 +129,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
     );
   }
 
-  Widget _buildEmptyOrderView(String type) {
+  Widget _buildEmptyOrderView(String type, bool isDarkMode) {
     return Center(
       child: SingleChildScrollView(
         child: Padding(
@@ -144,13 +147,11 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
               ),
               const SizedBox(height: 16),
               Text(
-                type == "Ongoing" 
-                    ? "No Active Orders Yet" 
-                    : "No Order History",
+                type == "Ongoing" ? "No Active Orders Yet" : "No Order History",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey[800],
+                  color: AppTheme.getTextDark(isDarkMode),
                 ),
               ),
               const SizedBox(height: 12),
@@ -163,7 +164,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.grey[600],
+                    color: AppTheme.getSecondaryText(isDarkMode),
                     height: 1.5,
                   ),
                 ),
@@ -177,8 +178,8 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue[700],
-                  foregroundColor: Colors.white,
+                  backgroundColor: AppTheme.getAccentBlue(isDarkMode),
+                  foregroundColor: AppTheme.getPrimaryText(!isDarkMode),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -187,23 +188,23 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
                     vertical: 12,
                   ),
                   elevation: 3,
-                  shadowColor: Colors.blue.withOpacity(0.3),
+                  shadowColor: AppTheme.getButton(isDarkMode).withOpacity(0.3),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      type == "Ongoing" 
-                          ? Icons.restaurant 
-                          : Icons.history,
+                      type == "Ongoing" ? Icons.restaurant : Icons.history,
                       size: 20,
+                      color: AppTheme.getPrimaryText(!isDarkMode),
                     ),
                     const SizedBox(width: 8),
                     Text(
                       type == "Ongoing" ? "Order Now" : "View Menu",
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
+                        color: AppTheme.getPrimaryText(!isDarkMode),
                       ),
                     ),
                   ],
