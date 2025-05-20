@@ -5,11 +5,13 @@ import 'package:u_teen/screens/seller/home_screen.dart';
 import 'package:u_teen/models/payment_method.dart';
 import 'package:u_teen/data/payment_methods_data.dart';
 import 'package:u_teen/screens/seller/transaction_history_screen.dart';
+import 'package:u_teen/widgets/withdraw/withdrawal_dialog.dart';
 import 'package:u_teen/widgets/payment_method_card.dart';
 import 'package:u_teen/widgets/seller/custom_bottom_navigation.dart';
 import 'package:flutter/services.dart';
 import 'package:u_teen/providers/order_provider.dart';
 import 'package:u_teen/auth/auth_provider.dart';
+import 'package:u_teen/utils/formatters.dart';
 
 class SellerBalanceScreen extends StatefulWidget {
   const SellerBalanceScreen({super.key});
@@ -18,33 +20,9 @@ class SellerBalanceScreen extends StatefulWidget {
   State<SellerBalanceScreen> createState() => _SellerBalanceScreenState();
 }
 
-// Custom input formatter for thousand separator (dot for Indonesian format)
-class ThousandSeparatorInputFormatter extends TextInputFormatter {
-  final NumberFormat _formatter = NumberFormat.decimalPattern('id_ID');
-
-  @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
-    // Only allow numbers
-    String digitsOnly = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
-    if (digitsOnly.isEmpty) {
-      return newValue.copyWith(text: '');
-    }
-    final number = int.parse(digitsOnly);
-    final newString = _formatter.format(number);
-
-    // Calculate the new cursor position
-    int selectionIndex = newString.length;
-    return TextEditingValue(
-      text: newString,
-      selection: TextSelection.collapsed(offset: selectionIndex),
-    );
-  }
-}
-
 class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
   PaymentMethod? _selectedMethod;
-  final String _userGopayNumber = '0812-3456-7890';
+  final String _userGopayNumber = '0812-3456-7890'; // TODO: Move to AuthProvider
   int _balance = 0;
 
   @override
@@ -69,12 +47,6 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final formatter = NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: 'Rp ',
-      decimalDigits: 0,
-    );
-
     return WillPopScope(
       onWillPop: () async {
         Navigator.pushReplacement(
@@ -152,7 +124,7 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
                           ),
                           SizedBox(height: 12),
                           Text(
-                            formatter.format(_balance),
+                            Formatters.currencyFormat.format(_balance),
                             style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
@@ -260,323 +232,42 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
     );
   }
 
-  void _withdrawFunds(BuildContext context) async {
-  if (_balance <= 0) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Balance is insufficient for withdrawal'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-    return;
-  }
-
-  double withdrawalAmount = _balance.toDouble();
-  final formatter = NumberFormat.currency(
-    locale: 'id_ID',
-    symbol: 'Rp ',
-    decimalDigits: 0,
-  );
-  final numberFormatter = NumberFormat.decimalPattern('id_ID'); // For parsing/formatting numbers
-
-  // Create TextEditingController outside StatefulBuilder to persist it
-  final TextEditingController amountController = TextEditingController(
-    text: numberFormatter.format(withdrawalAmount), // Format initial value with dots
-  );
-
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (context) => StatefulBuilder(
-      builder: (context, setState) {
-        return Dialog(
-          insetPadding: const EdgeInsets.all(20),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          backgroundColor: Colors.white,
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.account_balance_wallet,
-                          size: 32,
-                          color: Colors.blue,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Withdraw Funds',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Available Balance: ${formatter.format(_balance)}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  TextField(
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: 'Withdrawal Amount',
-                      prefixText: 'Rp ',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    inputFormatters: [
-                      ThousandSeparatorInputFormatter(), // Use custom formatter
-                    ],
-                    controller: amountController, // Use the persistent controller
-                    onChanged: (value) {
-                      // Remove dots for parsing
-                      final parsed = double.tryParse(value.replaceAll('.', '')) ?? 0;
-                      setState(() {
-                        withdrawalAmount =
-                            parsed > _balance ? _balance.toDouble() : parsed;
-                        // Update controller text with formatted value
-                        amountController.text = numberFormatter.format(withdrawalAmount);
-                        // Preserve cursor position
-                        amountController.selection = TextSelection.fromPosition(
-                          TextPosition(offset: amountController.text.length),
-                        );
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildQuickAmountButton('25%', () {
-                        setState(() {
-                          withdrawalAmount = _balance * 0.25;
-                          amountController.text = numberFormatter.format(withdrawalAmount);
-                          amountController.selection = TextSelection.fromPosition(
-                            TextPosition(offset: amountController.text.length),
-                          );
-                        });
-                        HapticFeedback.lightImpact();
-                      }),
-                      _buildQuickAmountButton('50%', () {
-                        setState(() {
-                          withdrawalAmount = _balance * 0.5;
-                          amountController.text = numberFormatter.format(withdrawalAmount);
-                          amountController.selection = TextSelection.fromPosition(
-                            TextPosition(offset: amountController.text.length),
-                          );
-                        });
-                        HapticFeedback.lightImpact();
-                      }),
-                      _buildQuickAmountButton('75%', () {
-                        setState(() {
-                          withdrawalAmount = _balance * 0.75;
-                          amountController.text = numberFormatter.format(withdrawalAmount);
-                          amountController.selection = TextSelection.fromPosition(
-                            TextPosition(offset: amountController.text.length),
-                          );
-                        });
-                        HapticFeedback.lightImpact();
-                      }),
-                      _buildQuickAmountButton('100%', () {
-                        setState(() {
-                          withdrawalAmount = _balance.toDouble();
-                          amountController.text = numberFormatter.format(withdrawalAmount);
-                          amountController.selection = TextSelection.fromPosition(
-                            TextPosition(offset: amountController.text.length),
-                          );
-                        });
-                        HapticFeedback.lightImpact();
-                      }),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Withdraw to',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Image.asset(
-                                _selectedMethod!.iconPath,
-                                width: 24,
-                                height: 24,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              _selectedMethod!.name,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _userGopayNumber,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {
-                            amountController.dispose(); // Clean up controller
-                            Navigator.pop(context);
-                          },
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 16,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            side: const BorderSide(color: Colors.grey),
-                          ),
-                          child: const Text(
-                            'Cancel',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: withdrawalAmount <= 0
-                              ? null
-                              : () async {
-                                  Navigator.pop(context);
-                                  final orderProvider =
-                                      Provider.of<OrderProvider>(
-                                        context,
-                                        listen: false,
-                                      );
-                                  final authProvider =
-                                      Provider.of<AuthProvider>(
-                                        context,
-                                        listen: false,
-                                      );
-                                  final sellerEmail =
-                                      authProvider.user?.email ?? '';
-
-                                  await orderProvider.addWithdrawal(
-                                    merchantEmail: sellerEmail,
-                                    amount: withdrawalAmount,
-                                    method: _selectedMethod!.name,
-                                  );
-                                  amountController.dispose(); // Clean up controller
-                                  _showWithdrawalSuccess(
-                                    withdrawalAmount,
-                                  );
-                                  _calculateBalance();
-                                },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 16,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: const Text(
-                            'Confirm',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    ),
-  );
-}
-
-  Widget _buildQuickAmountButton(String label, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.blue.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
+  void _withdrawFunds(BuildContext context) {
+    if (_balance <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Balance is insufficient for withdrawal'),
+          behavior: SnackBarBehavior.floating,
         ),
-        child: Text(
-          label,
-          style: const TextStyle(
-            color: Colors.blue,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
+      );
+      return;
+    }
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+    final sellerEmail = authProvider.user?.email ?? '';
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => WithdrawalDialog(
+        balance: _balance,
+        selectedMethod: _selectedMethod!,
+        userGopayNumber: _userGopayNumber,
+        onWithdraw: (amount) async {
+          await orderProvider.addWithdrawal(
+            merchantEmail: sellerEmail,
+            amount: amount,
+            method: _selectedMethod!.name,
+          );
+          _showWithdrawalSuccess(amount);
+          _calculateBalance();
+        },
       ),
     );
   }
 
   void _showWithdrawalSuccess(double amount) {
-    final formatter = NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: 'Rp ',
-      decimalDigits: 0,
-    );
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -590,7 +281,7 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
                 children: [
                   const Text('Withdrawal Successful!'),
                   Text(
-                    '${formatter.format(amount)} to ${_selectedMethod!.name}',
+                    '${Formatters.currencyFormat.format(amount)} to ${_selectedMethod!.name}',
                     style: const TextStyle(fontSize: 12),
                   ),
                 ],

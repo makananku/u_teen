@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import './rating_stars.dart';
+import 'rating_stars.dart';
 
 class RatingSummaryCard extends StatelessWidget {
   final double averageRating;

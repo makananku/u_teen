@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/order_model.dart';
-import './rating_stars.dart';
+import 'rating_stars.dart';
 
 class RatingHistoryCard extends StatelessWidget {
   final Order order;
