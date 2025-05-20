@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:u_teen/auth/auth_provider.dart';
-import '../login_screen.dart';
-import '../../widgets/customer/custom_bottom_navigation.dart';
+import 'package:u_teen/screens/login_screen.dart';
+import 'package:u_teen/widgets/customer/custom_bottom_navigation.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-import 'home_screen.dart';
+import 'package:u_teen/screens/customer/home_screen.dart';
+import 'package:u_teen/providers/theme_notifier.dart';
+import 'package:u_teen/utils/app_theme.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -30,103 +32,113 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<bool> _onWillPop() async {
-    // Navigate to HomeScreen and clear the navigation stack
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => const HomeScreen()),
       (route) => false,
     );
-    return false; // Prevent default pop behavior
+    return false;
   }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onWillPop,
-      child: KeyboardVisibilityBuilder(
-        builder: (context, isKeyboardVisible) {
-          return Scaffold(
-            backgroundColor: Colors.white,
-            appBar: AppBar(
-              title: const Text(
-                "My Profile",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                  fontSize: 18,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              centerTitle: true,
-              backgroundColor: Colors.white,
-              elevation: 0,
-            ),
-            body: Stack(
-              children: [
-                SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Column(
-                    children: [
-                      _buildProfileCard(context),
-                      const SizedBox(height: 24),
-                      _buildLogoutButton(context),
-                      const SizedBox(height: 80),
-                    ],
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
+    final isDarkMode = themeNotifier.isDarkMode;
+
+    return Theme(
+      data: themeNotifier.currentTheme,
+      child: WillPopScope(
+        onWillPop: _onWillPop,
+        child: KeyboardVisibilityBuilder(
+          builder: (context, isKeyboardVisible) {
+            return Scaffold(
+              backgroundColor: AppTheme.getBackground(isDarkMode),
+              appBar: AppBar(
+                title: Text(
+                  "My Profile",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.getPrimaryText(isDarkMode),
+                    fontSize: 18,
+                    letterSpacing: 0.5,
                   ),
                 ),
-                if (_showPhoneInfo)
-                  Positioned(
-                    bottom: 120,
-                    left: 20,
-                    right: 20,
-                    child: AnimatedOpacity(
-                      opacity: _showPhoneInfo ? 1.0 : 0.0,
-                      duration: const Duration(milliseconds: 300),
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.blue[800],
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 12,
-                              spreadRadius: 2,
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.info_outline, color: Colors.white, size: 22),
-                            const SizedBox(width: 12),
-                            const Expanded(
-                              child: Text(
-                                "Keep your phone number updated at my.umn.ac.id",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  height: 1.4,
+                centerTitle: true,
+                backgroundColor: AppTheme.getCard(isDarkMode),
+                elevation: 0.5,
+                iconTheme: IconThemeData(
+                  color: AppTheme.getPrimaryText(isDarkMode),
+                ),
+              ),
+              body: Stack(
+                children: [
+                  SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      children: [
+                        _buildProfileCard(context, isDarkMode),
+                        const SizedBox(height: 24),
+                        _buildThemeToggle(context, isDarkMode, themeNotifier),
+                        const SizedBox(height: 16),
+                        _buildLogoutButton(context, isDarkMode),
+                        const SizedBox(height: 80),
+                      ],
+                    ),
+                  ),
+                  if (_showPhoneInfo)
+                    Positioned(
+                      bottom: 120,
+                      left: 20,
+                      right: 20,
+                      child: AnimatedOpacity(
+                        opacity: _showPhoneInfo ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 300),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppTheme.getAccentBlue(isDarkMode),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.getPrimaryText(isDarkMode).withOpacity(0.1),
+                                blurRadius: 12,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.info_outline, color: AppTheme.getPrimaryText(!isDarkMode), size: 22),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  "Keep your phone number updated at my.umn.ac.id",
+                                  style: TextStyle(
+                                    color: AppTheme.getPrimaryText(!isDarkMode),
+                                    fontSize: 14,
+                                    height: 1.4,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
-            ),
-            floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-            floatingActionButton: CustomBottomNavigation(
-              selectedIndex: 3,
-              context: context,
-            ),
-          );
-        },
+                ],
+              ),
+              floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+              floatingActionButton: CustomBottomNavigation(
+                selectedIndex: 3,
+                context: context,
+              ),
+            );
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildProfileCard(BuildContext context) {
+  Widget _buildProfileCard(BuildContext context, bool isDarkMode) {
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.user;
     final email = user?.email ?? 'No Email';
@@ -139,11 +151,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Card(
-        color: Colors.white,
-        elevation: 4,
+        color: AppTheme.getCard(isDarkMode),
+        elevation: isDarkMode ? 0 : 4,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: Colors.grey.shade100, width: 1),
+          side: BorderSide(
+            color: AppTheme.getBorder(isDarkMode),
+            width: 1,
+          ),
         ),
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -154,7 +169,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
-                    colors: [Colors.blue[700]!, Colors.purple[400]!],
+                    colors: [
+                      AppTheme.getAccentBlue(isDarkMode),
+                      AppTheme.getAccentPurpleLight(isDarkMode),
+                    ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -165,7 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.white,
+                      color: AppTheme.getCard(isDarkMode),
                       width: 3,
                     ),
                   ),
@@ -177,11 +195,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
-                          color: Colors.grey.shade100,
+                          color: AppTheme.getDetailBackground(isDarkMode),
                           child: Icon(
                             Icons.person,
                             size: 36,
-                            color: Colors.grey.shade400,
+                            color: AppTheme.getSecondaryText(isDarkMode),
                           ),
                         );
                       },
@@ -195,23 +213,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Text(
                     name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: AppTheme.getPrimaryText(isDarkMode),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
-                      color: Colors.blue[50],
+                      color: AppTheme.getAccentBlueLight(isDarkMode),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.verified,
                       size: 18,
-                      color: Colors.blue[700],
+                      color: AppTheme.getAccentBlue(isDarkMode),
                     ),
                   ),
                 ],
@@ -221,7 +239,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 email,
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey.shade600,
+                  color: AppTheme.getSecondaryText(isDarkMode),
                 ),
               ),
               const SizedBox(height: 24),
@@ -229,7 +247,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 height: 1,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.white, Colors.grey.shade200, Colors.white],
+                    colors: [
+                      AppTheme.getCard(isDarkMode),
+                      AppTheme.getDivider(isDarkMode),
+                      AppTheme.getCard(isDarkMode),
+                    ],
                   ),
                 ),
               ),
@@ -238,7 +260,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 icon: Icons.badge_outlined,
                 title: authProvider.isCustomer ? 'STUDENT ID' : 'SELLER ID',
                 value: nim ?? 'Not Available',
-                iconColor: Colors.purple[600]!,
+                iconColor: AppTheme.getAccentPurpleDark(isDarkMode),
+                isDarkMode: isDarkMode,
               ),
               if (authProvider.isCustomer)
                 _buildDetailItem(
@@ -247,14 +270,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   value: prodi == 'No Prodi' || angkatan == 'No Angkatan'
                       ? 'Not Available'
                       : '$prodi ($angkatan)',
-                  iconColor: Colors.blue[600]!,
+                  iconColor: AppTheme.getAccentBlueDark(isDarkMode),
+                  isDarkMode: isDarkMode,
                 ),
               _buildDetailItem(
                 icon: Icons.phone_android_outlined,
                 title: 'PHONE NUMBER',
                 value: phoneNumber,
                 showInfo: true,
-                iconColor: Colors.teal[600]!,
+                iconColor: AppTheme.getAccentTeal(isDarkMode),
+                isDarkMode: isDarkMode,
               ),
             ],
           ),
@@ -269,14 +294,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String value,
     bool showInfo = false,
     required Color iconColor,
+    required bool isDarkMode,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: AppTheme.getDetailBackground(isDarkMode),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(
+          color: AppTheme.getBorder(isDarkMode),
+        ),
       ),
       child: Row(
         children: [
@@ -284,7 +312,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
+              color: iconColor.withOpacity(isDarkMode ? 0.2 : 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: iconColor, size: 22),
@@ -298,7 +326,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   title,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey.shade600,
+                    color: AppTheme.getSecondaryText(isDarkMode),
                     fontWeight: FontWeight.w500,
                     letterSpacing: 0.5,
                   ),
@@ -311,7 +339,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade800,
+                        color: AppTheme.getTextDark(isDarkMode),
                       ),
                     ),
                     if (showInfo) const SizedBox(width: 8),
@@ -322,13 +350,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           width: 24,
                           height: 24,
                           decoration: BoxDecoration(
-                            color: Colors.blue.shade50,
+                            color: AppTheme.getAccentBlueLight(isDarkMode),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             Icons.info_outline,
                             size: 16,
-                            color: Colors.blue.shade700,
+                            color: AppTheme.getAccentBlue(isDarkMode),
                           ),
                         ),
                       ),
@@ -342,36 +370,105 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildLogoutButton(BuildContext context) {
+  Widget _buildThemeToggle(BuildContext context, bool isDarkMode, ThemeNotifier themeNotifier) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppTheme.getDetailBackground(isDarkMode),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppTheme.getBorder(isDarkMode),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppTheme.getAccentBlueLight(isDarkMode),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                color: AppTheme.getAccentBlue(isDarkMode),
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'APP THEME',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.getSecondaryText(isDarkMode),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    isDarkMode ? 'Dark Mode' : 'Light Mode',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.getTextDark(isDarkMode),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Switch(
+              value: isDarkMode,
+              onChanged: (value) {
+                themeNotifier.toggleTheme();
+              },
+              activeColor: AppTheme.getButton(isDarkMode),
+              inactiveThumbColor: AppTheme.getSwitchInactive(isDarkMode),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLogoutButton(BuildContext context, bool isDarkMode) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: SizedBox(
         width: double.infinity,
         child: ElevatedButton.icon(
-          icon: const Icon(Icons.logout, size: 22),
-          label: const Text(
+          icon: Icon(Icons.logout, size: 22, color: AppTheme.getSnackBarError(isDarkMode)),
+          label: Text(
             "Logout",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
+              color: AppTheme.getSnackBarError(isDarkMode),
             ),
           ),
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.white,
-            foregroundColor: Colors.red.shade600,
+            backgroundColor: AppTheme.getCard(isDarkMode),
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
-              side: BorderSide(color: Colors.grey.shade200, width: 1.5),
+              side: BorderSide(
+                color: AppTheme.getAccentRedLight(isDarkMode),
+                width: 1.5,
+              ),
             ),
             padding: const EdgeInsets.symmetric(vertical: 18),
-            shadowColor: Colors.red.withOpacity(0.1),
+            shadowColor: AppTheme.getSnackBarError(isDarkMode).withOpacity(0.1),
           ),
           onPressed: () {
             showDialog(
               context: context,
               builder: (context) => Dialog(
-                backgroundColor: Colors.white,
+                backgroundColor: AppTheme.getCard(isDarkMode),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24),
                 ),
@@ -384,31 +481,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
-                          color: Colors.red.shade50,
+                          color: AppTheme.getAccentRedLight(isDarkMode),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           Icons.logout,
                           size: 40,
-                          color: Colors.red.shade600,
+                          color: AppTheme.getSnackBarError(isDarkMode),
                         ),
                       ),
                       const SizedBox(height: 20),
-                      const Text(
+                      Text(
                         "Ready to Leave?",
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          color: AppTheme.getPrimaryText(isDarkMode),
                         ),
                       ),
                       const SizedBox(height: 12),
-                      const Text(
+                      Text(
                         "You'll be signed out of your account",
                         style: TextStyle(
                           fontSize: 16,
-                          color: Colors.grey,
-                          height: 1.4,
+                          color: AppTheme.getSecondaryText(isDarkMode),
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -420,16 +516,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               onPressed: () => Navigator.pop(context),
                               style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(vertical: 16),
-                                side: BorderSide(color: Colors.grey.shade300),
+                                side: BorderSide(
+                                  color: AppTheme.getSwitchInactive(isDarkMode),
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                backgroundColor: Colors.white,
+                                backgroundColor: AppTheme.getDetailBackground(isDarkMode),
                               ),
-                              child: const Text(
+                              child: Text(
                                 "Cancel",
                                 style: TextStyle(
-                                  color: Colors.black87,
+                                  color: AppTheme.getTextMedium(isDarkMode),
                                   fontWeight: FontWeight.w600,
                                   fontSize: 15,
                                 ),
@@ -443,34 +541,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 final authProvider = Provider.of<AuthProvider>(context, listen: false);
                                 bool success = await authProvider.logout();
                                 if (success) {
-                                  print('Logout successful, navigating to LoginScreen');
                                   Navigator.pushAndRemoveUntil(
                                     context,
                                     MaterialPageRoute(builder: (context) => const LoginScreen()),
                                     (route) => false,
                                   );
                                 } else {
-                                  print('Logout failed');
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Failed to logout. Please try again.'),
-                                      backgroundColor: Colors.red,
+                                    SnackBar(
+                                      content: const Text('Failed to logout. Please try again.'),
+                                      backgroundColor: AppTheme.getSnackBarError(isDarkMode),
                                     ),
                                   );
                                 }
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red.shade600,
+                                backgroundColor: AppTheme.getSnackBarError(isDarkMode),
                                 padding: const EdgeInsets.symmetric(vertical: 16),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 elevation: 0,
                               ),
-                              child: const Text(
+                              child: Text(
                                 "Logout",
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: AppTheme.getPrimaryText(!isDarkMode),
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15,
                                 ),

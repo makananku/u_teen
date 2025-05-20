@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:u_teen/auth/auth_provider.dart';
-import 'package:u_teen/screens/seller/home_screen.dart';
-import 'package:u_teen/widgets/seller/custom_bottom_navigation.dart';
-import 'package:u_teen/screens/login_screen.dart';
-import 'package:u_teen/providers/rating_provider.dart';
 import 'package:u_teen/providers/order_provider.dart';
+import 'package:u_teen/providers/rating_provider.dart';
 import 'package:u_teen/providers/theme_notifier.dart';
+import 'package:u_teen/screens/login_screen.dart';
+import 'package:u_teen/screens/seller/home_screen.dart';
+import 'package:u_teen/utils/app_theme.dart';
+import 'package:u_teen/widgets/seller/custom_bottom_navigation.dart';
 
 class SellerProfileScreen extends StatefulWidget {
   const SellerProfileScreen({super.key});
@@ -34,21 +35,21 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
           return false;
         },
         child: Scaffold(
-          backgroundColor: isDarkMode ? const Color(0xFF121212) : const Color(0xFFF8FAFC),
+          backgroundColor: AppTheme.getBackground(isDarkMode),
           appBar: AppBar(
             title: Text(
               'Merchant Profile',
               style: TextStyle(
-                color: isDarkMode ? Colors.white : const Color(0xFF1E293B),
+                color: AppTheme.getPrimaryText(isDarkMode),
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
               ),
             ),
             centerTitle: true,
-            backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+            backgroundColor: AppTheme.getCard(isDarkMode),
             elevation: 0.5,
             iconTheme: IconThemeData(
-              color: isDarkMode ? Colors.white : Colors.black,
+              color: AppTheme.getPrimaryText(isDarkMode),
             ),
           ),
           body: Stack(
@@ -86,12 +87,12 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
     final tenantName = authProvider.tenantName ?? 'Merchant';
     final email = authProvider.sellerEmail ?? 'No Email';
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
 
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+        color: AppTheme.getCard(isDarkMode),
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(24),
           bottomRight: Radius.circular(24),
@@ -108,11 +109,14 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: isDarkMode ? const Color(0xFF333333) : const Color(0xFFE2E8F0),
+                    color: AppTheme.getBorder(isDarkMode),
                     width: 3,
                   ),
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                  gradient: LinearGradient(
+                    colors: [
+                      AppTheme.getAccentPurple(isDarkMode),
+                      AppTheme.getAccentPurpleVariant(isDarkMode),
+                    ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -121,10 +125,10 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                   child: Image.asset(
                     'assets/images/merchant_avatar.png',
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => const Icon(
+                    errorBuilder: (context, error, stackTrace) => Icon(
                       Icons.storefront,
                       size: 40,
-                      color: Colors.white,
+                      color: AppTheme.getPrimaryText(!isDarkMode),
                     ),
                   ),
                 ),
@@ -132,17 +136,17 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981),
+                  color: AppTheme.getSnackBarSuccess(isDarkMode),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: Colors.white,
+                    color: AppTheme.getCard(isDarkMode),
                     width: 2,
                   ),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.verified,
                   size: 16,
-                  color: Colors.white,
+                  color: AppTheme.getPrimaryText(!isDarkMode),
                 ),
               ),
             ],
@@ -153,7 +157,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: isDarkMode ? Colors.white : const Color(0xFF1E293B),
+              color: AppTheme.getPrimaryText(isDarkMode),
             ),
           ),
           const SizedBox(height: 4),
@@ -161,7 +165,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
             email,
             style: TextStyle(
               fontSize: 14,
-              color: isDarkMode ? Colors.grey[400] : const Color(0xFF64748B).withOpacity(0.8),
+              color: AppTheme.getSecondaryText(isDarkMode),
             ),
           ),
           const SizedBox(height: 16),
@@ -177,19 +181,19 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
     final merchantEmail = authProvider.sellerEmail ?? '';
     final averageRating = ratingsProvider.getAverageFoodRating(merchantEmail);
     final totalSales = orderProvider.getCompletedOrdersForMerchant(merchantEmail).length;
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+        color: AppTheme.getCard(isDarkMode),
         borderRadius: BorderRadius.circular(16),
         boxShadow: isDarkMode
             ? []
             : [
                 BoxShadow(
-                  color: const Color(0xFF64748B).withOpacity(0.05),
+                  color: AppTheme.getSecondaryText(isDarkMode).withOpacity(0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -205,7 +209,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: isDarkMode ? Colors.white : const Color(0xFF1E293B),
+                  color: AppTheme.getPrimaryText(isDarkMode),
                 ),
               ),
               GestureDetector(
@@ -214,12 +218,12 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isDarkMode ? Colors.grey[800]!.withOpacity(0.5) : const Color(0xFFE2E8F0).withOpacity(0.5),
+                    color: AppTheme.getInfoBackground(isDarkMode).withOpacity(0.5),
                   ),
                   child: Icon(
                     Icons.info_outline,
                     size: 16,
-                    color: isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
+                    color: AppTheme.getSecondaryText(isDarkMode),
                   ),
                 ),
               ),
@@ -230,14 +234,14 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
               margin: const EdgeInsets.only(top: 8),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isDarkMode ? const Color(0xFF333333) : const Color(0xFFF8FAFC),
+                color: AppTheme.getDetailBackground(isDarkMode),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 'Statistics are updated daily at midnight',
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
+                  color: AppTheme.getSecondaryText(isDarkMode),
                 ),
               ),
             ),
@@ -249,7 +253,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                   'Total Sales',
                   totalSales.toString(),
                   Icons.trending_up,
-                  const Color(0xFF10B981),
+                  AppTheme.getSnackBarSuccess(isDarkMode),
                   isDarkMode,
                 ),
               ),
@@ -259,7 +263,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                   'Rating',
                   averageRating.toStringAsFixed(1),
                   Icons.star_rate,
-                  const Color(0xFFF59E0B),
+                  AppTheme.getRating(isDarkMode),
                   isDarkMode,
                 ),
               ),
@@ -269,7 +273,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                   'Products',
                   '24',
                   Icons.fastfood,
-                  const Color(0xFF6366F1),
+                  AppTheme.getAccentPurple(isDarkMode),
                   isDarkMode,
                 ),
               ),
@@ -310,7 +314,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
         return Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: isDarkMode ? color.withOpacity(0.15) : color.withOpacity(0.1),
+            color: color.withOpacity(isDarkMode ? 0.15 : 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -321,7 +325,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                   Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: isDarkMode ? color.withOpacity(0.3) : color.withOpacity(0.2),
+                      color: color.withOpacity(isDarkMode ? 0.3 : 0.2),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -338,7 +342,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                         title,
                         style: TextStyle(
                           fontSize: 12,
-                          color: isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
+                          color: AppTheme.getSecondaryText(isDarkMode),
                         ),
                         overflow: showFullTitle ? null : TextOverflow.ellipsis,
                         maxLines: showFullTitle ? null : 1,
@@ -379,13 +383,13 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+        color: AppTheme.getCard(isDarkMode),
         borderRadius: BorderRadius.circular(16),
         boxShadow: isDarkMode
             ? []
             : [
                 BoxShadow(
-                  color: const Color(0xFF64748B).withOpacity(0.05),
+                  color: AppTheme.getSecondaryText(isDarkMode).withOpacity(0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -401,7 +405,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: isDarkMode ? Colors.white : const Color(0xFF1E293B),
+                  color: AppTheme.getPrimaryText(isDarkMode),
                 ),
               ),
               GestureDetector(
@@ -410,12 +414,12 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isDarkMode ? Colors.grey[800]!.withOpacity(0.5) : const Color(0xFFE2E8F0).withOpacity(0.5),
+                    color: AppTheme.getInfoBackground(isDarkMode).withOpacity(0.5),
                   ),
                   child: Icon(
                     Icons.info_outline,
                     size: 16,
-                    color: isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
+                    color: AppTheme.getSecondaryText(isDarkMode),
                   ),
                 ),
               ),
@@ -426,14 +430,14 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
               margin: const EdgeInsets.only(top: 8),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isDarkMode ? const Color(0xFF333333) : const Color(0xFFF8FAFC),
+                color: AppTheme.getDetailBackground(isDarkMode),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 'Update your business details in the UMN Merchant Portal',
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
+                  color: AppTheme.getSecondaryText(isDarkMode),
                 ),
               ),
             ),
@@ -442,7 +446,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
             icon: Icons.badge_outlined,
             title: 'MERCHANT ID',
             value: sellerNim,
-            iconColor: const Color(0xFF8B5CF6),
+            iconColor: AppTheme.getAccentPurpleVariant(isDarkMode),
             isDarkMode: isDarkMode,
           ),
           const SizedBox(height: 12),
@@ -450,7 +454,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
             icon: Icons.phone_android_outlined,
             title: 'CONTACT NUMBER',
             value: phoneNumber,
-            iconColor: const Color(0xFF0EA5E9),
+            iconColor: AppTheme.getAccentCyan(isDarkMode),
             isDarkMode: isDarkMode,
           ),
           const SizedBox(height: 12),
@@ -458,7 +462,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
             icon: Icons.email_outlined,
             title: 'BUSINESS EMAIL',
             value: authProvider.sellerEmail ?? 'Not Available',
-            iconColor: const Color(0xFFEC4899),
+            iconColor: AppTheme.getAccentPink(isDarkMode),
             isDarkMode: isDarkMode,
           ),
           const SizedBox(height: 12),
@@ -480,10 +484,10 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDarkMode ? const Color(0xFF333333) : const Color(0xFFF8FAFC),
+        color: AppTheme.getDetailBackground(isDarkMode),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDarkMode ? const Color(0xFF444444) : const Color(0xFFE2E8F0),
+          color: AppTheme.getBorder(isDarkMode),
           width: 1,
         ),
       ),
@@ -493,7 +497,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: isDarkMode ? iconColor.withOpacity(0.2) : iconColor.withOpacity(0.1),
+              color: iconColor.withOpacity(isDarkMode ? 0.2 : 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -511,7 +515,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                   title,
                   style: TextStyle(
                     fontSize: 12,
-                    color: isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
+                    color: AppTheme.getSecondaryText(isDarkMode),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -520,7 +524,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                   value,
                   style: TextStyle(
                     fontSize: 14,
-                    color: isDarkMode ? Colors.white : const Color(0xFF1E293B),
+                    color: AppTheme.getPrimaryText(isDarkMode),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -536,10 +540,10 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDarkMode ? const Color(0xFF333333) : const Color(0xFFF8FAFC),
+        color: AppTheme.getDetailBackground(isDarkMode),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDarkMode ? const Color(0xFF444444) : const Color(0xFFE2E8F0),
+          color: AppTheme.getBorder(isDarkMode),
           width: 1,
         ),
       ),
@@ -549,12 +553,12 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: isDarkMode ? const Color(0xFF6366F1).withOpacity(0.2) : const Color(0xFF6366F1).withOpacity(0.1),
+              color: AppTheme.getAccentPurple(isDarkMode).withOpacity(isDarkMode ? 0.2 : 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
               isDarkMode ? Icons.dark_mode : Icons.light_mode,
-              color: const Color(0xFF6366F1),
+              color: AppTheme.getAccentPurple(isDarkMode),
               size: 20,
             ),
           ),
@@ -567,7 +571,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                   'THEME',
                   style: TextStyle(
                     fontSize: 12,
-                    color: isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
+                    color: AppTheme.getSecondaryText(isDarkMode),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -576,7 +580,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                   isDarkMode ? 'Dark Mode' : 'Light Mode',
                   style: TextStyle(
                     fontSize: 14,
-                    color: isDarkMode ? Colors.white : const Color(0xFF1E293B),
+                    color: AppTheme.getPrimaryText(isDarkMode),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -588,8 +592,8 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
             onChanged: (value) {
               themeNotifier.toggleTheme();
             },
-            activeColor: const Color(0xFF6366F1),
-            inactiveThumbColor: const Color(0xFFE2E8F0),
+            activeColor: AppTheme.getAccentPurple(isDarkMode),
+            inactiveThumbColor: AppTheme.getBorder(isDarkMode),
           ),
         ],
       ),
@@ -604,7 +608,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
           showDialog(
             context: context,
             builder: (context) => Dialog(
-              backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+              backgroundColor: AppTheme.getCard(isDarkMode),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -617,13 +621,13 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFEE2E2).withOpacity(isDarkMode ? 0.2 : 1),
+                        color: AppTheme.getErrorLightBackground(isDarkMode).withOpacity(isDarkMode ? 0.2 : 1),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.logout,
                         size: 40,
-                        color: Color(0xFFDC2626),
+                        color: AppTheme.getSnackBarError(isDarkMode),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -632,7 +636,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: isDarkMode ? Colors.white : const Color(0xFF1E293B),
+                        color: AppTheme.getPrimaryText(isDarkMode),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -641,7 +645,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 14,
-                        color: isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
+                        color: AppTheme.getSecondaryText(isDarkMode),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -653,16 +657,17 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               side: BorderSide(
-                                color: isDarkMode ? const Color(0xFF444444) : const Color(0xFFE2E8F0),
+                                color: AppTheme.getBorder(isDarkMode),
                               ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
+                              foregroundColor: AppTheme.getSecondaryText(isDarkMode),
                             ),
                             child: Text(
                               'Cancel',
                               style: TextStyle(
-                                color: isDarkMode ? Colors.grey[400] : const Color(0xFF64748B),
+                                color: AppTheme.getSecondaryText(isDarkMode),
                               ),
                             ),
                           ),
@@ -686,25 +691,23 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
                               } else {
                                 print('Logout failed');
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Failed to logout. Please try again.'),
-                                    backgroundColor: Colors.red,
+                                  SnackBar(
+                                    content: const Text('Failed to logout. Please try again.'),
+                                    backgroundColor: AppTheme.getSnackBarError(isDarkMode),
                                   ),
                                 );
                               }
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFDC2626),
+                              backgroundColor: AppTheme.getSnackBarError(isDarkMode),
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
+                              foregroundColor: AppTheme.getPrimaryText(!isDarkMode),
                             ),
                             child: const Text(
                               'Logout',
-                              style: TextStyle(
-                                color: Colors.white,
-                              ),
                             ),
                           ),
                         ),
@@ -717,27 +720,28 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
           );
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: isDarkMode ? const Color(0xFF333333) : Colors.white,
-          foregroundColor: const Color(0xFFDC2626),
+          backgroundColor: AppTheme.getCard(isDarkMode),
+          foregroundColor: AppTheme.getSnackBarError(isDarkMode),
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
             side: BorderSide(
-              color: isDarkMode ? const Color(0xFF444444) : const Color(0xFFFECACA),
+              color: AppTheme.getErrorLight(isDarkMode),
               width: 1.5,
             ),
           ),
           elevation: 0,
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.logout, size: 20),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Text(
               'Logout',
               style: TextStyle(
                 fontWeight: FontWeight.w600,
+                color: AppTheme.getSnackBarError(isDarkMode),
               ),
             ),
           ],
