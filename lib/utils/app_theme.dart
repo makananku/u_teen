@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Light mode colors (unchanged)
+  
   static const Color lightBackground = Color(0xFFF8FAFC);
   static const Color lightCard = Colors.white;
   static const Color lightPrimaryText = Colors.black;
@@ -46,7 +46,6 @@ class AppTheme {
   static const Color lightError = Color(0xFFF44336);
   static const Color lightShadowLight = Color.fromRGBO(0, 0, 0, 0.1);
 
-  // Improved dark mode colors
   static const Color darkBackground = Color(0xFF121212);
   static const Color darkCard = Color(0xFF1E1E1E);
   static const Color darkSecondaryBackground = Color(0xFF252525);
@@ -93,7 +92,6 @@ class AppTheme {
   static const Color darkError = Color(0xFFE57373);
   static const Color darkShadowLight = Color.fromRGBO(0, 0, 0, 0.2);
 
-  // Get colors based on dark mode
   static Color getBackground(bool isDarkMode) => isDarkMode ? darkBackground : lightBackground;
   static Color getCard(bool isDarkMode) => isDarkMode ? darkCard : lightCard;
   static Color getSecondaryBackground(bool isDarkMode) => isDarkMode ? darkSecondaryBackground : lightBackground;
@@ -139,5 +137,5 @@ class AppTheme {
   static Color getAccentPrimaryBlue(bool isDarkMode) => isDarkMode ? darkAccentPrimaryBlue : lightAccentPrimaryBlue;
   static Color getError(bool isDarkMode) => isDarkMode ? darkError : lightError;
   static Color getShadowLight(bool isDarkMode) => isDarkMode ? darkShadowLight : lightShadowLight;
-  static Color getAppBarText(bool isDarkMode) => Colors.white; // Added for app bar text
+  static Color getAppBarText(bool isDarkMode) => Colors.white;
 }
