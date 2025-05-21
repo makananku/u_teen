@@ -9,7 +9,7 @@ class AppTheme {
   static const Color lightTertiaryText = Color.fromRGBO(97, 97, 97, 1);
   static const Color lightIcon = Colors.grey;
   static const Color lightBorder = Color(0xFFF5F5F5); // Colors.grey.shade100
-  static const Color lightButton = Color(0xFF6C63FF); // Standardized to match other files
+  static const Color lightButton = Color(0xFF6C63FF); // Standardized
   static const Color lightRating = Color(0xFFF59E0B);
   static const Color lightProgressBackground = Color.fromRGBO(238, 238, 238, 1);
   static const Color lightProgressValue = Color(0xFFF59E0B);
@@ -36,20 +36,25 @@ class AppTheme {
   static const Color lightAccentTeal = Color(0xFF00796B); // Colors.teal[600]
   static const Color lightAccentRedLight = Color(0xFFFFEBEE); // Colors.red.shade50
   static const Color lightAccentRedDark = Color(0xFFB71C1C); // Colors.red[900]
-  static const Color lightShadow = Color(0xFF64748B); // Shadow color
-  static const Color lightInactive = Color(0xFF94A3B8); // Inactive icon/text
-  static const Color lightBadge = Color(0xFFFB5607); // Notification badge
-  static const Color lightSnackBarInfo = Color(0xFF3A86FF); // SnackBar info
+  static const Color lightShadow = Color(0xFF64748B);
+  static const Color lightInactive = Color(0xFF94A3B8);
+  static const Color lightBadge = Color(0xFFFB5607);
+  static const Color lightSnackBarInfo = Color(0xFF3A86FF);
+  static const Color lightAccentGreen = Color(0xFF4CAF50); // Colors.green
+  static const Color lightAccentBlueInfo = Color(0xFF3A86FF); // For search prices, chips
+  static const Color lightAccentPrimaryBlue = Color(0xFF2196F3); // Colors.blue
+  static const Color lightError = Color(0xFFF44336); // Colors.red
+  static const Color lightShadowLight = Color.fromRGBO(0, 0, 0, 0.1); // For box shadows
 
   // Dark mode colors
   static const Color darkBackground = Color(0xFF121212);
   static const Color darkCard = Color(0xFF1E1E1E);
   static const Color darkPrimaryText = Colors.white;
-  static const Color darkSecondaryText = Color.fromRGBO(158, 158, 158, 1); // Approximates Colors.grey.shade400
+  static const Color darkSecondaryText = Color.fromRGBO(158, 158, 158, 1);
   static const Color darkTertiaryText = Color.fromRGBO(158, 158, 158, 1);
   static const Color darkIcon = Color.fromRGBO(117, 117, 117, 1);
   static const Color darkBorder = Color(0xFF333333);
-  static const Color darkButton = Color(0xFF6C63FF); // Standardized
+  static const Color darkButton = Color(0xFF6C63FF);
   static const Color darkRating = Color.fromRGBO(255, 215, 0, 1);
   static const Color darkProgressBackground = Color.fromRGBO(66, 66, 66, 1);
   static const Color darkProgressValue = Color.fromRGBO(255, 215, 0, 1);
@@ -64,23 +69,28 @@ class AppTheme {
   static const Color darkAccentPink = Color(0xFFEC4899);
   static const Color darkErrorLight = Color(0xFFFECACA);
   static const Color darkErrorLightBackground = Color(0xFFFEE2E2);
-  static const Color darkDivider = Color(0xFF424242); // Colors.grey.shade800
-  static const Color darkSwitchInactive = Color(0xFF616161); // Colors.grey.shade600
+  static const Color darkDivider = Color(0xFF424242);
+  static const Color darkSwitchInactive = Color(0xFF616161);
   static const Color darkTextDark = Color(0xFF424242);
   static const Color darkTextMedium = Color(0xFF616161);
   static const Color darkTextGrey = Color(0xFF9E9E9E);
-  static const Color darkAccentBlue = Color(0xFF0277BD); // Colors.blue[800]
-  static const Color darkAccentBlueLight = Color(0xFF90CAF9); // Colors.blue[200]
-  static const Color darkAccentBlueDark = Color(0xFF1565C0); // Colors.blue[600]
-  static const Color darkAccentPurpleDark = Color(0xFF7B1FA2); // Colors.purple[600]
-  static const Color darkAccentPurpleLight = Color(0xFFAB47BC); // Colors.purple[400]
-  static const Color darkAccentTeal = Color(0xFF00796B); // Colors.teal[600]
-  static const Color darkAccentRedLight = Color(0xFFCF6679); // Colors.red.shade50 equivalent
-  static const Color darkAccentRedDark = Color(0xFFB71C1C); // Colors.red[900]
-  static const Color darkShadow = Color(0xFF4B5EAA); // Adjusted for dark mode
-  static const Color darkInactive = Color(0xFF6B7280); // Adjusted for dark mode
+  static const Color darkAccentBlue = Color(0xFF0277BD);
+  static const Color darkAccentBlueLight = Color(0xFF90CAF9);
+  static const Color darkAccentBlueDark = Color(0xFF1565C0);
+  static const Color darkAccentPurpleDark = Color(0xFF7B1FA2);
+  static const Color darkAccentPurpleLight = Color(0xFFAB47BC);
+  static const Color darkAccentTeal = Color(0xFF00796B);
+  static const Color darkAccentRedLight = Color(0xFFCF6679);
+  static const Color darkAccentRedDark = Color(0xFFB71C1C);
+  static const Color darkShadow = Color(0xFF4B5EAA);
+  static const Color darkInactive = Color(0xFF6B7280);
   static const Color darkBadge = Color(0xFFFB5607);
   static const Color darkSnackBarInfo = Color(0xFF3A86FF);
+  static const Color darkAccentGreen = Color(0xFF388E3C); // Colors.green[700]
+  static const Color darkAccentBlueInfo = Color(0xFF3A86FF);
+  static const Color darkAccentPrimaryBlue = Color(0xFF42A5F5); // Lighter blue for dark mode
+  static const Color darkError = Color(0xFFEF5350); // Lighter red for dark mode
+  static const Color darkShadowLight = Color.fromRGBO(255, 255, 255, 0.1); // For box shadows in dark mode
 
   // Get colors based on dark mode
   static Color getBackground(bool isDarkMode) => isDarkMode ? darkBackground : lightBackground;
@@ -122,4 +132,9 @@ class AppTheme {
   static Color getInactive(bool isDarkMode) => isDarkMode ? darkInactive : lightInactive;
   static Color getBadge(bool isDarkMode) => isDarkMode ? darkBadge : lightBadge;
   static Color getSnackBarInfo(bool isDarkMode) => isDarkMode ? darkSnackBarInfo : lightSnackBarInfo;
+  static Color getAccentGreen(bool isDarkMode) => isDarkMode ? darkAccentGreen : lightAccentGreen;
+  static Color getAccentBlueInfo(bool isDarkMode) => isDarkMode ? darkAccentBlueInfo : lightAccentBlueInfo;
+  static Color getAccentPrimaryBlue(bool isDarkMode) => isDarkMode ? darkAccentPrimaryBlue : lightAccentPrimaryBlue;
+  static Color getError(bool isDarkMode) => isDarkMode ? darkError : lightError;
+  static Color getShadowLight(bool isDarkMode) => isDarkMode ? darkShadowLight : lightShadowLight;
 }

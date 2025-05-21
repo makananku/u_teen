@@ -1,10 +1,10 @@
 # Details
 
-Date : 2025-05-21 03:22:00
+Date : 2025-05-21 15:28:19
 
 Directory c:\\Users\\Acer\\u_teen
 
-Total : 135 files,  16964 codes, 333 comments, 1367 blanks, all 18664 lines
+Total : 135 files,  17422 codes, 314 comments, 1359 blanks, all 19095 lines
 
 [Summary](results.md) / Details / [Diff Summary](diff.md) / [Diff Details](diff-details.md)
 
@@ -59,14 +59,14 @@ Total : 135 files,  16964 codes, 333 comments, 1367 blanks, all 18664 lines
 | [lib/providers/rating\_provider.dart](/lib/providers/rating_provider.dart) | Dart | 58 | 1 | 10 | 69 |
 | [lib/providers/theme\_notifier.dart](/lib/providers/theme_notifier.dart) | Dart | 55 | 0 | 7 | 62 |
 | [lib/repositories/order\_repository.dart](/lib/repositories/order_repository.dart) | Dart | 44 | 0 | 7 | 51 |
-| [lib/screens/customer/favorite\_screen.dart](/lib/screens/customer/favorite_screen.dart) | Dart | 198 | 0 | 4 | 202 |
-| [lib/screens/customer/home\_screen.dart](/lib/screens/customer/home_screen.dart) | Dart | 601 | 0 | 26 | 627 |
-| [lib/screens/customer/my\_orders\_screen.dart](/lib/screens/customer/my_orders_screen.dart) | Dart | 205 | 1 | 12 | 218 |
-| [lib/screens/customer/notification\_screen.dart](/lib/screens/customer/notification_screen.dart) | Dart | 280 | 3 | 8 | 291 |
-| [lib/screens/customer/payment\_screen.dart](/lib/screens/customer/payment_screen.dart) | Dart | 355 | 3 | 26 | 384 |
-| [lib/screens/customer/payment\_success\_screen.dart](/lib/screens/customer/payment_success_screen.dart) | Dart | 107 | 0 | 5 | 112 |
-| [lib/screens/customer/profile\_screen.dart](/lib/screens/customer/profile_screen.dart) | Dart | 481 | 1 | 10 | 492 |
-| [lib/screens/customer/shopping\_cart\_screen.dart](/lib/screens/customer/shopping_cart_screen.dart) | Dart | 496 | 0 | 28 | 524 |
+| [lib/screens/customer/favorite\_screen.dart](/lib/screens/customer/favorite_screen.dart) | Dart | 226 | 0 | 4 | 230 |
+| [lib/screens/customer/home\_screen.dart](/lib/screens/customer/home_screen.dart) | Dart | 606 | 0 | 26 | 632 |
+| [lib/screens/customer/my\_orders\_screen.dart](/lib/screens/customer/my_orders_screen.dart) | Dart | 206 | 1 | 12 | 219 |
+| [lib/screens/customer/notification\_screen.dart](/lib/screens/customer/notification_screen.dart) | Dart | 286 | 2 | 8 | 296 |
+| [lib/screens/customer/payment\_screen.dart](/lib/screens/customer/payment_screen.dart) | Dart | 361 | 0 | 24 | 385 |
+| [lib/screens/customer/payment\_success\_screen.dart](/lib/screens/customer/payment_success_screen.dart) | Dart | 120 | 0 | 5 | 125 |
+| [lib/screens/customer/profile\_screen.dart](/lib/screens/customer/profile_screen.dart) | Dart | 576 | 0 | 12 | 588 |
+| [lib/screens/customer/shopping\_cart\_screen.dart](/lib/screens/customer/shopping_cart_screen.dart) | Dart | 510 | 0 | 28 | 538 |
 | [lib/screens/login\_screen.dart](/lib/screens/login_screen.dart) | Dart | 309 | 1 | 25 | 335 |
 | [lib/screens/seller/cancellation\_screen.dart](/lib/screens/seller/cancellation_screen.dart) | Dart | 78 | 0 | 6 | 84 |
 | [lib/screens/seller/completed\_screen.dart](/lib/screens/seller/completed_screen.dart) | Dart | 83 | 0 | 8 | 91 |
@@ -75,26 +75,27 @@ Total : 135 files,  16964 codes, 333 comments, 1367 blanks, all 18664 lines
 | [lib/screens/seller/my\_balance\_screen.dart](/lib/screens/seller/my_balance_screen.dart) | Dart | 306 | 0 | 12 | 318 |
 | [lib/screens/seller/my\_product\_screen.dart](/lib/screens/seller/my_product_screen.dart) | Dart | 140 | 0 | 8 | 148 |
 | [lib/screens/seller/on\_process\_screen.dart](/lib/screens/seller/on_process_screen.dart) | Dart | 82 | 3 | 7 | 92 |
-| [lib/screens/seller/profile\_screen.dart](/lib/screens/seller/profile_screen.dart) | Dart | 741 | 0 | 17 | 758 |
+| [lib/screens/seller/profile\_screen.dart](/lib/screens/seller/profile_screen.dart) | Dart | 745 | 0 | 17 | 762 |
 | [lib/screens/seller/rating\_screen.dart](/lib/screens/seller/rating_screen.dart) | Dart | 117 | 1 | 5 | 123 |
 | [lib/screens/seller/transaction\_history\_screen.dart](/lib/screens/seller/transaction_history_screen.dart) | Dart | 514 | 0 | 24 | 538 |
 | [lib/services/calendar\_service.dart](/lib/services/calendar_service.dart) | Dart | 234 | 0 | 30 | 264 |
-| [lib/utils/app\_theme.dart](/lib/utils/app_theme.dart) | Dart | 45 | 3 | 3 | 51 |
+| [lib/utils/app\_theme.dart](/lib/utils/app_theme.dart) | Dart | 134 | 3 | 3 | 140 |
 | [lib/utils/calendar\_utils.dart](/lib/utils/calendar_utils.dart) | Dart | 39 | 0 | 5 | 44 |
 | [lib/utils/formatters.dart](/lib/utils/formatters.dart) | Dart | 9 | 0 | 2 | 11 |
 | [lib/utils/navigation\_utils.dart](/lib/utils/navigation_utils.dart) | Dart | 24 | 0 | 3 | 27 |
 | [lib/utils/order\_dialog\_utils.dart](/lib/utils/order_dialog_utils.dart) | Dart | 358 | 0 | 10 | 368 |
 | [lib/utils/thousand\_separator\_formatter.dart](/lib/utils/thousand_separator_formatter.dart) | Dart | 32 | 4 | 7 | 43 |
-| [lib/widgets/customer/cart\_item\_widget.dart](/lib/widgets/customer/cart_item_widget.dart) | Dart | 134 | 0 | 4 | 138 |
-| [lib/widgets/customer/cart\_summary\_widget.dart](/lib/widgets/customer/cart_summary_widget.dart) | Dart | 49 | 0 | 2 | 51 |
-| [lib/widgets/customer/category\_selector.dart](/lib/widgets/customer/category_selector.dart) | Dart | 52 | 0 | 4 | 56 |
-| [lib/widgets/customer/custom\_bottom\_navigation.dart](/lib/widgets/customer/custom_bottom_navigation.dart) | Dart | 151 | 0 | 12 | 163 |
-| [lib/widgets/customer/detail\_box.dart](/lib/widgets/customer/detail_box.dart) | Dart | 244 | 9 | 14 | 267 |
-| [lib/widgets/customer/search\_widget.dart](/lib/widgets/customer/search_widget.dart) | Dart | 475 | 0 | 18 | 493 |
-| [lib/widgets/food\_list.dart](/lib/widgets/food_list.dart) | Dart | 168 | 2 | 8 | 178 |
-| [lib/widgets/notes\_field.dart](/lib/widgets/notes_field.dart) | Dart | 34 | 0 | 3 | 37 |
+| [lib/widgets/customer/cart\_item\_widget.dart](/lib/widgets/customer/cart_item_widget.dart) | Dart | 171 | 0 | 4 | 175 |
+| [lib/widgets/customer/cart\_summary\_widget.dart](/lib/widgets/customer/cart_summary_widget.dart) | Dart | 62 | 0 | 3 | 65 |
+| [lib/widgets/customer/category\_selector.dart](/lib/widgets/customer/category_selector.dart) | Dart | 58 | 0 | 5 | 63 |
+| [lib/widgets/customer/custom\_bottom\_navigation.dart](/lib/widgets/customer/custom_bottom_navigation.dart) | Dart | 155 | 0 | 13 | 168 |
+| [lib/widgets/customer/detail\_box.dart](/lib/widgets/customer/detail_box.dart) | Dart | 280 | 0 | 4 | 284 |
+| [lib/widgets/customer/food\_list.dart](/lib/widgets/customer/food_list.dart) | Dart | 177 | 0 | 8 | 185 |
+| [lib/widgets/customer/notes\_field.dart](/lib/widgets/customer/notes_field.dart) | Dart | 53 | 0 | 4 | 57 |
+| [lib/widgets/customer/search\_widget.dart](/lib/widgets/customer/search_widget.dart) | Dart | 489 | 0 | 15 | 504 |
+| [lib/widgets/customer/time\_picker\_widget.dart](/lib/widgets/customer/time_picker_widget.dart) | Dart | 272 | 0 | 19 | 291 |
 | [lib/widgets/order\_card.dart](/lib/widgets/order_card.dart) | Dart | 682 | 11 | 21 | 714 |
-| [lib/widgets/payment\_method\_card.dart](/lib/widgets/payment_method_card.dart) | Dart | 216 | 0 | 14 | 230 |
+| [lib/widgets/payment\_method\_card.dart](/lib/widgets/payment_method_card.dart) | Dart | 213 | 0 | 14 | 227 |
 | [lib/widgets/rating/feedback\_card.dart](/lib/widgets/rating/feedback_card.dart) | Dart | 61 | 0 | 3 | 64 |
 | [lib/widgets/rating/rating\_dialog.dart](/lib/widgets/rating/rating_dialog.dart) | Dart | 214 | 0 | 16 | 230 |
 | [lib/widgets/rating/rating\_distribution\_card.dart](/lib/widgets/rating/rating_distribution_card.dart) | Dart | 85 | 0 | 5 | 90 |
@@ -108,7 +109,6 @@ Total : 135 files,  16964 codes, 333 comments, 1367 blanks, all 18664 lines
 | [lib/widgets/seller/product\_card.dart](/lib/widgets/seller/product_card.dart) | Dart | 252 | 5 | 4 | 261 |
 | [lib/widgets/seller/sales\_metric\_card.dart](/lib/widgets/seller/sales_metric_card.dart) | Dart | 62 | 0 | 3 | 65 |
 | [lib/widgets/status\_button.dart](/lib/widgets/status_button.dart) | Dart | 72 | 0 | 3 | 75 |
-| [lib/widgets/time\_picker\_widget.dart](/lib/widgets/time_picker_widget.dart) | Dart | 210 | 3 | 18 | 231 |
 | [lib/widgets/withdraw/quick\_amount\_button.dart](/lib/widgets/withdraw/quick_amount_button.dart) | Dart | 34 | 0 | 3 | 37 |
 | [lib/widgets/withdraw/withdrawal\_dialog.dart](/lib/widgets/withdraw/withdrawal_dialog.dart) | Dart | 310 | 0 | 7 | 317 |
 | [linux/CMakeLists.txt](/linux/CMakeLists.txt) | CMake | 104 | 0 | 25 | 129 |

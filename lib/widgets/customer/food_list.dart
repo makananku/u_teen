@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import '../data/food_data.dart';
+import '../../data/food_data.dart';
+import '../../utils/app_theme.dart';
+import '../../providers/theme_notifier.dart';
+import 'package:provider/provider.dart';
 
 class FoodList extends StatelessWidget {
   final String selectedCategory;
@@ -16,7 +19,7 @@ class FoodList extends StatelessWidget {
     final foodItems = FoodData.getFoodItems(selectedCategory);
 
     return SizedBox(
-      height: 220, // Increased height for better card display
+      height: 220,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
@@ -70,16 +73,18 @@ class FoodCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 180,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: Colors.white,
+          color: AppTheme.getCard(isDarkMode),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: AppTheme.getShadowLight(isDarkMode),
               blurRadius: 10,
               spreadRadius: 2,
               offset: const Offset(0, 4),
@@ -89,7 +94,6 @@ class FoodCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Food image with price tag
             Stack(
               children: [
                 ClipRRect(
@@ -104,8 +108,12 @@ class FoodCard extends StatelessWidget {
                     errorBuilder: (_, __, ___) => Container(
                       height: 120,
                       width: 180,
-                      color: Colors.grey[200],
-                      child: const Icon(Icons.fastfood, size: 40),
+                      color: AppTheme.getDivider(isDarkMode),
+                      child: Icon(
+                        Icons.fastfood,
+                        size: 40,
+                        color: AppTheme.getPrimaryText(isDarkMode),
+                      ),
                     ),
                   ),
                 ),
@@ -121,8 +129,6 @@ class FoodCard extends StatelessWidget {
                 ),
               ],
             ),
-
-            // Food details
             Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -130,10 +136,11 @@ class FoodCard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                       height: 1.3,
+                      color: AppTheme.getPrimaryText(isDarkMode),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -142,7 +149,7 @@ class FoodCard extends StatelessWidget {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: Colors.grey[600],
+                      color: AppTheme.getSecondaryText(isDarkMode),
                       fontSize: 13,
                     ),
                     maxLines: 2,
@@ -154,13 +161,13 @@ class FoodCard extends StatelessWidget {
                       Icon(
                         Icons.access_time,
                         size: 14,
-                        color: Colors.grey[500],
+                        color: AppTheme.getTextGrey(isDarkMode),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         time,
                         style: TextStyle(
-                          color: Colors.grey[600],
+                          color: AppTheme.getSecondaryText(isDarkMode),
                           fontSize: 12,
                         ),
                       ),

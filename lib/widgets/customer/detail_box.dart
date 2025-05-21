@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/favorite_provider.dart';
+import '../../utils/app_theme.dart';
+import '../../providers/theme_notifier.dart';
 
 class DetailBox extends StatelessWidget {
   final String selectedFoodItem;
@@ -25,6 +27,7 @@ class DetailBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final favoriteProvider = Provider.of<FavoriteProvider>(context);
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     final isFavorite = favoriteProvider.favoriteItems.any((item) =>
         item.name == selectedFoodItem && item.image == selectedFoodImgUrl);
 
@@ -36,13 +39,14 @@ class DetailBox extends StatelessWidget {
       right: 0,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.getCard(isDarkMode),
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(30),
-            topRight: Radius.circular(30)),
+            topRight: Radius.circular(30),
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: AppTheme.getPrimaryText(isDarkMode).withOpacity(0.2),
               blurRadius: 20,
               offset: const Offset(0, -5),
             ),
@@ -51,7 +55,6 @@ class DetailBox extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Drag handle
             GestureDetector(
               onTap: onClose,
               child: Center(
@@ -60,14 +63,12 @@ class DetailBox extends StatelessWidget {
                   height: 5,
                   margin: const EdgeInsets.only(top: 12, bottom: 12),
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: AppTheme.getDivider(isDarkMode),
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
               ),
             ),
-            
-            // Content
             Flexible(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -75,7 +76,6 @@ class DetailBox extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Food image with price overlay
                     Stack(
                       children: [
                         Container(
@@ -83,7 +83,8 @@ class DetailBox extends StatelessWidget {
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: AppTheme.getPrimaryText(isDarkMode)
+                                    .withOpacity(0.1),
                                 blurRadius: 15,
                                 offset: const Offset(0, 5),
                               ),
@@ -99,7 +100,6 @@ class DetailBox extends StatelessWidget {
                             ),
                           ),
                         ),
-                        // Gradient overlay at bottom
                         Positioned(
                           bottom: 0,
                           left: 0,
@@ -109,69 +109,62 @@ class DetailBox extends StatelessWidget {
                             decoration: BoxDecoration(
                               borderRadius: const BorderRadius.only(
                                 bottomLeft: Radius.circular(20),
-                                bottomRight: Radius.circular(20)),
+                                bottomRight: Radius.circular(20),
+                              ),
                               gradient: LinearGradient(
                                 begin: Alignment.bottomCenter,
                                 end: Alignment.topCenter,
                                 colors: [
-                                  Colors.black.withOpacity(0.7),
+                                  AppTheme.getPrimaryText(isDarkMode)
+                                      .withOpacity(0.7),
                                   Colors.transparent,
                                 ],
                               ),
                             ),
                           ),
                         ),
-                        // Price text
                         Positioned(
                           bottom: 16,
                           right: 16,
                           child: Text(
                             selectedFoodPrice,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
-                              color: Colors.white,
+                              color: AppTheme.getPrimaryText(!isDarkMode),
                             ),
                           ),
                         ),
                       ],
                     ),
-                    
                     const SizedBox(height: 24),
-                    
-                    // Food name
                     Text(
                       selectedFoodItem,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         height: 1.2,
+                        color: AppTheme.getPrimaryText(isDarkMode),
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    
                     const SizedBox(height: 8),
-                    
-                    // Food subtitle
                     Text(
                       selectedFoodSubtitle,
                       style: TextStyle(
-                        fontSize: 16, 
-                        color: Colors.grey[600],
+                        fontSize: 16,
+                        color: AppTheme.getSecondaryText(isDarkMode),
                         height: 1.4,
                       ),
                     ),
-                    
                     const SizedBox(height: 24),
-                    
-                    // Add to cart button
                     ElevatedButton(
                       onPressed: onAddToCart,
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 56),
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppTheme.getButton(isDarkMode),
+                        foregroundColor: AppTheme.getPrimaryText(!isDarkMode),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -187,17 +180,22 @@ class DetailBox extends StatelessWidget {
                         ),
                       ),
                     ),
-                    
                     const SizedBox(height: 16),
-                    
-                    // Favorite button
                     Center(
                       child: InkWell(
                         onTap: () {
                           if (isFavorite) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('$selectedFoodItem is already in favorites'),
+                                content: Text(
+                                  '$selectedFoodItem is already in favorites',
+                                  style: TextStyle(
+                                    color:
+                                        AppTheme.getPrimaryText(!isDarkMode),
+                                  ),
+                                ),
+                                backgroundColor:
+                                    AppTheme.getSnackBarInfo(isDarkMode),
                                 behavior: SnackBarBehavior.floating,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
@@ -208,7 +206,15 @@ class DetailBox extends StatelessWidget {
                             onAddToFavorites();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('$selectedFoodItem added to favorites!'),
+                                content: Text(
+                                  '$selectedFoodItem added to favorites!',
+                                  style: TextStyle(
+                                    color:
+                                        AppTheme.getPrimaryText(!isDarkMode),
+                                  ),
+                                ),
+                                backgroundColor:
+                                    AppTheme.getSnackBarInfo(isDarkMode),
                                 behavior: SnackBarBehavior.floating,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
@@ -220,14 +226,18 @@ class DetailBox extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            vertical: 12, horizontal: 24),
+                              vertical: 12, horizontal: 24),
                           decoration: BoxDecoration(
-                            color: isFavorite ? Colors.red.withOpacity(0.1) : null,
+                            color: isFavorite
+                                ? AppTheme.getSnackBarError(isDarkMode)
+                                    .withOpacity(0.1)
+                                : null,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: isFavorite 
-                                ? Colors.red.withOpacity(0.3) 
-                                : Colors.grey[300]!, 
+                              color: isFavorite
+                                  ? AppTheme.getSnackBarError(isDarkMode)
+                                      .withOpacity(0.3)
+                                  : AppTheme.getDivider(isDarkMode),
                               width: 1.5,
                             ),
                           ),
@@ -235,17 +245,25 @@ class DetailBox extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                isFavorite ? Icons.favorite : Icons.favorite_outline,
-                                color: isFavorite ? Colors.red : Colors.grey[700],
+                                isFavorite
+                                    ? Icons.favorite
+                                    : Icons.favorite_outline,
+                                color: isFavorite
+                                    ? AppTheme.getSnackBarError(isDarkMode)
+                                    : AppTheme.getSecondaryText(isDarkMode),
                                 size: 22,
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                isFavorite ? 'Saved to favorites' : 'Save to favorites',
+                                isFavorite
+                                    ? 'Saved to favorites'
+                                    : 'Save to favorites',
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w600,
-                                  color: isFavorite ? Colors.red : Colors.grey[700],
+                                  color: isFavorite
+                                      ? AppTheme.getSnackBarError(isDarkMode)
+                                      : AppTheme.getSecondaryText(isDarkMode),
                                 ),
                               ),
                             ],
@@ -253,7 +271,6 @@ class DetailBox extends StatelessWidget {
                         ),
                       ),
                     ),
-                    
                     const SizedBox(height: 24),
                   ],
                 ),

@@ -17,7 +17,7 @@ import 'notification_screen.dart';
 import '../../data/search_data.dart';
 import '../../widgets/customer/search_widget.dart';
 import '../../widgets/customer/category_selector.dart';
-import '../../widgets/food_list.dart';
+import '../../widgets/customer/food_list.dart';
 import '../../widgets/customer/detail_box.dart';
 
 class HomeScreen extends StatefulWidget {

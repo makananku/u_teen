@@ -7,8 +7,10 @@ import '../../auth/auth_provider.dart';
 import '../../models/payment_method.dart';
 import '../../data/payment_methods_data.dart';
 import '../../widgets/payment_method_card.dart';
-import '../../widgets/time_picker_widget.dart';
-import '../../widgets/notes_field.dart';
+import '../../widgets/customer/time_picker_widget.dart';
+import '../../widgets/customer/notes_field.dart';
+import '../../utils/app_theme.dart';
+import '../../providers/theme_notifier.dart';
 import 'payment_success_screen.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/order_provider.dart';
@@ -20,7 +22,7 @@ class PaymentScreen extends StatefulWidget {
   final int totalPrice;
 
   const PaymentScreen({Key? key, required this.items, required this.totalPrice})
-    : super(key: key);
+      : super(key: key);
 
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();
@@ -33,9 +35,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
   String phoneNumber = '';
   bool isProcessing = false;
   bool showPhoneInput = false;
-  bool isTimeValid = true; // Melacak validitas waktu
-  String?
-  timeErrorMessage; // Tetap simpan untuk debugging, tapi tidak ditampilkan
+  bool isTimeValid = true;
+  String? timeErrorMessage;
   final NumberFormat currencyFormat = NumberFormat.currency(
     locale: 'id_ID',
     symbol: 'Rp ',
@@ -43,14 +44,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
   );
   final _formKey = GlobalKey<FormState>();
 
-  Color _getBorderColor() {
-    if (selectedPaymentMethod == null) return Colors.grey;
+  Color _getBorderColor(bool isDarkMode) {
+    if (selectedPaymentMethod == null) return AppTheme.getTextGrey(isDarkMode);
     final method = paymentMethods.firstWhere(
       (m) => m.id == selectedPaymentMethod,
-      orElse:
-          () => PaymentMethod(id: '', name: '', iconPath: '', description: ''),
+      orElse: () => PaymentMethod(id: '', name: '', iconPath: '', description: ''),
     );
-    return method.primaryColor ?? Colors.grey;
+    return method.primaryColor ?? AppTheme.getButton(isDarkMode);
   }
 
   String? _getSellerEmailFromItems() {
@@ -61,7 +61,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Inisialisasi awal validasi waktu setelah build selesai
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _validateInitialTime();
     });
@@ -69,42 +68,38 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   void _validateInitialTime() {
     final now = DateTime.now();
-    final isValid =
-        !pickupTime.isBefore(now) &&
+    final isValid = !pickupTime.isBefore(now) &&
         pickupTime.hour >= 8 &&
         pickupTime.hour < 17;
     setState(() {
       isTimeValid = isValid;
-      timeErrorMessage =
-          isValid
-              ? null
-              : 'Pickup time cannot be in the past or outside 08:00 AM - 05:00 PM';
+      timeErrorMessage = isValid
+          ? null
+          : 'Pickup time cannot be in the past or outside 08:00 AM - 05:00 PM';
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final merchantName =
-        widget.items.isNotEmpty
-            ? widget.items.first.subtitle
-            : 'Unknown Merchant';
+    final merchantName = widget.items.isNotEmpty ? widget.items.first.subtitle : 'Unknown Merchant';
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.getCard(isDarkMode),
       appBar: AppBar(
-        title: const Text(
-            'Payment',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+        title: Text(
+          'Payment',
+          style: TextStyle(
+            color: AppTheme.getPrimaryText(isDarkMode),
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
           ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        ),
+        backgroundColor: AppTheme.getCard(isDarkMode),
+        foregroundColor: AppTheme.getPrimaryText(isDarkMode),
         elevation: 0,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: IconThemeData(color: AppTheme.getPrimaryText(isDarkMode)),
       ),
       body: SafeArea(
         child: Form(
@@ -114,12 +109,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildOrderSummary(merchantName),
+                _buildOrderSummary(merchantName, isDarkMode),
                 const SizedBox(height: 24),
                 TimePickerWidget(
                   onTimeSelected: (time) => setState(() => pickupTime = time),
                   onValidationChanged: (isValid, errorMessage) {
-                    // Gunakan addPostFrameCallback untuk menghindari setState selama build
                     SchedulerBinding.instance.addPostFrameCallback((_) {
                       setState(() {
                         isTimeValid = isValid;
@@ -128,15 +122,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     });
                   },
                 ),
-                // Hapus tampilan timeErrorMessage karena sudah ditangani di TimePickerWidget
                 const SizedBox(height: 24),
-                _buildPaymentMethodSelector(),
+                _buildPaymentMethodSelector(isDarkMode),
                 const SizedBox(height: 24),
                 NotesField(
                   onNotesChanged: (value) => setState(() => notes = value),
                 ),
                 const SizedBox(height: 32),
-                _buildPlaceOrderButton(context),
+                _buildPlaceOrderButton(context, isDarkMode),
               ],
             ),
           ),
@@ -145,9 +138,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  Widget _buildOrderSummary(String merchantName) {
+  Widget _buildOrderSummary(String merchantName, bool isDarkMode) {
     return Card(
-      color: Colors.white,
+      color: AppTheme.getCard(isDarkMode),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
@@ -157,22 +150,32 @@ class _PaymentScreenState extends State<PaymentScreen> {
           children: [
             Text(
               merchantName,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.getPrimaryText(isDarkMode),
+              ),
             ),
             const SizedBox(height: 12),
             Row(
               children: [
-                const Icon(Icons.access_time, size: 16, color: Colors.grey),
+                Icon(Icons.access_time, size: 16, color: AppTheme.getTextGrey(isDarkMode)),
                 const SizedBox(width: 8),
-                const Text('Order for', style: TextStyle(color: Colors.grey)),
+                Text(
+                  'Order for',
+                  style: TextStyle(color: AppTheme.getTextGrey(isDarkMode)),
+                ),
                 const SizedBox(width: 4),
                 Text(
                   'Today, ${DateFormat('hh:mm a').format(pickupTime)}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.getPrimaryText(isDarkMode),
+                  ),
                 ),
               ],
             ),
-            const Divider(height: 24),
+            Divider(height: 24, color: AppTheme.getDivider(isDarkMode)),
             ...widget.items.map(
               (item) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6.0),
@@ -184,26 +187,34 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         '${item.name} (${item.quantity}x)',
                         overflow: TextOverflow.ellipsis,
                         maxLines: 2,
+                        style: TextStyle(color: AppTheme.getPrimaryText(isDarkMode)),
                       ),
                     ),
                     Text(
                       '${currencyFormat.format(item.price)} x ${item.quantity}',
+                      style: TextStyle(color: AppTheme.getPrimaryText(isDarkMode)),
                     ),
                   ],
                 ),
               ),
             ),
-            const Divider(height: 24),
+            Divider(height: 24, color: AppTheme.getDivider(isDarkMode)),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Subtotal',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.getPrimaryText(isDarkMode),
+                  ),
                 ),
                 Text(
                   currencyFormat.format(widget.totalPrice),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.getPrimaryText(isDarkMode),
+                  ),
                 ),
               ],
             ),
@@ -213,13 +224,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  Widget _buildPaymentMethodSelector() {
+  Widget _buildPaymentMethodSelector(bool isDarkMode) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Payment Method',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.getPrimaryText(isDarkMode),
+          ),
         ),
         const SizedBox(height: 12),
         ...paymentMethods.map(
@@ -244,21 +259,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  Widget _buildPlaceOrderButton(BuildContext context) {
+  Widget _buildPlaceOrderButton(BuildContext context, bool isDarkMode) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed:
-            isProcessing || !isTimeValid || selectedPaymentMethod == null
-                ? null
-                : () => _processPayment(context),
+        onPressed: isProcessing || !isTimeValid || selectedPaymentMethod == null
+            ? null
+            : () => _processPayment(context),
         style: ElevatedButton.styleFrom(
-          backgroundColor:
-              isProcessing || !isTimeValid || selectedPaymentMethod == null
-                  ? Colors.grey[400]
-                  : (selectedPaymentMethod != null
-                      ? _getBorderColor()
-                      : Colors.blue),
+          backgroundColor: isProcessing || !isTimeValid || selectedPaymentMethod == null
+              ? AppTheme.getTextGrey(isDarkMode)
+              : _getBorderColor(isDarkMode),
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -270,21 +281,21 @@ class _PaymentScreenState extends State<PaymentScreen> {
             AnimatedOpacity(
               opacity: isProcessing ? 0 : 1,
               duration: const Duration(milliseconds: 200),
-              child: const Text(
+              child: Text(
                 'Place Order',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.white,
+                  color: AppTheme.getPrimaryText(!isDarkMode),
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
             if (isProcessing)
-              const SizedBox(
+              SizedBox(
                 height: 24,
                 width: 24,
                 child: CircularProgressIndicator(
-                  color: Colors.white,
+                  color: AppTheme.getPrimaryText(!isDarkMode),
                   strokeWidth: 3,
                 ),
               ),
@@ -298,7 +309,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (selectedPaymentMethod == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a payment method')),
+        SnackBar(content: Text('Please select a payment method')),
       );
       return;
     }
@@ -310,18 +321,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
       final cartProvider = Provider.of<CartProvider>(context, listen: false);
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-      final sellerEmail =
-          widget.items.isNotEmpty ? widget.items.first.sellerEmail : null;
+      final sellerEmail = widget.items.isNotEmpty ? widget.items.first.sellerEmail : null;
 
       if (sellerEmail == null) {
         throw Exception('Seller information not available');
       }
 
-      final merchantName =
-          widget.items.isNotEmpty
-              ? widget.items.first.subtitle
-              : 'Unknown Merchant';
-
+      final merchantName = widget.items.isNotEmpty ? widget.items.first.subtitle : 'Unknown Merchant';
       final customerName = authProvider.user?.name ?? 'Customer';
 
       final newOrder = Order(
@@ -332,23 +338,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
         readyAt: null,
         completedAt: null,
         cancelledAt: null,
-        items:
-            widget.items
-                .map(
-                  (item) => OrderItem(
-                    name: item.name,
-                    image: item.image,
-                    subtitle: item.subtitle,
-                    price: item.price,
-                    quantity: item.quantity,
-                    sellerEmail: item.sellerEmail,
-                  ),
-                )
-                .toList(),
-        paymentMethod:
-            paymentMethods
-                .firstWhere((m) => m.id == selectedPaymentMethod)
-                .name,
+        items: widget.items
+            .map(
+              (item) => OrderItem(
+                name: item.name,
+                image: item.image,
+                subtitle: item.subtitle,
+                price: item.price,
+                quantity: item.quantity,
+                sellerEmail: item.sellerEmail,
+              ),
+            )
+            .toList(),
+        paymentMethod: paymentMethods.firstWhere((m) => m.id == selectedPaymentMethod).name,
         merchantName: merchantName,
         merchantEmail: sellerEmail,
         customerName: customerName,
@@ -367,9 +369,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
         ),
       );
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
     } finally {
       if (mounted) setState(() => isProcessing = false);
     }

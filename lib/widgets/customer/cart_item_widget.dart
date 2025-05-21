@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/cart_item.dart';
 import '../../providers/cart_provider.dart';
+import '../../utils/app_theme.dart';
+import '../../providers/theme_notifier.dart';
 import 'package:intl/intl.dart';
 
 class CartItemWidget extends StatelessWidget {
@@ -9,13 +11,14 @@ class CartItemWidget extends StatelessWidget {
   final Function()? onRemove;
 
   const CartItemWidget({
-    super.key,  // Using super parameter
+    super.key,
     required this.item,
     this.onRemove,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     final currencyFormat = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp ',
@@ -29,26 +32,39 @@ class CartItemWidget extends StatelessWidget {
         direction: DismissDirection.endToStart,
         background: Container(
           alignment: Alignment.centerRight,
-          color: Colors.red,
-          child: const Padding(
-            padding: EdgeInsets.only(right: 20),
-            child: Icon(Icons.delete, color: Colors.white),
+          color: AppTheme.getError(isDarkMode),
+          child: Padding(
+            padding: const EdgeInsets.only(right: 20),
+            child: Icon(Icons.delete, color: AppTheme.getPrimaryText(!isDarkMode)),
           ),
         ),
         confirmDismiss: (direction) async {
           return await showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('Remove Item'),
-              content: Text('Remove ${item.name} from cart?'),
+              backgroundColor: AppTheme.getCard(isDarkMode),
+              title: Text(
+                'Remove Item',
+                style: TextStyle(color: AppTheme.getPrimaryText(isDarkMode)),
+              ),
+              content: Text(
+                'Remove ${item.name} from cart?',
+                style: TextStyle(color: AppTheme.getPrimaryText(isDarkMode)),
+              ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Cancel'),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(color: AppTheme.getPrimaryText(isDarkMode)),
+                  ),
                 ),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Remove', style: TextStyle(color: Colors.red)),
+                  child: Text(
+                    'Remove',
+                    style: TextStyle(color: AppTheme.getError(isDarkMode)),
+                  ),
                 ),
               ],
             ),
@@ -63,6 +79,7 @@ class CartItemWidget extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
+          color: AppTheme.getCard(isDarkMode),
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Row(
@@ -74,7 +91,11 @@ class CartItemWidget extends StatelessWidget {
                     width: 60,
                     height: 60,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Icon(Icons.fastfood, size: 40),
+                    errorBuilder: (_, __, ___) => Icon(
+                      Icons.fastfood,
+                      size: 40,
+                      color: AppTheme.getPrimaryText(isDarkMode),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -84,9 +105,10 @@ class CartItemWidget extends StatelessWidget {
                     children: [
                       Text(
                         item.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
+                          color: AppTheme.getPrimaryText(isDarkMode),
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -94,13 +116,19 @@ class CartItemWidget extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         currencyFormat.format(item.price),
-                        style: const TextStyle(fontSize: 14, color: Colors.grey),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppTheme.getTextGrey(isDarkMode),
+                        ),
                       ),
                       if (item.subtitle.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(
                           item.subtitle,
-                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.getTextGrey(isDarkMode),
+                          ),
                         ),
                       ],
                     ],
@@ -109,7 +137,10 @@ class CartItemWidget extends StatelessWidget {
                 Column(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.remove_circle_outline, color: Colors.blue),
+                      icon: Icon(
+                        Icons.remove_circle_outline,
+                        color: AppTheme.getAccentPrimaryBlue(isDarkMode),
+                      ),
                       onPressed: () {
                         Provider.of<CartProvider>(context, listen: false)
                             .decreaseQuantity(item);
@@ -117,10 +148,16 @@ class CartItemWidget extends StatelessWidget {
                     ),
                     Text(
                       item.quantity.toString(),
-                      style: const TextStyle(fontSize: 16),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: AppTheme.getPrimaryText(isDarkMode),
+                      ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.add_circle_outline, color: Colors.blue),
+                      icon: Icon(
+                        Icons.add_circle_outline,
+                        color: AppTheme.getAccentPrimaryBlue(isDarkMode),
+                      ),
                       onPressed: () {
                         Provider.of<CartProvider>(context, listen: false)
                             .increaseQuantity(item);

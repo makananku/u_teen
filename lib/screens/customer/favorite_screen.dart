@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/favorite_provider.dart';
 import '../../models/favorite_item.dart';
+import '../../utils/app_theme.dart';
+import '../../providers/theme_notifier.dart';
 import 'home_screen.dart';
 
 class FavoritesScreen extends StatelessWidget {
@@ -27,18 +29,22 @@ class FavoritesScreen extends StatelessWidget {
     final favoriteProvider = Provider.of<FavoriteProvider>(context);
     final favoriteItems = favoriteProvider.favoriteItems;
     final theme = Theme.of(context);
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.getCard(isDarkMode),
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           "My Favorites",
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppTheme.getPrimaryText(isDarkMode),
+          ),
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: AppTheme.getCard(isDarkMode),
+        foregroundColor: AppTheme.getPrimaryText(isDarkMode),
       ),
       body: favoriteItems.isEmpty
           ? Center(
@@ -48,13 +54,13 @@ class FavoritesScreen extends StatelessWidget {
                   Icon(
                     Icons.favorite_border,
                     size: 64,
-                    color: Colors.grey[400],
+                    color: AppTheme.getTextGrey(isDarkMode),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     "No favorites yet",
                     style: theme.textTheme.titleMedium?.copyWith(
-                      color: Colors.grey[600],
+                      color: AppTheme.getSecondaryText(isDarkMode),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -64,23 +70,24 @@ class FavoritesScreen extends StatelessWidget {
           : ListView.separated(
               padding: const EdgeInsets.symmetric(vertical: 8),
               itemCount: favoriteItems.length,
-              separatorBuilder: (context, index) => const Divider(
+              separatorBuilder: (context, index) => Divider(
                 height: 1,
                 thickness: 1,
                 indent: 16,
                 endIndent: 16,
+                color: AppTheme.getDivider(isDarkMode),
               ),
               itemBuilder: (context, index) {
                 final item = favoriteItems[index];
                 return Dismissible(
                   key: Key(item.name),
                   background: Container(
-                    color: Colors.red[100],
+                    color: AppTheme.getAccentRedLight(isDarkMode),
                     alignment: Alignment.centerRight,
                     padding: const EdgeInsets.only(right: 20),
-                    child: const Icon(
+                    child: Icon(
                       Icons.delete,
-                      color: Colors.red,
+                      color: AppTheme.getSnackBarError(isDarkMode),
                     ),
                   ),
                   direction: DismissDirection.endToStart,
@@ -88,18 +95,28 @@ class FavoritesScreen extends StatelessWidget {
                     return await showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
-                        title: const Text("Remove from favorites?"),
-                        content: Text("Are you sure you want to remove ${item.name}?"),
+                        backgroundColor: AppTheme.getCard(isDarkMode),
+                        title: Text(
+                          "Remove from favorites?",
+                          style: TextStyle(color: AppTheme.getPrimaryText(isDarkMode)),
+                        ),
+                        content: Text(
+                          "Are you sure you want to remove ${item.name}?",
+                          style: TextStyle(color: AppTheme.getSecondaryText(isDarkMode)),
+                        ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.of(context).pop(false),
-                            child: const Text("Cancel"),
+                            child: Text(
+                              "Cancel",
+                              style: TextStyle(color: AppTheme.getTextMedium(isDarkMode)),
+                            ),
                           ),
                           TextButton(
                             onPressed: () => Navigator.of(context).pop(true),
-                            child: const Text(
+                            child: Text(
                               "Remove",
-                              style: TextStyle(color: Colors.red),
+                              style: TextStyle(color: AppTheme.getSnackBarError(isDarkMode)),
                             ),
                           ),
                         ],
@@ -136,36 +153,47 @@ class FavoritesScreen extends StatelessWidget {
                       item.name,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w500,
+                        color: AppTheme.getPrimaryText(isDarkMode),
                       ),
                     ),
                     subtitle: Text(
                       "Rp ${item.price}",
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey[600],
+                        color: AppTheme.getSecondaryText(isDarkMode),
                       ),
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.shopping_cart),
-                          color: Colors.green,
+                          icon: Icon(Icons.shopping_cart, color: AppTheme.getAccentGreen(isDarkMode)),
                           onPressed: () => _navigateToDetail(context, item),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete_outline),
-                          color: Colors.red[400],
+                          icon: Icon(
+                            Icons.delete_outline,
+                            color: AppTheme.getSnackBarError(isDarkMode),
+                          ),
                           onPressed: () {
                             showDialog(
                               context: context,
                               builder: (context) => AlertDialog(
-                                backgroundColor: Colors.white,
-                                title: const Text("Remove from favorites?"),
-                                content: Text("Are you sure you want to remove ${item.name}?"),
+                                backgroundColor: AppTheme.getCard(isDarkMode),
+                                title: Text(
+                                  "Remove from favorites?",
+                                  style: TextStyle(color: AppTheme.getPrimaryText(isDarkMode)),
+                                ),
+                                content: Text(
+                                  "Are you sure you want to remove ${item.name}?",
+                                  style: TextStyle(color: AppTheme.getSecondaryText(isDarkMode)),
+                                ),
                                 actions: [
                                   TextButton(
                                     onPressed: () => Navigator.of(context).pop(),
-                                    child: const Text("Cancel"),
+                                    child: Text(
+                                      "Cancel",
+                                      style: TextStyle(color: AppTheme.getTextMedium(isDarkMode)),
+                                    ),
                                   ),
                                   TextButton(
                                     onPressed: () {
@@ -181,9 +209,9 @@ class FavoritesScreen extends StatelessWidget {
                                         ),
                                       );
                                     },
-                                    child: const Text(
+                                    child: Text(
                                       "Remove",
-                                      style: TextStyle(color: Colors.red),
+                                      style: TextStyle(color: AppTheme.getSnackBarError(isDarkMode)),
                                     ),
                                   ),
                                 ],

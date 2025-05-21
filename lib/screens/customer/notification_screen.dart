@@ -1,4 +1,3 @@
-// notification_screen.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -6,6 +5,8 @@ import 'package:lottie/lottie.dart';
 import '../../auth/auth_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../models/notification_model.dart';
+import '../../utils/app_theme.dart';
+import '../../providers/theme_notifier.dart';
 
 class NotificationScreen extends StatelessWidget {
   const NotificationScreen({super.key});
@@ -16,23 +17,27 @@ class NotificationScreen extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context);
     final customerName = authProvider.user?.name ?? '';
     final notifications = notificationProvider.getNotificationsForCustomer(customerName);
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppTheme.getDetailBackground(isDarkMode),
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Notifications',
-          style: TextStyle(fontWeight: FontWeight.w600),
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: AppTheme.getPrimaryText(isDarkMode),
+          ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.getCard(isDarkMode),
         elevation: 0.5,
-        iconTheme: const IconThemeData(color: Colors.black87),
+        iconTheme: IconThemeData(color: AppTheme.getTextMedium(isDarkMode)),
         actions: [
           if (notifications.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
               child: IconButton(
-                icon: const Icon(Icons.done_all, size: 24),
+                icon: Icon(Icons.done_all, size: 24, color: AppTheme.getPrimaryText(isDarkMode)),
                 onPressed: () => notificationProvider.markAllAsRead(customerName: customerName),
                 tooltip: 'Mark all as read',
               ),
@@ -40,9 +45,9 @@ class NotificationScreen extends StatelessWidget {
         ],
       ),
       body: notifications.isEmpty
-          ? _buildEmptyState(context)
+          ? _buildEmptyState(context, isDarkMode)
           : RefreshIndicator(
-              color: Colors.blue,
+              color: AppTheme.getButton(isDarkMode),
               onRefresh: () async {
                 await Future.delayed(const Duration(seconds: 1));
               },
@@ -52,7 +57,7 @@ class NotificationScreen extends StatelessWidget {
                 separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final notification = notifications[index];
-                  return _buildNotificationCard(notification, context);
+                  return _buildNotificationCard(notification, context, isDarkMode);
                 },
               ),
             ),
@@ -60,10 +65,10 @@ class NotificationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildNotificationCard(NotificationModel notification, BuildContext context) {
+  Widget _buildNotificationCard(NotificationModel notification, BuildContext context, bool isDarkMode) {
     final statusColor = notification.payload?['statusColor'] != null
         ? Color(int.parse(notification.payload!['statusColor'], radix: 16))
-        : Colors.blue;
+        : AppTheme.getButton(isDarkMode);
     
     final isUnread = !notification.isRead;
 
@@ -80,11 +85,11 @@ class NotificationScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.getCard(isDarkMode),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: AppTheme.getPrimaryText(isDarkMode).withOpacity(0.05),
               spreadRadius: 1,
               blurRadius: 6,
               offset: const Offset(0, 2),
@@ -93,7 +98,7 @@ class NotificationScreen extends StatelessWidget {
           border: Border.all(
             color: isUnread 
                 ? statusColor.withOpacity(0.3)
-                : Colors.grey[200]!,
+                : AppTheme.getDivider(isDarkMode),
             width: isUnread ? 1.5 : 1,
           ),
         ),
@@ -128,7 +133,7 @@ class NotificationScreen extends StatelessWidget {
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 15,
-                            color: Colors.grey[800],
+                            color: AppTheme.getTextDark(isDarkMode),
                             height: 1.3,
                           ),
                         ),
@@ -150,7 +155,7 @@ class NotificationScreen extends StatelessWidget {
                     notification.message,
                     style: TextStyle(
                       fontSize: 13.5,
-                      color: Colors.grey[600],
+                      color: AppTheme.getSecondaryText(isDarkMode),
                       height: 1.4,
                     ),
                   ),
@@ -160,14 +165,14 @@ class NotificationScreen extends StatelessWidget {
                       Icon(
                         Icons.access_time,
                         size: 14,
-                        color: Colors.grey[500],
+                        color: AppTheme.getSecondaryText(isDarkMode),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         DateFormat('MMM d, y • h:mm a').format(notification.timestamp),
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey[500],
+                          color: AppTheme.getSecondaryText(isDarkMode),
                         ),
                       ),
                       const Spacer(),
@@ -245,7 +250,7 @@ class NotificationScreen extends StatelessWidget {
     }
   }
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState(BuildContext context, bool isDarkMode) {
     return Center(
       child: SingleChildScrollView(
         child: Padding(
@@ -265,7 +270,7 @@ class NotificationScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey[800],
+                  color: AppTheme.getTextDark(isDarkMode),
                 ),
               ),
               const SizedBox(height: 12),
@@ -276,7 +281,7 @@ class NotificationScreen extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14.5,
-                    color: Colors.grey[600],
+                    color: AppTheme.getSecondaryText(isDarkMode),
                     height: 1.5,
                   ),
                 ),

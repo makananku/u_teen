@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import '../../models/order_model.dart';
+import '../../utils/app_theme.dart';
+import '../../providers/theme_notifier.dart';
 import 'home_screen.dart';
+import 'package:provider/provider.dart';
 
 class PaymentSuccessScreen extends StatelessWidget {
   final Order order;
 
   const PaymentSuccessScreen({
-    super.key,  // Using super parameter
+    super.key,
     required this.order,
   });
 
@@ -19,9 +22,10 @@ class PaymentSuccessScreen extends StatelessWidget {
       symbol: 'Rp ',
       decimalDigits: 0,
     );
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.getCard(isDarkMode),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -34,38 +38,47 @@ class PaymentSuccessScreen extends StatelessWidget {
               repeat: true,
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Payment Successful!',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.green,
+                color: AppTheme.getSnackBarSuccess(isDarkMode),
               ),
             ),
             const SizedBox(height: 16),
             Text(
               'Order #${order.id}',
-              style: const TextStyle(fontSize: 16),
+              style: TextStyle(
+                fontSize: 16,
+                color: AppTheme.getPrimaryText(isDarkMode),
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               'Total: ${currencyFormat.format(order.totalPrice)}',
-              style: const TextStyle(fontSize: 16),
+              style: TextStyle(
+                fontSize: 16,
+                color: AppTheme.getPrimaryText(isDarkMode),
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               'Pickup at ${DateFormat('HH:mm').format(order.pickupTime)}',
-              style: const TextStyle(fontSize: 16),
+              style: TextStyle(
+                fontSize: 16,
+                color: AppTheme.getPrimaryText(isDarkMode),
+              ),
             ),
             const SizedBox(height: 32),
-            _buildAnimatedButton(context),
+            _buildAnimatedButton(context, isDarkMode),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildAnimatedButton(BuildContext context) {
+  Widget _buildAnimatedButton(BuildContext context, bool isDarkMode) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
       duration: const Duration(milliseconds: 800),
@@ -81,8 +94,8 @@ class PaymentSuccessScreen extends StatelessWidget {
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
+              backgroundColor: AppTheme.getButton(isDarkMode),
+              foregroundColor: AppTheme.getPrimaryText(!isDarkMode),
               padding: const EdgeInsets.symmetric(
                 horizontal: 32,
                 vertical: 16,
@@ -91,7 +104,7 @@ class PaymentSuccessScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(30),
               ),
               elevation: 5,
-              shadowColor: Colors.green.withOpacity(0.3),
+              shadowColor: AppTheme.getSnackBarSuccess(isDarkMode).withOpacity(0.3),
             ),
             child: const Row(
               mainAxisSize: MainAxisSize.min,

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:u_teen/widgets/food_list.dart';
 import '../../data/food_data.dart';
 import '../../data/search_data.dart';
+import '../../utils/app_theme.dart';
+import '../../providers/theme_notifier.dart';
+import 'food_list.dart';
+import 'package:provider/provider.dart';
 
 class SearchWidget extends StatefulWidget {
   final TextEditingController searchController;
@@ -49,6 +52,7 @@ class _SearchWidgetState extends State<SearchWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     final searchResults = _searchFoodItems(searchQuery);
     final recentSearches = SearchData.getRecentSearches();
     final popularCuisines = SearchData.getPopularCuisines();
@@ -56,49 +60,48 @@ class _SearchWidgetState extends State<SearchWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSearchBar(context),
-
+        _buildSearchBar(context, isDarkMode),
         if (!widget.isSearchActive) ...[
           const SizedBox(height: 20),
           widget.categorySelector,
         ],
-
         if (widget.isSearchActive)
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (searchQuery.isNotEmpty) _buildSearchResults(searchResults),
+              if (searchQuery.isNotEmpty)
+                _buildSearchResults(searchResults, isDarkMode),
               if (searchQuery.isEmpty)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 20),
-                    _buildRecentSearches(recentSearches),
+                    _buildRecentSearches(recentSearches, isDarkMode),
                     const SizedBox(height: 20),
-                    _buildPopularCuisines(popularCuisines),
+                    _buildPopularCuisines(popularCuisines, isDarkMode),
                   ],
                 ),
             ],
           ),
-
         if (widget.showFoodLists) ...[
           const SizedBox(height: 20),
-          _buildRecommendedSection(context),
+          _buildRecommendedSection(context, isDarkMode),
           const SizedBox(height: 24),
-          if (widget.orderAgainItems.isNotEmpty) _buildOrderAgainSection(context),
+          if (widget.orderAgainItems.isNotEmpty)
+            _buildOrderAgainSection(context, isDarkMode),
         ],
       ],
     );
   }
 
-  Widget _buildSearchBar(BuildContext context) {
+  Widget _buildSearchBar(BuildContext context, bool isDarkMode) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.getCard(isDarkMode),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.4),
+            color: AppTheme.getSecondaryText(isDarkMode).withOpacity(0.4),
             blurRadius: 10,
             spreadRadius: 2,
             offset: const Offset(0, 4),
@@ -110,11 +113,13 @@ class _SearchWidgetState extends State<SearchWidget> {
         focusNode: widget.focusNode,
         decoration: InputDecoration(
           hintText: "Search for food...",
-          hintStyle: TextStyle(color: Colors.grey.shade400),
-          prefixIcon: Icon(Icons.search, color: Colors.grey.shade500),
+          hintStyle: TextStyle(color: AppTheme.getSecondaryText(isDarkMode)),
+          prefixIcon:
+              Icon(Icons.search, color: AppTheme.getSecondaryText(isDarkMode)),
           suffixIcon: widget.searchController.text.isNotEmpty
               ? IconButton(
-                  icon: Icon(Icons.clear, color: Colors.grey.shade500),
+                  icon: Icon(Icons.clear,
+                      color: AppTheme.getSecondaryText(isDarkMode)),
                   onPressed: () {
                     widget.searchController.clear();
                     setState(() {
@@ -129,9 +134,10 @@ class _SearchWidgetState extends State<SearchWidget> {
             borderSide: BorderSide.none,
           ),
           filled: true,
-          fillColor: Colors.grey.shade50,
+          fillColor: AppTheme.getDetailBackground(isDarkMode),
           contentPadding: const EdgeInsets.symmetric(vertical: 16),
         ),
+        style: TextStyle(color: AppTheme.getPrimaryText(isDarkMode)),
         onChanged: (value) {
           setState(() {
             searchQuery = value;
@@ -148,7 +154,7 @@ class _SearchWidgetState extends State<SearchWidget> {
     );
   }
 
-  Widget _buildRecentSearches(List<String> recentSearches) {
+  Widget _buildRecentSearches(List<String> recentSearches, bool isDarkMode) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -159,7 +165,7 @@ class _SearchWidgetState extends State<SearchWidget> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.grey.shade800,
+              color: AppTheme.getPrimaryText(isDarkMode),
             ),
           ),
         ),
@@ -169,7 +175,7 @@ class _SearchWidgetState extends State<SearchWidget> {
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Text(
               "No recent searches",
-              style: TextStyle(color: Colors.grey.shade600),
+              style: TextStyle(color: AppTheme.getSecondaryText(isDarkMode)),
             ),
           ),
         if (recentSearches.isNotEmpty)
@@ -195,7 +201,7 @@ class _SearchWidgetState extends State<SearchWidget> {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
+                      color: AppTheme.getDivider(isDarkMode),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
@@ -204,7 +210,7 @@ class _SearchWidgetState extends State<SearchWidget> {
                         Text(
                           search,
                           style: TextStyle(
-                            color: Colors.grey.shade800,
+                            color: AppTheme.getPrimaryText(isDarkMode),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -216,7 +222,7 @@ class _SearchWidgetState extends State<SearchWidget> {
                           child: Icon(
                             Icons.close,
                             size: 16,
-                            color: Colors.grey.shade600,
+                            color: AppTheme.getSecondaryText(isDarkMode),
                           ),
                         ),
                       ],
@@ -230,7 +236,8 @@ class _SearchWidgetState extends State<SearchWidget> {
     );
   }
 
-  Widget _buildSearchResults(List<Map<String, String>> searchResults) {
+  Widget _buildSearchResults(
+      List<Map<String, String>> searchResults, bool isDarkMode) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -241,7 +248,7 @@ class _SearchWidgetState extends State<SearchWidget> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.grey.shade800,
+              color: AppTheme.getPrimaryText(isDarkMode),
             ),
           ),
         ),
@@ -254,13 +261,13 @@ class _SearchWidgetState extends State<SearchWidget> {
                   Icon(
                     Icons.search_off,
                     size: 48,
-                    color: Colors.grey.shade400,
+                    color: AppTheme.getSecondaryText(isDarkMode),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     "No results found",
                     style: TextStyle(
-                      color: Colors.grey.shade600,
+                      color: AppTheme.getSecondaryText(isDarkMode),
                       fontSize: 16,
                     ),
                   ),
@@ -274,7 +281,10 @@ class _SearchWidgetState extends State<SearchWidget> {
             physics: const NeverScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: searchResults.length,
-            separatorBuilder: (context, index) => const Divider(height: 1),
+            separatorBuilder: (context, index) => Divider(
+              height: 1,
+              color: AppTheme.getDivider(isDarkMode),
+            ),
             itemBuilder: (context, index) {
               final food = searchResults[index];
               return ListTile(
@@ -289,17 +299,20 @@ class _SearchWidgetState extends State<SearchWidget> {
                 ),
                 title: Text(
                   food["title"]!,
-                  style: const TextStyle(fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: AppTheme.getPrimaryText(isDarkMode),
+                  ),
                 ),
                 subtitle: Text(
                   food["subtitle"]!,
-                  style: TextStyle(color: Colors.grey.shade600),
+                  style: TextStyle(color: AppTheme.getSecondaryText(isDarkMode)),
                 ),
                 trailing: Text(
                   "\Rp${food["price"]}",
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF3A86FF),
+                    color: AppTheme.getAccentBlueInfo(isDarkMode),
                   ),
                 ),
                 onTap: () {
@@ -320,7 +333,7 @@ class _SearchWidgetState extends State<SearchWidget> {
     );
   }
 
-  Widget _buildPopularCuisines(List<String> popularCuisines) {
+  Widget _buildPopularCuisines(List<String> popularCuisines, bool isDarkMode) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -331,7 +344,7 @@ class _SearchWidgetState extends State<SearchWidget> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.grey.shade800,
+              color: AppTheme.getPrimaryText(isDarkMode),
             ),
           ),
         ),
@@ -357,16 +370,16 @@ class _SearchWidgetState extends State<SearchWidget> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF3A86FF).withOpacity(0.1),
+                    color: AppTheme.getAccentBlueInfo(isDarkMode).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: const Color(0xFF3A86FF).withOpacity(0.3),
+                      color: AppTheme.getAccentBlueInfo(isDarkMode).withOpacity(0.3),
                     ),
                   ),
                   child: Text(
                     cuisine,
-                    style: const TextStyle(
-                      color: Color(0xFF3A86FF),
+                    style: TextStyle(
+                      color: AppTheme.getAccentBlueInfo(isDarkMode),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -379,7 +392,7 @@ class _SearchWidgetState extends State<SearchWidget> {
     );
   }
 
-  Widget _buildRecommendedSection(BuildContext context) {
+  Widget _buildRecommendedSection(BuildContext context, bool isDarkMode) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -391,16 +404,16 @@ class _SearchWidgetState extends State<SearchWidget> {
               Text(
                 "Recommended",
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                  fontSize: 20,
-                ),
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.getPrimaryText(isDarkMode),
+                      fontSize: 20,
+                    ),
               ),
               const SizedBox(height: 4),
               Text(
                 "Delicious meals just for you",
                 style: TextStyle(
-                  color: Colors.grey.shade600,
+                  color: AppTheme.getSecondaryText(isDarkMode),
                 ),
               ),
             ],
@@ -415,7 +428,7 @@ class _SearchWidgetState extends State<SearchWidget> {
     );
   }
 
-  Widget _buildOrderAgainSection(BuildContext context) {
+  Widget _buildOrderAgainSection(BuildContext context, bool isDarkMode) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -427,16 +440,16 @@ class _SearchWidgetState extends State<SearchWidget> {
               Text(
                 "Order Again",
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                  fontSize: 20,
-                ),
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.getPrimaryText(isDarkMode),
+                      fontSize: 20,
+                    ),
               ),
               const SizedBox(height: 4),
               Text(
                 "Your favorite meals",
                 style: TextStyle(
-                  color: Colors.grey.shade600,
+                  color: AppTheme.getSecondaryText(isDarkMode),
                 ),
               ),
             ],
@@ -481,12 +494,10 @@ class _SearchWidgetState extends State<SearchWidget> {
     final allFoodItems = FoodData.getFoodItems('All');
     if (query.isEmpty) return [];
     return allFoodItems.where((food) {
-      final titleMatch = food["title"]!.toLowerCase().contains(
-        query.toLowerCase(),
-      );
-      final subtitleMatch = food["subtitle"]!.toLowerCase().contains(
-        query.toLowerCase(),
-      );
+      final titleMatch =
+          food["title"]!.toLowerCase().contains(query.toLowerCase());
+      final subtitleMatch =
+          food["subtitle"]!.toLowerCase().contains(query.toLowerCase());
       return titleMatch || subtitleMatch;
     }).toList();
   }

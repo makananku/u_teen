@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../utils/app_theme.dart';
+import '../../providers/theme_notifier.dart';
+import 'package:provider/provider.dart';
 
 class CategorySelector extends StatelessWidget {
   final String selectedCategory;
@@ -12,21 +15,23 @@ class CategorySelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 24), 
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
         children: [
-          _buildCategory("All", selectedCategory == 'All'),
-          _buildCategory("Food", selectedCategory == 'Food'),
-          _buildCategory("Drinks", selectedCategory == 'Drinks'),
-          _buildCategory("Snack", selectedCategory == 'Snack'),
+          _buildCategory("All", selectedCategory == 'All', isDarkMode),
+          _buildCategory("Food", selectedCategory == 'Food', isDarkMode),
+          _buildCategory("Drinks", selectedCategory == 'Drinks', isDarkMode),
+          _buildCategory("Snack", selectedCategory == 'Snack', isDarkMode),
         ],
       ),
     );
   }
 
-  Widget _buildCategory(String title, bool isSelected) {
+  Widget _buildCategory(String title, bool isSelected, bool isDarkMode) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: GestureDetector(
@@ -38,7 +43,9 @@ class CategorySelector extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.blue : Colors.grey.shade800,
+                color: isSelected
+                    ? AppTheme.getButton(isDarkMode)
+                    : AppTheme.getPrimaryText(isDarkMode),
               ),
             ),
             if (isSelected)
@@ -46,7 +53,7 @@ class CategorySelector extends StatelessWidget {
                 margin: const EdgeInsets.only(top: 4),
                 height: 3,
                 width: 30,
-                color: Colors.blue,
+                color: AppTheme.getButton(isDarkMode),
               ),
           ],
         ),

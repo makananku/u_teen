@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../providers/cart_provider.dart';
+import '../../utils/app_theme.dart';
+import '../../providers/theme_notifier.dart';
 import 'package:provider/provider.dart';
 
 class CartSummaryWidget extends StatelessWidget {
@@ -8,9 +10,13 @@ class CartSummaryWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cartProvider = Provider.of<CartProvider>(context);
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
+
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(color: Colors.white),
+      decoration: BoxDecoration(
+        color: AppTheme.getCard(isDarkMode),
+      ),
       child: Column(
         children: [
           Row(
@@ -18,13 +24,17 @@ class CartSummaryWidget extends StatelessWidget {
             children: [
               Text(
                 "${cartProvider.totalItems} Items Selected",
-                style: const TextStyle(fontSize: 14, color: Colors.grey),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppTheme.getTextGrey(isDarkMode),
+                ),
               ),
               Text(
                 "Rp ${cartProvider.totalPrice}",
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
+                  color: AppTheme.getPrimaryText(isDarkMode),
                 ),
               ),
             ],
@@ -35,12 +45,16 @@ class CartSummaryWidget extends StatelessWidget {
             child: ElevatedButton(
               onPressed: cartProvider.cartItems.isNotEmpty ? () {} : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: AppTheme.getAccentPrimaryBlue(isDarkMode),
+                foregroundColor: AppTheme.getPrimaryText(!isDarkMode),
                 minimumSize: const Size(double.infinity, 50),
               ),
-              child: const Text(
+              child: Text(
                 "Buy Now",
-                style: TextStyle(color: Colors.white, fontSize: 16),
+                style: TextStyle(
+                  color: AppTheme.getPrimaryText(!isDarkMode),
+                  fontSize: 16,
+                ),
               ),
             ),
           ),
