@@ -37,7 +37,6 @@ class ProductCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Product Image
               Container(
                 width: 100,
                 height: 100,
@@ -58,7 +57,6 @@ class ProductCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              // Product Info
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,7 +73,6 @@ class ProductCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                        // Status toggle
                         GestureDetector(
                           onTap: onToggleStatus,
                           child: Container(
@@ -115,13 +112,12 @@ class ProductCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    // Price and prep time
                     Row(
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: AppTheme.getButton(isDarkMode).withOpacity(0.1),
+                            color: AppTheme.getAccentPrimaryBlue(isDarkMode).withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -129,7 +125,7 @@ class ProductCard extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: AppTheme.getButton(isDarkMode),
+                              color: AppTheme.getAccentPrimaryBlue(isDarkMode),
                             ),
                           ),
                         ),
@@ -164,19 +160,18 @@ class ProductCard extends StatelessWidget {
                   ],
                 ),
               ),
-              // Action Buttons
               Column(
                 children: [
                   IconButton(
                     icon: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: AppTheme.getButton(isDarkMode).withOpacity(0.1),
+                        color: AppTheme.getAccentPrimaryBlue(isDarkMode).withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.edit,
-                        color: AppTheme.getButton(isDarkMode),
+                        color: AppTheme.getAccentPrimaryBlue(isDarkMode),
                         size: 20,
                       ),
                     ),

@@ -23,7 +23,7 @@ class SellerBalanceScreen extends StatefulWidget {
 
 class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
   PaymentMethod? _selectedMethod;
-  final String _userGopayNumber = '0812-3456-7890'; // TODO: Move to AuthProvider
+  final String _userGopayNumber = '0812-3456-7890';
   int _balance = 0;
 
   @override
@@ -120,7 +120,7 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
                               children: [
                                 Icon(
                                   Icons.account_balance_wallet,
-                                  color: Colors.white70,
+                                  color: AppTheme.getAccentPrimaryBlue(isDarkMode),
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
@@ -146,7 +146,7 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
                               onPressed: _selectedMethod != null ? () => _withdrawFunds(context) : null,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppTheme.getCard(isDarkMode),
-                                foregroundColor: AppTheme.getButton(isDarkMode),
+                                foregroundColor: AppTheme.getAccentPrimaryBlue(isDarkMode),
                                 minimumSize: const Size(double.infinity, 50),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
@@ -158,7 +158,7 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: AppTheme.getButton(isDarkMode),
+                                  color: AppTheme.getAccentPrimaryBlue(isDarkMode),
                                 ),
                               ),
                             ),
@@ -206,13 +206,13 @@ class _SellerBalanceScreenState extends State<SellerBalanceScreen> {
                         ],
                         OutlinedButton.icon(
                           onPressed: _addNewPaymentMethod,
-                          icon: Icon(Icons.add, color: AppTheme.getButton(isDarkMode)),
+                          icon: Icon(Icons.add, color: AppTheme.getAccentPrimaryBlue(isDarkMode)),
                           label: Text(
                             'Add Withdrawal Method',
-                            style: TextStyle(color: AppTheme.getButton(isDarkMode)),
+                            style: TextStyle(color: AppTheme.getAccentPrimaryBlue(isDarkMode)),
                           ),
                           style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: AppTheme.getButton(isDarkMode)),
+                            side: BorderSide(color: AppTheme.getAccentPrimaryBlue(isDarkMode)),
                             minimumSize: const Size(double.infinity, 50),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),

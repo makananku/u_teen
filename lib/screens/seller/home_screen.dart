@@ -44,7 +44,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
         SnackBar(
           content: const Text('Tekan kembali untuk keluar'),
           duration: const Duration(seconds: 2),
-          backgroundColor: AppTheme.getButton(false),
+          backgroundColor: AppTheme.getAccentPrimaryBlue(false),
         ),
       );
       return false;
@@ -58,279 +58,318 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
   Widget build(BuildContext context) {
     final themeNotifier = Provider.of<ThemeNotifier>(context);
     final isDarkMode = themeNotifier.isDarkMode;
+    final Color appBarColor = isDarkMode ? const Color(0xFF1E3A8A) : Colors.blue[800]!;
+
     return Theme(
       data: themeNotifier.currentTheme,
       child: WillPopScope(
         onWillPop: _onWillPop,
         child: Scaffold(
+          resizeToAvoidBottomInset: false,
           backgroundColor: AppTheme.getBackground(isDarkMode),
-          body: CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                expandedHeight: 180,
-                floating: false,
-                pinned: true,
-                stretch: true,
-                flexibleSpace: FlexibleSpaceBar(
-                  stretchModes: const [StretchMode.zoomBackground],
-                  background: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: isDarkMode
-                            ? [
-                                const Color(0xFF1E3A8A),
-                                const Color(0xFF1E40AF),
-                              ]
-                            : [
-                                Colors.blue[800]!,
-                                Colors.blue[600]!,
-                              ],
-                      ),
-                    ),
-                    child: SafeArea(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.storefront,
-                                    color: Colors.white,
-                                    size: 28,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        Provider.of<AuthProvider>(context).user?.name ?? 'Tenant',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'By Libro',
-                                        style: TextStyle(
-                                          color: Colors.white.withOpacity(0.9),
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.logout, color: Colors.white),
-                                  onPressed: () => _confirmLogout(context),
-                                ),
-                              ],
+          body: Stack(
+            children: [
+              CustomScrollView(
+                slivers: [
+                  SliverAppBar(
+                    expandedHeight: 180,
+                    floating: false,
+                    pinned: true,
+                    stretch: true,
+                    backgroundColor: appBarColor,
+                    flexibleSpace: LayoutBuilder(
+                      builder: (BuildContext context, BoxConstraints constraints) {
+                        final double shrinkOffset = constraints.biggest.height;
+                        final double opacity = (shrinkOffset / 180).clamp(0.0, 1.0);
+
+                        return FlexibleSpaceBar(
+                          title: DefaultTextStyle(
+                            style: TextStyle(
+                              color: AppTheme.getAppBarText(isDarkMode),
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
                             ),
-                            const SizedBox(height: 16),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(12),
+                            child: Opacity(
+                              opacity: 1 - opacity,
+                              child: const Text('Home'),
+                            ),
+                          ),
+                          centerTitle: true,
+                          stretchModes: const [StretchMode.zoomBackground],
+                          background: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: isDarkMode
+                                    ? [
+                                        const Color(0xFF1E3A8A),
+                                        const Color(0xFF1E40AF),
+                                      ]
+                                    : [
+                                        Colors.blue[800]!,
+                                        Colors.blue[600]!,
+                                      ],
                               ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.calendar_today, size: 16, color: Colors.white),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(DateTime.now()),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 13,
+                            ),
+                            child: SafeArea(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withOpacity(0.2),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            Icons.storefront,
+                                            color: AppTheme.getAppBarText(isDarkMode),
+                                            size: 28,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                Provider.of<AuthProvider>(context).user?.name ?? 'Tenant',
+                                                style: TextStyle(
+                                                  color: AppTheme.getAppBarText(isDarkMode),
+                                                  fontSize: 22,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                'By Libro',
+                                                style: TextStyle(
+                                                  color: AppTheme.getAppBarText(isDarkMode).withOpacity(0.9),
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.logout,
+                                            color: AppTheme.getAppBarText(isDarkMode),
+                                          ),
+                                          onPressed: () => _confirmLogout(context),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(height: 16),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.15),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.calendar_today,
+                                            size: 16,
+                                            color: AppTheme.getAppBarText(isDarkMode),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(DateTime.now()),
+                                            style: TextStyle(
+                                              color: AppTheme.getAppBarText(isDarkMode),
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ],
-                        ),
-                      ),
+                          ),
+                        );
+                      },
                     ),
                   ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Sales Overview',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.getPrimaryText(isDarkMode),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            height: 140,
-                            child: ListView(
-                              scrollDirection: Axis.horizontal,
-                              children: [
-                                _buildMetricCard(
-                                  context,
-                                  value: _getSalesCount(context, 'today').toString(),
-                                  label: 'Today',
-                                  icon: Icons.today,
-                                  color: AppTheme.getButton(isDarkMode),
-                                ),
-                                const SizedBox(width: 12),
-                                _buildMetricCard(
-                                  context,
-                                  value: _getSalesCount(context, 'week').toString(),
-                                  label: 'This Week',
-                                  icon: Icons.calendar_view_week,
-                                  color: AppTheme.getSnackBarSuccess(isDarkMode),
-                                ),
-                                const SizedBox(width: 12),
-                                _buildMetricCard(
-                                  context,
-                                  value: _getSalesCount(context, 'month').toString(),
-                                  label: 'This Month',
-                                  icon: Icons.calendar_month,
-                                  color: AppTheme.getRating(isDarkMode),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Order Status',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.getPrimaryText(isDarkMode),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          GridView.count(
-                            crossAxisCount: 2,
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            mainAxisSpacing: 12,
-                            crossAxisSpacing: 12,
-                            childAspectRatio: 2.5,
+                  SliverToBoxAdapter(
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildStatusButton(
-                                context,
-                                text: 'On Process',
-                                count: Provider.of<OrderProvider>(context)
-                                    .getProcessingOrdersForMerchant(
-                                        Provider.of<AuthProvider>(context).user?.email ?? '')
-                                    .length,
-                                icon: Icons.hourglass_top,
-                                color: AppTheme.getButton(isDarkMode),
-                                onPressed: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const onprocess.OnProcessScreen()),
+                              Text(
+                                'Sales Overview',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.getPrimaryText(isDarkMode),
                                 ),
                               ),
-                              _buildStatusButton(
-                                context,
-                                text: 'Cancelled',
-                                count: Provider.of<OrderProvider>(context)
-                                    .getCancelledOrdersForMerchant(
-                                        Provider.of<AuthProvider>(context).user?.email ?? '')
-                                    .length,
-                                icon: Icons.cancel,
-                                color: AppTheme.getSnackBarError(isDarkMode),
-                                onPressed: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const cancellation.CancellationScreen()),
-                                ),
-                              ),
-                              _buildStatusButton(
-                                context,
-                                text: 'Completed',
-                                count: Provider.of<OrderProvider>(context)
-                                    .getCompletedOrdersForMerchant(
-                                        Provider.of<AuthProvider>(context).user?.email ?? '')
-                                    .length,
-                                icon: Icons.check_circle,
-                                color: AppTheme.getSnackBarSuccess(isDarkMode),
-                                onPressed: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const completed.CompletedScreen()),
-                                ),
-                              ),
-                              _buildStatusButton(
-                                context,
-                                text: 'My Ratings',
-                                count: 0,
-                                icon: Icons.star_rate,
-                                color: AppTheme.getRating(isDarkMode),
-                                onPressed: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const RatingScreen()),
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                height: 140,
+                                child: ListView(
+                                  scrollDirection: Axis.horizontal,
+                                  children: [
+                                    _buildMetricCard(
+                                      context,
+                                      value: _getSalesCount(context, 'today').toString(),
+                                      label: 'Today',
+                                      icon: Icons.today,
+                                      color: AppTheme.getAccentPrimaryBlue(isDarkMode),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    _buildMetricCard(
+                                      context,
+                                      value: _getSalesCount(context, 'week').toString(),
+                                      label: 'This Week',
+                                      icon: Icons.calendar_view_week,
+                                      color: AppTheme.getSnackBarSuccess(isDarkMode),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    _buildMetricCard(
+                                      context,
+                                      value: _getSalesCount(context, 'month').toString(),
+                                      label: 'This Month',
+                                      icon: Icons.calendar_month,
+                                      color: AppTheme.getRating(isDarkMode),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
-                        ],
-                      ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Order Status',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.getPrimaryText(isDarkMode),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              GridView.count(
+                                crossAxisCount: 2,
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                mainAxisSpacing: 12,
+                                crossAxisSpacing: 12,
+                                childAspectRatio: 2.5,
+                                children: [
+                                  _buildStatusButton(
+                                    context,
+                                    text: 'On Process',
+                                    count: Provider.of<OrderProvider>(context)
+                                        .getProcessingOrdersForMerchant(
+                                            Provider.of<AuthProvider>(context).user?.email ?? '')
+                                        .length,
+                                    icon: Icons.hourglass_top,
+                                    color: AppTheme.getAccentPrimaryBlue(isDarkMode),
+                                    onPressed: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => const onprocess.OnProcessScreen()),
+                                    ),
+                                  ),
+                                  _buildStatusButton(
+                                    context,
+                                    text: 'Cancelled',
+                                    count: Provider.of<OrderProvider>(context)
+                                        .getCancelledOrdersForMerchant(
+                                            Provider.of<AuthProvider>(context).user?.email ?? '')
+                                        .length,
+                                    icon: Icons.cancel,
+                                    color: AppTheme.getSnackBarError(isDarkMode),
+                                    onPressed: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => const cancellation.CancellationScreen()),
+                                    ),
+                                  ),
+                                  _buildStatusButton(
+                                    context,
+                                    text: 'Completed',
+                                    count: Provider.of<OrderProvider>(context)
+                                        .getCompletedOrdersForMerchant(
+                                            Provider.of<AuthProvider>(context).user?.email ?? '')
+                                        .length,
+                                    icon: Icons.check_circle,
+                                    color: AppTheme.getSnackBarSuccess(isDarkMode),
+                                    onPressed: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => const completed.CompletedScreen()),
+                                    ),
+                                  ),
+                                  _buildStatusButton(
+                                    context,
+                                    text: 'My Ratings',
+                                    count: 0,
+                                    icon: Icons.star_rate,
+                                    color: AppTheme.getRating(isDarkMode),
+                                    onPressed: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => const RatingScreen()),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        CalendarSection(
+                          selectedFilterIndex: _selectedFilterIndex,
+                          filterMonths: _filterMonths,
+                          selectedEventType: _selectedEventType,
+                          customDateRange: _customDateRange,
+                          onFilterChanged: (index) {
+                            setState(() {
+                              _selectedFilterIndex = index;
+                              _customDateRange = null;
+                            });
+                          },
+                          onEventTypeChanged: (type) {
+                            setState(() {
+                              _selectedEventType = type;
+                            });
+                          },
+                          onCustomDateRangeSelected: (range) {
+                            setState(() {
+                              _customDateRange = range;
+                              _selectedFilterIndex = -1;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 100),
+                      ],
                     ),
-                    CalendarSection(
-                      selectedFilterIndex: _selectedFilterIndex,
-                      filterMonths: _filterMonths,
-                      selectedEventType: _selectedEventType,
-                      customDateRange: _customDateRange,
-                      onFilterChanged: (index) {
-                        setState(() {
-                          _selectedFilterIndex = index;
-                          _customDateRange = null;
-                        });
-                      },
-                      onEventTypeChanged: (type) {
-                        setState(() {
-                          _selectedEventType = type;
-                        });
-                      },
-                      onCustomDateRangeSelected: (range) {
-                        setState(() {
-                          _customDateRange = range;
-                          _selectedFilterIndex = -1;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                  ],
+                  ),
+                ],
+              ),
+              Positioned(
+                bottom: 8,
+                left: 0,
+                right: 0,
+                child: SellerCustomBottomNavigation(
+                  selectedIndex: 0,
+                  context: context,
                 ),
               ),
             ],
-          ),
-          bottomNavigationBar: SellerCustomBottomNavigation(
-            selectedIndex: 0,
-            context: context,
           ),
         ),
       ),

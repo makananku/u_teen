@@ -49,7 +49,7 @@ class AppTheme {
   // Improved dark mode colors
   static const Color darkBackground = Color(0xFF121212);
   static const Color darkCard = Color(0xFF1E1E1E);
-  static const Color darkSecondaryBackground = Color(0xFF252525); // New
+  static const Color darkSecondaryBackground = Color(0xFF252525);
   static const Color darkPrimaryText = Color(0xFFE0E0E0);
   static const Color darkSecondaryText = Color(0xFFA0A0A0);
   static const Color darkTertiaryText = Color(0xFF858585);
@@ -85,7 +85,7 @@ class AppTheme {
   static const Color darkAccentRedDark = Color(0xFFE57373);
   static const Color darkShadow = Color(0xFF1E1E1E);
   static const Color darkInactive = Color(0xFF616161);
-  static const Color darkBadge = Color(0xFFFF8A65); // Updated
+  static const Color darkBadge = Color(0xFFFF8A65);
   static const Color darkSnackBarInfo = Color(0xFF4FC3F7);
   static const Color darkAccentGreen = Color(0xFF81C784);
   static const Color darkAccentBlueInfo = Color(0xFF4FC3F7);
@@ -139,4 +139,5 @@ class AppTheme {
   static Color getAccentPrimaryBlue(bool isDarkMode) => isDarkMode ? darkAccentPrimaryBlue : lightAccentPrimaryBlue;
   static Color getError(bool isDarkMode) => isDarkMode ? darkError : lightError;
   static Color getShadowLight(bool isDarkMode) => isDarkMode ? darkShadowLight : lightShadowLight;
+  static Color getAppBarText(bool isDarkMode) => Colors.white; // Added for app bar text
 }

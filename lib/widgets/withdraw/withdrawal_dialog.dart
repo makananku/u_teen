@@ -66,13 +66,13 @@ class _WithdrawalDialogState extends State<WithdrawalDialog> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppTheme.getButton(isDarkMode).withOpacity(0.1),
+                      color: AppTheme.getAccentPrimaryBlue(isDarkMode).withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.account_balance_wallet,
                       size: 32,
-                      color: AppTheme.getButton(isDarkMode),
+                      color: AppTheme.getAccentPrimaryBlue(isDarkMode),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -112,7 +112,7 @@ class _WithdrawalDialogState extends State<WithdrawalDialog> {
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color: AppTheme.getButton(isDarkMode),
+                      color: AppTheme.getAccentPrimaryBlue(isDarkMode),
                     ),
                   ),
                   filled: true,
@@ -290,7 +290,7 @@ class _WithdrawalDialogState extends State<WithdrawalDialog> {
                               widget.onWithdraw(_withdrawalAmount);
                             },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.getButton(isDarkMode),
+                        backgroundColor: AppTheme.getAccentPrimaryBlue(isDarkMode),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),

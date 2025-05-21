@@ -5,7 +5,6 @@ import 'package:u_teen/providers/food_provider.dart';
 import 'package:u_teen/auth/auth_provider.dart';
 import 'package:u_teen/screens/seller/home_screen.dart';
 import 'package:u_teen/widgets/seller/custom_bottom_navigation.dart';
-import 'package:u_teen/models/product_model.dart';
 import 'package:u_teen/widgets/seller/product_card.dart';
 import 'package:u_teen/providers/theme_notifier.dart';
 import 'package:u_teen/utils/app_theme.dart';

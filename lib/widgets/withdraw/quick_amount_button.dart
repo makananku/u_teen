@@ -21,13 +21,13 @@ class QuickAmountButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: AppTheme.getButton(isDarkMode).withOpacity(0.1),
+          color: AppTheme.getAccentPrimaryBlue(isDarkMode).withOpacity(0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: AppTheme.getButton(isDarkMode),
+            color: AppTheme.getAccentPrimaryBlue(isDarkMode),
             fontWeight: FontWeight.w500,
           ),
         ),
