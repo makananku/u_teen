@@ -1,56 +1,54 @@
-class AuthService {
-  final List<User> _dummyUsers = [
-    User(
-      email: '123@student.umn.ac.id',
-      password: '123',
-      name: 'Nicholas Soesilo',
-      userType: 'customer',
-      nim: '000000646490',
-      phoneNumber: '628221110806',
-      prodi: 'Information Systems',
-      angkatan: '2022',
-    ),
-    User(
-      email: '456@seller.umn.ac.id',
-      password: '456',
-      name: 'Masakan Minang',
-      userType: 'seller',
-      nim: 'TNT000123',
-      phoneNumber: '628123456789',
-      prodi: '', 
-      angkatan: '',
-    ),
-  ];
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-  User? getUserByCredentials(String email, String password) {
-    try {
-      return _dummyUsers.firstWhere(
-        (user) => user.email == email && user.password == password,
-      );
-    } catch (e) {
-      return null;
-    }
-  }
+class AuthService {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<User?> login(String email, String password) async {
-    await Future.delayed(const Duration(seconds: 1));
-
     try {
-      return _dummyUsers.firstWhere(
-        (user) => user.email == email && user.password == password,
+      // Login dengan Firebase Authentication
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
       );
+
+      // Ambil data pengguna dari Firestore
+      DocumentSnapshot userDoc = await _firestore
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .get();
+
+      if (userDoc.exists) {
+        return User(
+          email: userCredential.user!.email!,
+          name: userDoc['name'] ?? '',
+          userType: userDoc['userType'] ?? 'customer',
+          nim: userDoc['nim'] ?? '',
+          phoneNumber: userDoc['phoneNumber'] ?? '',
+          prodi: userDoc['prodi'] ?? '',
+          angkatan: userDoc['angkatan'] ?? '',
+        );
+      } else {
+        print('User document not found in Firestore');
+        return null;
+      }
+    } on FirebaseAuthException catch (e) {
+      print('FirebaseAuthException: ${e.code} - ${e.message}');
+      return null;
     } catch (e) {
+      print('Error: $e');
       return null;
     }
   }
 
-  String? validateEmail(String email) {
-    if (email.isEmpty) return 'Email is required';
+  String? validateEmail(String? email) {
+    if (email == null || email.isEmpty) return 'Email diperlukan';
     if (!email.endsWith('@student.umn.ac.id') &&
         !email.endsWith('@seller.umn.ac.id') &&
         !email.endsWith('@umn.ac.id') &&
         !email.endsWith('@lecturer.umn.ac.id')) {
-      return 'Email must end with valid UMN domain';
+      return 'Email harus menggunakan domain UMN yang valid';
     }
     return null;
   }
@@ -58,7 +56,6 @@ class AuthService {
 
 class User {
   final String email;
-  final String password;
   final String name;
   final String userType;
   final String nim;
@@ -68,7 +65,6 @@ class User {
 
   User({
     required this.email,
-    required this.password,
     required this.name,
     required this.userType,
     required this.nim,

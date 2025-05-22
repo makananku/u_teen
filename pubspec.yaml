@@ -25,6 +25,12 @@ dependencies:
   flutter_plugin_android_lifecycle: ^2.0.27
   http: ^1.1.0
 
+  # Firebase dependencies
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  cloud_firestore: ^5.4.3
+  firebase_analytics: ^11.3.3
+
   # External dependencies
   cached_network_image: ^3.3.0
   cupertino_icons: ^1.0.8

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:u_teen/auth/auth_service.dart';
-import 'package:u_teen/screens/seller/home_screen.dart';
 import 'package:provider/provider.dart';
-import '../auth/auth_provider.dart';
-import 'customer/home_screen.dart';
+import 'package:u_teen/auth/auth_provider.dart';
+import 'package:u_teen/auth/auth_service.dart';
+import 'package:u_teen/screens/customer/home_screen.dart';
+import 'package:u_teen/screens/seller/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,8 +12,7 @@ class LoginScreen extends StatefulWidget {
   _LoginScreenState createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen>
-    with SingleTickerProviderStateMixin {
+class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
   bool _isLoading = false;
@@ -39,15 +38,15 @@ class _LoginScreenState extends State<LoginScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       await authProvider.initialize();
-      
+
       print('LoginScreen initState - isLoggedIn: ${authProvider.isLoggedIn}');
-      
+
       if (authProvider.isLoggedIn && mounted) {
         print('User is logged in, navigating to ${authProvider.isSeller ? "SellerHomeScreen" : "HomeScreen"}');
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
-            builder: (context) => authProvider.isSeller 
+            builder: (context) => authProvider.isSeller
                 ? const SellerHomeScreen()
                 : const HomeScreen(),
           ),
@@ -120,7 +119,7 @@ class _LoginScreenState extends State<LoginScreen>
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Failed to save login session.'),
+              content: Text('Gagal menyimpan sesi login.'),
               backgroundColor: Colors.red,
             ),
           );
@@ -128,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen>
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Login failed. Invalid email or password.'),
+            content: Text('Login gagal. Email atau kata sandi salah.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -137,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('An error occurred: $e'),
+            content: Text('Terjadi kesalahan: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -149,16 +148,9 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
-  String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Email is required';
-    }
-    return null;
-  }
-
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Password is required';
+      return 'Kata sandi diperlukan';
     }
     return null;
   }
@@ -181,7 +173,6 @@ class _LoginScreenState extends State<LoginScreen>
       return false;
     } else {
       _lastBackPressTime = null;
-      // Keluar dari aplikasi
       return true;
     }
   }
@@ -273,7 +264,7 @@ class _LoginScreenState extends State<LoginScreen>
                 contentPadding: const EdgeInsets.symmetric(vertical: 16),
               ),
               keyboardType: TextInputType.emailAddress,
-              validator: _validateEmail,
+              validator: (value) => AuthService().validateEmail(value),
               onChanged: (value) => setState(() {}),
             ),
             const SizedBox(height: 20),
@@ -283,7 +274,7 @@ class _LoginScreenState extends State<LoginScreen>
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.grey[50],
-                hintText: 'Password',
+                hintText: 'Kata Sandi',
                 prefixIcon: const Icon(Icons.lock, color: Colors.blue),
                 suffixIcon: IconButton(
                   icon: Icon(

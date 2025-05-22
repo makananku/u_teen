@@ -3,6 +3,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:u_teen/firebase_options.dart';
 import 'auth/auth_provider.dart';
 import 'auth/auth_service.dart';
 import 'providers/cart_provider.dart';
@@ -18,6 +20,11 @@ import 'providers/theme_notifier.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Inisialisasi Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   await initializeDateFormatting('id_ID', null);
 
@@ -58,8 +65,8 @@ class MyApp extends StatelessWidget {
     final themeNotifier = Provider.of<ThemeNotifier>(context);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: themeNotifier.currentTheme, // Use ThemeNotifier for app-wide theme
-      themeMode: ThemeMode.light, // Force light mode for the entire app
+      theme: themeNotifier.currentTheme,
+      themeMode: ThemeMode.light,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -87,7 +94,7 @@ class AuthWrapper extends StatelessWidget {
             return Scaffold(
               body: Center(
                 child: Text(
-                  'Error initializing app: ${snapshot.error}',
+                  'Error inisialisasi aplikasi: ${snapshot.error}',
                   style: const TextStyle(color: Colors.red),
                 ),
               ),
@@ -230,9 +237,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _textController.forward();
 
     await Future.delayed(const Duration(milliseconds: 800));
-    if (!mounted) return; // Check if widget is still mounted
+    if (!mounted) return;
     _bgController.forward().then((_) {
-      if (!mounted) return; // Check again before accessing context
+      if (!mounted) return;
       _logoController.reverse();
       _textShiftController.forward();
 

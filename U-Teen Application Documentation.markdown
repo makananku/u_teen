@@ -534,7 +534,7 @@ dev_dependencies:
 
 - git version 2.48.1.windows.1
 
-- gradle-8.9-all (yang ini instalasi langsung dari VSCode)
+- gradle-8.10-bin
 
 - Environment Variables Path
   Cara akses: Windows + R, sysdm.cpl, Advanced, Environment Variables, System Variables, Path, Edit.
@@ -575,6 +575,10 @@ dev_dependencies:
 
 - Run the application:
   flutter run
+
+- Gradle clean:
+  rd /s /q %userprofile%\.gradle\caches
+  rd /s /q C:\Users\Acer\u_teen\build
 
 4. **Configure Assets**:
 

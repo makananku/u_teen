@@ -1,0 +1,71 @@
+Date : 2025-05-22 21:27:50
+Directory : c:\Users\Acer\u_teen
+Total : 20 files,  176 codes, 4 comments, 18 blanks, all 198 lines
+
+Languages
++-----------------+------------+------------+------------+------------+------------+
+| language        | files      | code       | comment    | blank      | total      |
++-----------------+------------+------------+------------+------------+------------+
+| Dart            |         10 |         84 |          3 |          6 |         93 |
+| JSON            |          2 |         30 |          0 |          0 |         30 |
+| Gradle          |          1 |         23 |          0 |          4 |         27 |
+| Markdown        |          2 |         13 |          0 |          8 |         21 |
+| C++             |          1 |          9 |          0 |          0 |          9 |
+| Swift           |          1 |          8 |          0 |          0 |          8 |
+| YAML            |          1 |          4 |          1 |          1 |          6 |
+| CMake           |          1 |          3 |          0 |          0 |          3 |
+| Java Properties |          1 |          2 |          0 |         -1 |          1 |
++-----------------+------------+------------+------------+------------+------------+
+
+Directories
++-----------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                  | files      | code       | comment    | blank      | total      |
++-----------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                     |         20 |        176 |          4 |         18 |        198 |
+| . (Files)                                                             |          4 |         18 |          1 |          9 |         28 |
+| android                                                               |          3 |         54 |          0 |          3 |         57 |
+| android (Files)                                                       |          1 |         23 |          0 |          4 |         27 |
+| android\app                                                           |          1 |         29 |          0 |          0 |         29 |
+| android\gradle                                                        |          1 |          2 |          0 |         -1 |          1 |
+| android\gradle\wrapper                                                |          1 |          2 |          0 |         -1 |          1 |
+| lib                                                                   |         10 |         84 |          3 |          6 |         93 |
+| lib (Files)                                                           |          2 |         58 |         13 |          4 |         75 |
+| lib\auth                                                              |          2 |         -6 |          2 |          1 |         -3 |
+| lib\screens                                                           |          3 |         29 |         -1 |          1 |         29 |
+| lib\screens (Files)                                                   |          1 |         -7 |         -1 |         -1 |         -9 |
+| lib\screens\seller                                                    |          2 |         36 |          0 |          2 |         38 |
+| lib\utils                                                             |          1 |          3 |         -3 |          1 |          1 |
+| lib\widgets                                                           |          2 |          0 |         -8 |         -1 |         -9 |
+| lib\widgets\seller                                                    |          2 |          0 |         -8 |         -1 |         -9 |
+| macos                                                                 |          1 |          8 |          0 |          0 |          8 |
+| macos\Flutter                                                         |          1 |          8 |          0 |          0 |          8 |
+| windows                                                               |          2 |         12 |          0 |          0 |         12 |
+| windows\flutter                                                       |          2 |         12 |          0 |          0 |         12 |
++-----------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-----------------------------------------------------------------------+-----------------+------------+------------+------------+------------+
+| filename                                                              | language        | code       | comment    | blank      | total      |
++-----------------------------------------------------------------------+-----------------+------------+------------+------------+------------+
+| c:\Users\Acer\u_teen\README.md                                        | Markdown        |         10 |          0 |          7 |         17 |
+| c:\Users\Acer\u_teen\U-Teen Application Documentation.markdown        | Markdown        |          3 |          0 |          1 |          4 |
+| c:\Users\Acer\u_teen\android\app\google-services.json                 | JSON            |         29 |          0 |          0 |         29 |
+| c:\Users\Acer\u_teen\android\gradle\wrapper\gradle-wrapper.properties | Java Properties |          2 |          0 |         -1 |          1 |
+| c:\Users\Acer\u_teen\android\settings.gradle                          | Gradle          |         23 |          0 |          4 |         27 |
+| c:\Users\Acer\u_teen\firebase.json                                    | JSON            |          1 |          0 |          0 |          1 |
+| c:\Users\Acer\u_teen\lib\auth\auth_provider.dart                      | Dart            |          1 |          0 |          0 |          1 |
+| c:\Users\Acer\u_teen\lib\auth\auth_service.dart                       | Dart            |         -7 |          2 |          1 |         -4 |
+| c:\Users\Acer\u_teen\lib\firebase_options.dart                        | Dart            |         53 |         12 |          3 |         68 |
+| c:\Users\Acer\u_teen\lib\main.dart                                    | Dart            |          5 |          1 |          1 |          7 |
+| c:\Users\Acer\u_teen\lib\screens\login_screen.dart                    | Dart            |         -7 |         -1 |         -1 |         -9 |
+| c:\Users\Acer\u_teen\lib\screens\seller\home_screen.dart              | Dart            |         37 |          0 |          2 |         39 |
+| c:\Users\Acer\u_teen\lib\screens\seller\my_product_screen.dart        | Dart            |         -1 |          0 |          0 |         -1 |
+| c:\Users\Acer\u_teen\lib\utils\app_theme.dart                         | Dart            |          3 |         -3 |          1 |          1 |
+| c:\Users\Acer\u_teen\lib\widgets\seller\calendar_widget.dart          | Dart            |          0 |         -3 |         -1 |         -4 |
+| c:\Users\Acer\u_teen\lib\widgets\seller\product_card.dart             | Dart            |          0 |         -5 |          0 |         -5 |
+| c:\Users\Acer\u_teen\macos\Flutter\GeneratedPluginRegistrant.swift    | Swift           |          8 |          0 |          0 |          8 |
+| c:\Users\Acer\u_teen\pubspec.yaml                                     | YAML            |          4 |          1 |          1 |          6 |
+| c:\Users\Acer\u_teen\windows\flutter\generated_plugin_registrant.cc   | C++             |          9 |          0 |          0 |          9 |
+| c:\Users\Acer\u_teen\windows\flutter\generated_plugins.cmake          | CMake           |          3 |          0 |          0 |          3 |
+| Total                                                                 |                 |        176 |          4 |         18 |        198 |
++-----------------------------------------------------------------------+-----------------+------------+------------+------------+------------+

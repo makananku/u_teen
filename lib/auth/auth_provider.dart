@@ -14,7 +14,7 @@ class AuthProvider with ChangeNotifier {
   bool get isSeller => _user?.userType == 'seller';
   bool get isCustomer => _user?.userType == 'customer';
   String? get sellerEmail => isSeller ? _user?.email : null;
-  String? get sellerNim => isSeller ? _user?.nim : null; 
+  String? get sellerNim => isSeller ? _user?.nim : null;
   String? get tenantName => isSeller ? _user?.name : null;
   String? get customerEmail => isCustomer ? _user?.email : null;
   String? get customerName => isCustomer ? _user?.name : null;
@@ -76,7 +76,7 @@ class AuthProvider with ChangeNotifier {
       await _prefs.setString('user_prodi', prodi);
       await _prefs.setString('user_angkatan', angkatan);
 
-      print('Login - Prodi: $prodi, Angkatan: $angkatan');
+      print('Login - Email: $email, UserType: $userType, Prodi: $prodi, Angkatan: $angkatan');
 
       _user = User(
         email: email,
@@ -88,6 +88,7 @@ class AuthProvider with ChangeNotifier {
         angkatan: angkatan,
       );
 
+      _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
