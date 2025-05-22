@@ -2,6 +2,8 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
+    // Use the same version as in settings.gradle.kts
+    id("com.google.gms.google-services") version "4.4.1" apply true
 }
 
 android {
@@ -10,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.u_teen"
-        minSdk = 21
+        minSdk = 23
         targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
@@ -46,14 +48,16 @@ android {
     }
 
     packagingOptions {
-        resources.excludes.addAll(
-            setOf(
-                "/META-INF/{AL2.0,LGPL2.1}",
-                "**/kotlin/**",
-                "**/DebugProbesKt.bin"
-            )
+    excludes.addAll(
+        setOf(
+            "/META-INF/{AL2.0,LGPL2.1}",
+            "**/kotlin/**",
+            "**/DebugProbesKt.bin"
         )
-    }
+    )
+}
+
+
 
     buildFeatures {
         buildConfig = true
@@ -67,4 +71,9 @@ flutter {
 
 dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
+    implementation(platform("com.google.firebase:firebase-bom:33.1.2")) // Downgrade to match previous working version
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.1.0") // Ensure Kotlin stdlib matches plugin version
 }
