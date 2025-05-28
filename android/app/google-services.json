@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "64675254086",
+    "project_id": "u-teen-e88b6",
+    "storage_bucket": "u-teen-e88b6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:64675254086:android:cce049b11b96df5bc99f47",
+        "android_client_info": {
+          "package_name": "com.example.u_teen"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-gUjWQJH_a2zww6bBCqDaO2LYeXRPZVY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

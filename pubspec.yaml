@@ -1,0 +1,57 @@
+name: u_teen
+description: "A new Flutter project."
+
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  flutter_keyboard_visibility: ^6.0.0
+  shared_preferences: ^2.1.1
+  lottie: ^3.3.1
+  intl: ^0.19.0
+  image_picker: ^1.0.4
+  path_provider: ^2.1.1
+  path: ^1.8.3
+  provider: ^6.0.5
+  flutter_plugin_android_lifecycle: ^2.0.27
+  http: ^1.1.0
+
+  # Firebase dependencies
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  cloud_firestore: ^5.4.3
+  #firebase_analytics: ^11.3.3
+  firebase_storage: ^12.4.6
+
+  # External dependencies
+  cached_network_image: ^3.3.0
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/logo/u.png
+
+    - assets/asset/profile_picture.jpg
+
+    - assets/animation/empty_cart.json
+    - assets/animation/empty_order.json
+    - assets/animation/success_checkmark.json
+    - assets/animation/empty_notification.json
+
+    - assets/payment/gopay.png
+    - assets/payment/ovo.png
