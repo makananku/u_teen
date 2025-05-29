@@ -26,7 +26,7 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    
+
     // Initialize data only if it's the first run
     final firstRun = await DataInitializer.isFirstRun();
     if (firstRun) {
@@ -102,7 +102,6 @@ class AuthWrapper extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasError) {
-            // Add error recovery option
             return Scaffold(
               body: Center(
                 child: Column(
@@ -193,45 +192,7 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     _initializeControllers();
     _initializeAnimations();
-
-    Future.delayed(Duration.zero, () {
-      _startAnimations();
-    });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => _startAnimations());
-  }
-
-  Widget _buildDynamicContent() {
-    return AnimatedBuilder(
-      animation: Listenable.merge([
-        _logoController,
-        _textController,
-        _bgController,
-      ]),
-      builder: (context, _) {
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildLogoAnimation(),
-            const SizedBox(height: 30),
-            _buildTextAnimation(),
-            if (_bgController.isCompleted) _buildAuthSection(),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildAuthSection() {
-    return AnimatedBuilder(
-      animation: _buttonController,
-      builder: (context, _) {
-        return Padding(
-          padding: const EdgeInsets.only(top: 100),
-          child: _buildAnimatedAuthButtons(),
-        );
-      },
-    );
+    _startAnimations();
   }
 
   void _initializeControllers() {
@@ -300,15 +261,26 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
 
+    // Perbaikan utama di sini - pastikan animasi warna menggunakan ColorTween dengan warna yang tepat
     _bgColor = ColorTween(
       begin: Colors.blue[800],
       end: Colors.white,
-    ).animate(_bgController);
+    ).animate(
+      CurvedAnimation(
+        parent: _bgController,
+        curve: Curves.easeInOut,
+      ),
+    );
 
     _textColor = ColorTween(
       begin: Colors.white,
       end: Colors.blue[800],
-    ).animate(_bgController);
+    ).animate(
+      CurvedAnimation(
+        parent: _bgController,
+        curve: Curves.easeInOut,
+      ),
+    );
 
     _buttonScale = Tween<double>(begin: 0.95, end: 1.0).animate(
       CurvedAnimation(
@@ -342,6 +314,7 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(const Duration(milliseconds: 800));
     if (!mounted) return;
 
+    // Mulai animasi perubahan warna background
     _bgController.forward().then((_) {
       if (!mounted) return;
       _logoController.reverse();
@@ -353,7 +326,7 @@ class _SplashScreenState extends State<SplashScreen>
           context,
           MaterialPageRoute(
             builder: (context) =>
-                auth.isSeller ? const SellerHomeScreen() : const HomeScreen(),
+            auth.isSeller ? const SellerHomeScreen() : const HomeScreen(),
           ),
         );
       } else {
@@ -374,18 +347,33 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: ThemeData.light().copyWith(
-        scaffoldBackgroundColor: _bgColor.value,
-        textTheme: ThemeData.light().textTheme.apply(
-          bodyColor: _textColor.value,
-          displayColor: _textColor.value,
-        ),
-      ),
-      child: Scaffold(
-        backgroundColor: _bgColor.value,
-        body: Center(child: _buildDynamicContent()),
-      ),
+    return AnimatedBuilder(
+      animation: _bgController,
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            scaffoldBackgroundColor: _bgColor.value,
+            textTheme: ThemeData.light().textTheme.apply(
+              bodyColor: _textColor.value,
+              displayColor: _textColor.value,
+            ),
+          ),
+          child: Scaffold(
+            backgroundColor: _bgColor.value,
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildLogoAnimation(),
+                  const SizedBox(height: 30),
+                  _buildTextAnimation(),
+                  if (_bgController.isCompleted) _buildAuthSection(),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -442,6 +430,18 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
+  Widget _buildAuthSection() {
+    return AnimatedBuilder(
+      animation: _buttonController,
+      builder: (context, _) {
+        return Padding(
+          padding: const EdgeInsets.only(top: 100),
+          child: _buildAnimatedAuthButtons(),
+        );
+      },
+    );
+  }
+
   Widget _buildAnimatedAuthButtons() {
     return Transform.translate(
       offset: Offset(0, _buttonSlideY.value),
@@ -488,13 +488,13 @@ class _SplashScreenState extends State<SplashScreen>
                     context,
                     PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
-                          const LoginScreen(),
+                      const LoginScreen(),
                       transitionsBuilder: (
-                        context,
-                        animation,
-                        secondaryAnimation,
-                        child,
-                      ) {
+                          context,
+                          animation,
+                          secondaryAnimation,
+                          child,
+                          ) {
                         return FadeTransition(opacity: animation, child: child);
                       },
                       transitionDuration: const Duration(milliseconds: 800),
