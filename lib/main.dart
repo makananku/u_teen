@@ -21,13 +21,13 @@ import 'package:u_teen/data/data_initializer.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase with error handling
+  // Initialize Firebase with error handling (from code 2)
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
     
-    // Initialize data only if it's the first run
+    // Initialize data only if it's the first run (from code 2)
     final firstRun = await DataInitializer.isFirstRun();
     if (firstRun) {
       try {
@@ -97,12 +97,12 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context, listen: false);
 
+    // Using the improved error handling from code 2
     return FutureBuilder(
       future: auth.initialize(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasError) {
-            // Add error recovery option
             return Scaffold(
               body: Center(
                 child: Column(
@@ -133,26 +133,8 @@ class AuthWrapper extends StatelessWidget {
           }
           return const SplashScreen();
         }
-        return Scaffold(
-          backgroundColor: Colors.blue[800],
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Loading...',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
+        // Keep the loading screen from code 1 (simpler version)
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
       },
     );
   }
@@ -167,6 +149,7 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
+  // Animation controllers from code 1
   late final AnimationController _logoController;
   late final Animation<double> _logoScale;
   late final Animation<double> _logoOpacity;
@@ -193,7 +176,12 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     _initializeControllers();
     _initializeAnimations();
-    _startAnimations();
+
+    Future.delayed(Duration.zero, () {
+      _startAnimations();
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startAnimations());
   }
 
   Widget _buildDynamicContent() {
@@ -230,6 +218,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _initializeControllers() {
+    // Exact same controller setup from code 1
     _logoController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),
@@ -257,6 +246,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _initializeAnimations() {
+    // Exact same animation setup from code 1
     _logoScale = Tween<double>(begin: 0.5, end: 1.0).animate(
       CurvedAnimation(parent: _logoController, curve: Curves.elasticOut),
     );
@@ -298,22 +288,12 @@ class _SplashScreenState extends State<SplashScreen>
     _bgColor = ColorTween(
       begin: Colors.blue[800],
       end: Colors.white,
-    ).animate(
-      CurvedAnimation(
-        parent: _bgController,
-        curve: const Interval(0.0, 1.0, curve: Curves.easeInOut),
-      ),
-    );
+    ).animate(_bgController);
 
     _textColor = ColorTween(
       begin: Colors.white,
       end: Colors.blue[800],
-    ).animate(
-      CurvedAnimation(
-        parent: _bgController,
-        curve: const Interval(0.0, 1.0, curve: Curves.easeInOut),
-      ),
-    );
+    ).animate(_bgController);
 
     _buttonScale = Tween<double>(begin: 0.95, end: 1.0).animate(
       CurvedAnimation(
@@ -338,37 +318,28 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _startAnimations() async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    // Exact same animation sequence from code 1
+    await Future.delayed(const Duration(milliseconds: 500));
     _logoController.forward();
 
-    await Future.delayed(const Duration(milliseconds: 700));
+    await Future.delayed(const Duration(milliseconds: 900));
     _textController.forward();
 
-    await Future.delayed(const Duration(milliseconds: 600));
+    await Future.delayed(const Duration(milliseconds: 800));
     if (!mounted) return;
 
-    _bgController.forward().then((_) async {
+    _bgController.forward().then((_) {
       if (!mounted) return;
       _logoController.reverse();
       _textShiftController.forward();
 
       final auth = Provider.of<AuthProvider>(context, listen: false);
-      await Future.delayed(const Duration(milliseconds: 500));
-      
       if (auth.isLoggedIn) {
-        if (!mounted) return;
         Navigator.pushReplacement(
           context,
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) =>
+          MaterialPageRoute(
+            builder: (context) =>
                 auth.isSeller ? const SellerHomeScreen() : const HomeScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return FadeTransition(
-                opacity: animation,
-                child: child,
-              );
-            },
-            transitionDuration: const Duration(milliseconds: 800),
           ),
         );
       } else {
@@ -510,10 +481,7 @@ class _SplashScreenState extends State<SplashScreen>
                         secondaryAnimation,
                         child,
                       ) {
-                        return FadeTransition(
-                          opacity: animation,
-                          child: child,
-                        );
+                        return FadeTransition(opacity: animation, child: child);
                       },
                       transitionDuration: const Duration(milliseconds: 800),
                       settings: const RouteSettings(name: '/login'),
