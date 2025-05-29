@@ -44,12 +44,16 @@ class AppTheme {
   static const Color lightAccentPrimaryBlue = Color(0xFF2196F3);
   static const Color lightError = Color(0xFFF44336);
   static const Color lightShadowLight = Color.fromRGBO(0, 0, 0, 0.1);
-  static const Color lightWhite = Colors.white; // Added for white color
-  static const Color lightBlue800 = Color(0xFF1976D2); // Added for Colors.blue[800]
-  static const Color lightWhite70 = Color.fromRGBO(255, 255, 255, 0.7); // Added for Colors.white70
-  static const Color lightGrey = Colors.grey; // Added for Colors.grey
-  static const Color lightRed = Colors.red; // Added for Colors.red
-  static const Color lightBlueShadow = Color(0xFF2196F3); // Added for Colors.blue in shadow
+  static const Color lightBlue800 = Color(0xFF1565C0);
+  static const Color lightBlue100 = Color(0xFFBBDEFB);
+  static const Color lightBlue900 = Color(0xFF0D47A1);
+  static const Color lightGrey50 = Color(0xFFFAFAFA);
+  static const Color lightGrey400 = Color(0xFFBDBDBD);
+  static const Color lightGrey600 = Color(0xFF757575);
+  static const Color lightGrey500 = Color(0xFF9E9E9E);
+  static const Color lightDarkBlue900 = Color(0xFF0D1B2A);
+  static const Color lightDark2D = Color(0xFF2D2D2D);
+  
 
   static const Color darkBackground = Color(0xFF121212);
   static const Color darkCard = Color(0xFF1E1E1E);
@@ -96,12 +100,11 @@ class AppTheme {
   static const Color darkAccentPrimaryBlue = Color(0xFF64B5F6);
   static const Color darkError = Color(0xFFE57373);
   static const Color darkShadowLight = Color.fromRGBO(0, 0, 0, 0.2);
-  static const Color darkWhite = Color(0xFFFFFFFF); // Added for white color
-  static const Color darkBlue800 = Color(0xFF1565C0); // Added for Colors.blue[800]
-  static const Color darkWhite70 = Color.fromRGBO(255, 255, 255, 0.7); // Added for Colors.white70
-  static const Color darkGrey = Color(0xFF616161); // Added for Colors.grey
-  static const Color darkRed = Color(0xFFE57373); // Added for Colors.red
-  static const Color darkBlueShadow = Color(0xFF64B5F6); // Added for Colors.blue in shadow
+  static const Color darkBlue400 = Color(0xFF42A5F5);
+  static const Color darkBlue900 = Color(0xFF0D47A1);
+  static const Color darkGrey400 = Color(0xFFBDBDBD);
+  static const Color darkGrey600 = Color(0xFF757575);
+  static const Color dark2D = Color(0xFF2D2D2D);
 
   static Color getBackground(bool isDarkMode) => isDarkMode ? darkBackground : lightBackground;
   static Color getCard(bool isDarkMode) => isDarkMode ? darkCard : lightCard;
@@ -148,11 +151,13 @@ class AppTheme {
   static Color getAccentPrimaryBlue(bool isDarkMode) => isDarkMode ? darkAccentPrimaryBlue : lightAccentPrimaryBlue;
   static Color getError(bool isDarkMode) => isDarkMode ? darkError : lightError;
   static Color getShadowLight(bool isDarkMode) => isDarkMode ? darkShadowLight : lightShadowLight;
-  static Color getAppBarText(bool isDarkMode) => isDarkMode ? darkWhite : lightWhite;
-  static Color getWhite(bool isDarkMode) => isDarkMode ? darkWhite : lightWhite;
-  static Color getBlue800(bool isDarkMode) => isDarkMode ? darkBlue800 : lightBlue800;
-  static Color getWhite70(bool isDarkMode) => isDarkMode ? darkWhite70 : lightWhite70;
-  static Color getGrey(bool isDarkMode) => isDarkMode ? darkGrey : lightGrey;
-  static Color getRed(bool isDarkMode) => isDarkMode ? darkRed : lightRed;
-  static Color getBlueShadow(bool isDarkMode) => isDarkMode ? darkBlueShadow : lightBlueShadow;
+  static Color getAppBarText(bool isDarkMode) => Colors.white;
+  static Color getBlue800(bool isDarkMode) => isDarkMode ? darkBlue400 : lightBlue800;
+  static Color getBlue100(bool isDarkMode) => isDarkMode ? darkAccentBlueLight : lightBlue100;
+  static Color getBlue900(bool isDarkMode) => isDarkMode ? darkBlue900 : lightBlue900;
+  static Color getGrey50(bool isDarkMode) => isDarkMode ? darkBackground : lightGrey50;
+  static Color getGrey400(bool isDarkMode) => isDarkMode ? darkGrey400 : lightGrey400;
+  static Color getGrey600(bool isDarkMode) => isDarkMode ? darkGrey600 : lightGrey600;
+  static Color getGrey500(bool isDarkMode) => isDarkMode ? darkGrey600 : lightGrey500;
+  static Color getDark2D(bool isDarkMode) => isDarkMode ? dark2D : lightDark2D;
 }

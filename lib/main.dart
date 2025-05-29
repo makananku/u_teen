@@ -17,18 +17,16 @@ import 'screens/seller/home_screen.dart';
 import 'providers/rating_provider.dart';
 import 'providers/theme_notifier.dart';
 import 'package:u_teen/data/data_initializer.dart';
-import 'package:u_teen/utils/app_theme.dart';
+import 'utils/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase with error handling
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
-    // Initialize data only if it's the first run
     final firstRun = await DataInitializer.isFirstRun();
     if (firstRun) {
       try {
@@ -97,7 +95,7 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context, listen: false);
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
 
     return FutureBuilder(
       future: auth.initialize(),
@@ -111,7 +109,7 @@ class AuthWrapper extends StatelessWidget {
                   children: [
                     Text(
                       'Error initializing app: ${snapshot.error}',
-                      style: TextStyle(color: AppTheme.getRed(isDarkMode)),
+                      style: TextStyle(color: AppTheme.getError(isDarkMode)),
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton(
@@ -141,13 +139,13 @@ class AuthWrapper extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.getWhite(isDarkMode)),
+                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.getAppBarText(isDarkMode)),
                 ),
                 const SizedBox(height: 20),
                 Text(
                   'Loading...',
                   style: TextStyle(
-                    color: AppTheme.getWhite(isDarkMode).withOpacity(0.8),
+                    color: AppTheme.getAppBarText(isDarkMode).withOpacity(0.8),
                   ),
                 ),
               ],
@@ -225,6 +223,8 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _initializeAnimations() {
+    final isDarkMode = Provider.of<ThemeNotifier>(context, listen: false).isDarkMode;
+
     _logoScale = Tween<double>(begin: 0.5, end: 1.0).animate(
       CurvedAnimation(parent: _logoController, curve: Curves.elasticOut),
     );
@@ -263,10 +263,9 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
 
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     _bgColor = ColorTween(
       begin: AppTheme.getBlue800(isDarkMode),
-      end: AppTheme.getWhite(isDarkMode),
+      end: AppTheme.getBackground(isDarkMode),
     ).animate(
       CurvedAnimation(
         parent: _bgController,
@@ -275,7 +274,7 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _textColor = ColorTween(
-      begin: AppTheme.getWhite(isDarkMode),
+      begin: AppTheme.getAppBarText(isDarkMode),
       end: AppTheme.getBlue800(isDarkMode),
     ).animate(
       CurvedAnimation(
@@ -348,7 +347,8 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
+
     return AnimatedBuilder(
       animation: _bgController,
       builder: (context, child) {
@@ -368,7 +368,7 @@ class _SplashScreenState extends State<SplashScreen>
                 children: [
                   _buildLogoAnimation(),
                   const SizedBox(height: 30),
-                  _buildTextAnimation(isDarkMode),
+                  _buildTextAnimation(),
                   if (_bgController.isCompleted) _buildAuthSection(),
                 ],
               ),
@@ -400,7 +400,9 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  Widget _buildTextAnimation(bool isDarkMode) {
+  Widget _buildTextAnimation() {
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
+
     return SlideTransition(
       position: _textSlide,
       child: SlideTransition(
@@ -422,9 +424,9 @@ class _SplashScreenState extends State<SplashScreen>
                 'UMN Canteen',
                 style: TextStyle(
                   fontSize: 16,
-                  color: _bgController.value < 0.5
-                      ? AppTheme.getWhite70(isDarkMode)
-                      : AppTheme.getGrey(isDarkMode),
+                  color: _bgController.value < 0.5 
+                    ? AppTheme.getAppBarText(isDarkMode).withOpacity(0.7) 
+                    : AppTheme.getGrey600(isDarkMode),
                 ),
               ),
             ],
@@ -460,7 +462,8 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Widget _buildAuthButtons() {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40.0),
       child: Column(
@@ -472,7 +475,7 @@ class _SplashScreenState extends State<SplashScreen>
                 borderRadius: BorderRadius.circular(30),
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.getBlueShadow(isDarkMode).withOpacity(0.3 * _buttonOpacity.value),
+                    color: AppTheme.getBlue800(isDarkMode).withOpacity(0.3 * _buttonOpacity.value),
                     blurRadius: 10,
                     offset: const Offset(0, 5),
                   ),
@@ -512,7 +515,7 @@ class _SplashScreenState extends State<SplashScreen>
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.getWhite(isDarkMode),
+                    color: AppTheme.getAppBarText(isDarkMode),
                   ),
                 ),
               ),

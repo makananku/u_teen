@@ -80,6 +80,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
     setState(() => _isLoading = true);
 
+    final isDarkMode = Provider.of<ThemeNotifier>(context, listen: false).isDarkMode;
+
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final authService = AuthService();
@@ -89,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
       final emailValidationError = authService.validateEmail(email);
       if (emailValidationError != null) {
-        _showSnackBar(emailValidationError, Colors.red);
+        _showSnackBar(emailValidationError, AppTheme.getSnackBarError(isDarkMode));
         setState(() => _isLoading = false);
         return;
       }
@@ -121,14 +123,14 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             (route) => false,
           );
         } else {
-          _showSnackBar('Failed to save login session.', Colors.red);
+          _showSnackBar('Failed to save login session.', AppTheme.getSnackBarError(isDarkMode));
         }
       } else {
-        _showSnackBar('Login failed. Incorrect email or password.', Colors.red);
+        _showSnackBar('Login failed. Incorrect email or password.', AppTheme.getSnackBarError(isDarkMode));
       }
     } catch (e) {
       if (mounted) {
-        _showSnackBar('An error occurred: $e', Colors.red);
+        _showSnackBar('An error occurred: $e', AppTheme.getSnackBarError(isDarkMode));
       }
     } finally {
       if (mounted) {
@@ -159,6 +161,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   }
 
   Future<bool> _onWillPop() async {
+    final isDarkMode = Provider.of<ThemeNotifier>(context, listen: false).isDarkMode;
     final currentTime = DateTime.now();
     final backPressDuration = _lastBackPressTime == null
         ? Duration.zero
@@ -166,7 +169,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
     if (backPressDuration >= const Duration(seconds: 2)) {
       _lastBackPressTime = currentTime;
-      _showSnackBar('Press back again to exit', Colors.blue);
+      _showSnackBar('Press back again to exit', AppTheme.getSnackBarInfo(isDarkMode));
       return false;
     }
     return true;
@@ -175,13 +178,13 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
-    final blueColor = isDarkMode ? Colors.blue[400]! : Colors.blue[800]!;
-    final lightBlue = isDarkMode ? Colors.blue[900]! : Colors.blue[100]!;
+    final blueColor = AppTheme.getBlue800(isDarkMode);
+    final lightBlue = AppTheme.getBlue100(isDarkMode);
 
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        backgroundColor: isDarkMode ? const Color(0xFF121212) : Colors.grey[50],
+        backgroundColor: AppTheme.getBackground(isDarkMode),
         body: Stack(
           children: [
             // Background decoration
@@ -233,7 +236,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                 style: TextStyle(
                                   fontSize: 28,
                                   fontWeight: FontWeight.bold,
-                                  color: isDarkMode ? Colors.white : Colors.blue[900],
+                                  color: isDarkMode ? AppTheme.getPrimaryText(isDarkMode) : AppTheme.getBlue900(isDarkMode),
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -241,7 +244,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                 'Sign in to continue',
                                 style: TextStyle(
                                   fontSize: 16,
-                                  color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                                  color: isDarkMode ? AppTheme.getGrey400(isDarkMode) : AppTheme.getGrey600(isDarkMode),
                                 ),
                               ),
                             ],
@@ -257,11 +260,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           child: Container(
                             padding: const EdgeInsets.all(24),
                             decoration: BoxDecoration(
-                              color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+                              color: AppTheme.getCard(isDarkMode),
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
+                                  color: AppTheme.getShadowLight(isDarkMode),
                                   blurRadius: 20,
                                   spreadRadius: 5,
                                   offset: const Offset(0, 10),
@@ -277,10 +280,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     controller: _emailController,
                                     decoration: InputDecoration(
                                       filled: true,
-                                      fillColor: isDarkMode ? const Color(0xFF2D2D2D) : Colors.grey[100],
+                                      fillColor: AppTheme.getDark2D(isDarkMode),
                                       hintText: 'Email',
                                       hintStyle: TextStyle(
-                                        color: isDarkMode ? Colors.grey[500] : Colors.grey[600]),
+                                        color: isDarkMode ? AppTheme.getGrey500(isDarkMode) : AppTheme.getGrey600(isDarkMode)),
                                       prefixIcon: Icon(
                                         Icons.email,
                                         color: blueColor,
@@ -302,10 +305,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     obscureText: _obscurePassword,
                                     decoration: InputDecoration(
                                       filled: true,
-                                      fillColor: isDarkMode ? const Color(0xFF2D2D2D) : Colors.grey[100],
+                                      fillColor: AppTheme.getDark2D(isDarkMode),
                                       hintText: 'Password',
                                       hintStyle: TextStyle(
-                                        color: isDarkMode ? Colors.grey[500] : Colors.grey[600]),
+                                        color: isDarkMode ? AppTheme.getGrey500(isDarkMode) : AppTheme.getGrey600(isDarkMode)),
                                       prefixIcon: Icon(
                                         Icons.lock,
                                         color: blueColor,
@@ -336,7 +339,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                       onPressed: _isLoading ? null : _handleLogin,
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: blueColor,
-                                        foregroundColor: isDarkMode ? Colors.black : Colors.white,
+                                        foregroundColor: isDarkMode ? AppTheme.getPrimaryText(isDarkMode) : Colors.white,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(12),
                                         ),
@@ -357,7 +360,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                               style: TextStyle(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.bold,
-                                                color: isDarkMode ? Colors.black : Colors.white,
+                                                color: isDarkMode ? AppTheme.getPrimaryText(isDarkMode) : Colors.white,
                                               ),
                                             ),
                                     ),
