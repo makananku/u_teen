@@ -21,13 +21,13 @@ import 'package:u_teen/data/data_initializer.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase with error handling (from code 2)
+  // Initialize Firebase with error handling
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
     
-    // Initialize data only if it's the first run (from code 2)
+    // Initialize data only if it's the first run
     final firstRun = await DataInitializer.isFirstRun();
     if (firstRun) {
       try {
@@ -97,12 +97,12 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context, listen: false);
 
-    // Using the improved error handling from code 2
     return FutureBuilder(
       future: auth.initialize(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasError) {
+            // Add error recovery option
             return Scaffold(
               body: Center(
                 child: Column(
@@ -133,8 +133,26 @@ class AuthWrapper extends StatelessWidget {
           }
           return const SplashScreen();
         }
-        // Keep the loading screen from code 1 (simpler version)
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        return Scaffold(
+          backgroundColor: Colors.blue[800],
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Loading...',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
       },
     );
   }
@@ -149,7 +167,6 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
-  // Animation controllers from code 1
   late final AnimationController _logoController;
   late final Animation<double> _logoScale;
   late final Animation<double> _logoOpacity;
@@ -218,7 +235,6 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _initializeControllers() {
-    // Exact same controller setup from code 1
     _logoController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),
@@ -246,7 +262,6 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _initializeAnimations() {
-    // Exact same animation setup from code 1
     _logoScale = Tween<double>(begin: 0.5, end: 1.0).animate(
       CurvedAnimation(parent: _logoController, curve: Curves.elasticOut),
     );
@@ -318,7 +333,6 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _startAnimations() async {
-    // Exact same animation sequence from code 1
     await Future.delayed(const Duration(milliseconds: 500));
     _logoController.forward();
 
