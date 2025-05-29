@@ -53,7 +53,6 @@ class AppTheme {
   static const Color lightGrey500 = Color(0xFF9E9E9E);
   static const Color lightDarkBlue900 = Color(0xFF0D1B2A);
   static const Color lightDark2D = Color(0xFF2D2D2D);
-  
 
   static const Color darkBackground = Color(0xFF121212);
   static const Color darkCard = Color(0xFF1E1E1E);
