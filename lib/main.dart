@@ -21,13 +21,13 @@ import 'package:u_teen/data/data_initializer.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inisialisasi Firebase
+  // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   try {
     await DataInitializer.initializeData();
   } catch (e) {
     print('Error during data initialization: $e');
-    // Tetap lanjutkan aplikasi meskipun inisialisasi gagal
+    // Continue the app even if initialization fails
   }
 
   await initializeDateFormatting('id_ID', null);
@@ -42,16 +42,14 @@ void main() async {
         ChangeNotifierProvider(create: (context) => FoodProvider()),
         ChangeNotifierProvider(create: (context) => NotificationProvider()),
         ChangeNotifierProvider(
-          create:
-              (context) => OrderProvider(
-                Provider.of<NotificationProvider>(context, listen: false),
-              ),
+          create: (context) => OrderProvider(
+            Provider.of<NotificationProvider>(context, listen: false),
+          ),
         ),
         ChangeNotifierProvider(
-          create:
-              (context) => RatingProvider(
-                Provider.of<OrderProvider>(context, listen: false),
-              ),
+          create: (context) => RatingProvider(
+            Provider.of<OrderProvider>(context, listen: false),
+          ),
         ),
         ChangeNotifierProvider(create: (context) => ThemeNotifier()),
       ],
@@ -96,7 +94,7 @@ class AuthWrapper extends StatelessWidget {
             return Scaffold(
               body: Center(
                 child: Text(
-                  'Error inisialisasi aplikasi: ${snapshot.error}',
+                  'Error initializing app: ${snapshot.error}',
                   style: const TextStyle(color: Colors.red),
                 ),
               ),
@@ -304,11 +302,8 @@ class _SplashScreenState extends State<SplashScreen>
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder:
-                (context) =>
-                    auth.isSeller
-                        ? const SellerHomeScreen()
-                        : const HomeScreen(),
+            builder: (context) => 
+                auth.isSeller ? const SellerHomeScreen() : const HomeScreen(),
           ),
         );
       } else {
@@ -387,8 +382,7 @@ class _SplashScreenState extends State<SplashScreen>
                 'UMN Canteen',
                 style: TextStyle(
                   fontSize: 16,
-                  color:
-                      _bgController.value < 0.5 ? Colors.white70 : Colors.grey,
+                  color: _bgController.value < 0.5 ? Colors.white70 : Colors.grey,
                 ),
               ),
             ],
@@ -443,9 +437,8 @@ class _SplashScreenState extends State<SplashScreen>
                   Navigator.pushReplacement(
                     context,
                     PageRouteBuilder(
-                      pageBuilder:
-                          (context, animation, secondaryAnimation) =>
-                              const LoginScreen(),
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          const LoginScreen(),
                       transitionsBuilder: (
                         context,
                         animation,
