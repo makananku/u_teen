@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  
   static const Color lightBackground = Color(0xFFF8FAFC);
   static const Color lightCard = Colors.white;
   static const Color lightPrimaryText = Colors.black;
@@ -45,6 +44,12 @@ class AppTheme {
   static const Color lightAccentPrimaryBlue = Color(0xFF2196F3);
   static const Color lightError = Color(0xFFF44336);
   static const Color lightShadowLight = Color.fromRGBO(0, 0, 0, 0.1);
+  static const Color lightWhite = Colors.white; // Added for white color
+  static const Color lightBlue800 = Color(0xFF1976D2); // Added for Colors.blue[800]
+  static const Color lightWhite70 = Color.fromRGBO(255, 255, 255, 0.7); // Added for Colors.white70
+  static const Color lightGrey = Colors.grey; // Added for Colors.grey
+  static const Color lightRed = Colors.red; // Added for Colors.red
+  static const Color lightBlueShadow = Color(0xFF2196F3); // Added for Colors.blue in shadow
 
   static const Color darkBackground = Color(0xFF121212);
   static const Color darkCard = Color(0xFF1E1E1E);
@@ -91,6 +96,12 @@ class AppTheme {
   static const Color darkAccentPrimaryBlue = Color(0xFF64B5F6);
   static const Color darkError = Color(0xFFE57373);
   static const Color darkShadowLight = Color.fromRGBO(0, 0, 0, 0.2);
+  static const Color darkWhite = Color(0xFFFFFFFF); // Added for white color
+  static const Color darkBlue800 = Color(0xFF1565C0); // Added for Colors.blue[800]
+  static const Color darkWhite70 = Color.fromRGBO(255, 255, 255, 0.7); // Added for Colors.white70
+  static const Color darkGrey = Color(0xFF616161); // Added for Colors.grey
+  static const Color darkRed = Color(0xFFE57373); // Added for Colors.red
+  static const Color darkBlueShadow = Color(0xFF64B5F6); // Added for Colors.blue in shadow
 
   static Color getBackground(bool isDarkMode) => isDarkMode ? darkBackground : lightBackground;
   static Color getCard(bool isDarkMode) => isDarkMode ? darkCard : lightCard;
@@ -137,5 +148,11 @@ class AppTheme {
   static Color getAccentPrimaryBlue(bool isDarkMode) => isDarkMode ? darkAccentPrimaryBlue : lightAccentPrimaryBlue;
   static Color getError(bool isDarkMode) => isDarkMode ? darkError : lightError;
   static Color getShadowLight(bool isDarkMode) => isDarkMode ? darkShadowLight : lightShadowLight;
-  static Color getAppBarText(bool isDarkMode) => Colors.white;
+  static Color getAppBarText(bool isDarkMode) => isDarkMode ? darkWhite : lightWhite;
+  static Color getWhite(bool isDarkMode) => isDarkMode ? darkWhite : lightWhite;
+  static Color getBlue800(bool isDarkMode) => isDarkMode ? darkBlue800 : lightBlue800;
+  static Color getWhite70(bool isDarkMode) => isDarkMode ? darkWhite70 : lightWhite70;
+  static Color getGrey(bool isDarkMode) => isDarkMode ? darkGrey : lightGrey;
+  static Color getRed(bool isDarkMode) => isDarkMode ? darkRed : lightRed;
+  static Color getBlueShadow(bool isDarkMode) => isDarkMode ? darkBlueShadow : lightBlueShadow;
 }

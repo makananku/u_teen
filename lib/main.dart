@@ -17,6 +17,7 @@ import 'screens/seller/home_screen.dart';
 import 'providers/rating_provider.dart';
 import 'providers/theme_notifier.dart';
 import 'package:u_teen/data/data_initializer.dart';
+import 'package:u_teen/utils/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -96,6 +97,7 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context, listen: false);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return FutureBuilder(
       future: auth.initialize(),
@@ -109,7 +111,7 @@ class AuthWrapper extends StatelessWidget {
                   children: [
                     Text(
                       'Error initializing app: ${snapshot.error}',
-                      style: const TextStyle(color: Colors.red),
+                      style: TextStyle(color: AppTheme.getRed(isDarkMode)),
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton(
@@ -133,19 +135,19 @@ class AuthWrapper extends StatelessWidget {
           return const SplashScreen();
         }
         return Scaffold(
-          backgroundColor: Colors.blue[800],
+          backgroundColor: AppTheme.getBlue800(isDarkMode),
           body: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.getWhite(isDarkMode)),
                 ),
                 const SizedBox(height: 20),
                 Text(
                   'Loading...',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
+                    color: AppTheme.getWhite(isDarkMode).withOpacity(0.8),
                   ),
                 ),
               ],
@@ -261,10 +263,10 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
 
-    // Perbaikan utama di sini - pastikan animasi warna menggunakan ColorTween dengan warna yang tepat
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     _bgColor = ColorTween(
-      begin: Colors.blue[800],
-      end: Colors.white,
+      begin: AppTheme.getBlue800(isDarkMode),
+      end: AppTheme.getWhite(isDarkMode),
     ).animate(
       CurvedAnimation(
         parent: _bgController,
@@ -273,8 +275,8 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _textColor = ColorTween(
-      begin: Colors.white,
-      end: Colors.blue[800],
+      begin: AppTheme.getWhite(isDarkMode),
+      end: AppTheme.getBlue800(isDarkMode),
     ).animate(
       CurvedAnimation(
         parent: _bgController,
@@ -314,7 +316,6 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(const Duration(milliseconds: 800));
     if (!mounted) return;
 
-    // Mulai animasi perubahan warna background
     _bgController.forward().then((_) {
       if (!mounted) return;
       _logoController.reverse();
@@ -347,6 +348,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return AnimatedBuilder(
       animation: _bgController,
       builder: (context, child) {
@@ -366,7 +368,7 @@ class _SplashScreenState extends State<SplashScreen>
                 children: [
                   _buildLogoAnimation(),
                   const SizedBox(height: 30),
-                  _buildTextAnimation(),
+                  _buildTextAnimation(isDarkMode),
                   if (_bgController.isCompleted) _buildAuthSection(),
                 ],
               ),
@@ -398,7 +400,7 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  Widget _buildTextAnimation() {
+  Widget _buildTextAnimation(bool isDarkMode) {
     return SlideTransition(
       position: _textSlide,
       child: SlideTransition(
@@ -420,7 +422,9 @@ class _SplashScreenState extends State<SplashScreen>
                 'UMN Canteen',
                 style: TextStyle(
                   fontSize: 16,
-                  color: _bgController.value < 0.5 ? Colors.white70 : Colors.grey,
+                  color: _bgController.value < 0.5
+                      ? AppTheme.getWhite70(isDarkMode)
+                      : AppTheme.getGrey(isDarkMode),
                 ),
               ),
             ],
@@ -456,6 +460,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Widget _buildAuthButtons() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40.0),
       child: Column(
@@ -467,7 +472,7 @@ class _SplashScreenState extends State<SplashScreen>
                 borderRadius: BorderRadius.circular(30),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.blue.withOpacity(0.3 * _buttonOpacity.value),
+                    color: AppTheme.getBlueShadow(isDarkMode).withOpacity(0.3 * _buttonOpacity.value),
                     blurRadius: 10,
                     offset: const Offset(0, 5),
                   ),
@@ -475,7 +480,7 @@ class _SplashScreenState extends State<SplashScreen>
               ),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue[800],
+                  backgroundColor: AppTheme.getBlue800(isDarkMode),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
@@ -502,12 +507,12 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                   );
                 },
-                child: const Text(
+                child: Text(
                   'Login',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: AppTheme.getWhite(isDarkMode),
                   ),
                 ),
               ),
