@@ -1,10 +1,10 @@
 # Details
 
-Date : 2025-05-25 13:09:46
+Date : 2025-05-29 22:15:59
 
 Directory c:\\Users\\Acer\\u_teen
 
-Total : 144 files,  18392 codes, 319 comments, 1433 blanks, all 20144 lines
+Total : 143 files,  18510 codes, 324 comments, 1432 blanks, all 20266 lines
 
 [Summary](results.md) / Details / [Diff Summary](diff.md) / [Diff Details](diff-details.md)
 
@@ -43,12 +43,12 @@ Total : 144 files,  18392 codes, 319 comments, 1433 blanks, all 20144 lines
 | [lib/auth/auth\_provider.dart](/lib/auth/auth_provider.dart) | Dart | 116 | 0 | 9 | 125 |
 | [lib/auth/auth\_service.dart](/lib/auth/auth_service.dart) | Dart | 72 | 2 | 10 | 84 |
 | [lib/auth/logout\_service.dart](/lib/auth/logout_service.dart) | Dart | 67 | 5 | 5 | 77 |
-| [lib/data/data\_initializer.dart](/lib/data/data_initializer.dart) | Dart | 60 | 5 | 8 | 73 |
+| [lib/data/data\_initializer.dart](/lib/data/data_initializer.dart) | Dart | 81 | 8 | 10 | 99 |
 | [lib/data/food\_data.dart](/lib/data/food_data.dart) | Dart | 136 | 1 | 6 | 143 |
 | [lib/data/payment\_methods\_data.dart](/lib/data/payment_methods_data.dart) | Dart | 22 | 0 | 2 | 24 |
 | [lib/data/search\_data.dart](/lib/data/search_data.dart) | Dart | 66 | 0 | 7 | 73 |
 | [lib/firebase\_options.dart](/lib/firebase_options.dart) | Dart | 53 | 12 | 3 | 68 |
-| [lib/main.dart](/lib/main.dart) | Dart | 428 | 2 | 49 | 479 |
+| [lib/main.dart](/lib/main.dart) | Dart | 471 | 4 | 46 | 521 |
 | [lib/models/balance\_model.dart](/lib/models/balance_model.dart) | Dart | 61 | 0 | 7 | 68 |
 | [lib/models/cart\_item.dart](/lib/models/cart_item.dart) | Dart | 45 | 0 | 5 | 50 |
 | [lib/models/favorite\_item.dart](/lib/models/favorite_item.dart) | Dart | 37 | 0 | 5 | 42 |
@@ -74,7 +74,7 @@ Total : 144 files,  18392 codes, 319 comments, 1433 blanks, all 20144 lines
 | [lib/screens/customer/payment\_success\_screen.dart](/lib/screens/customer/payment_success_screen.dart) | Dart | 120 | 0 | 5 | 125 |
 | [lib/screens/customer/profile\_screen.dart](/lib/screens/customer/profile_screen.dart) | Dart | 576 | 0 | 12 | 588 |
 | [lib/screens/customer/shopping\_cart\_screen.dart](/lib/screens/customer/shopping_cart_screen.dart) | Dart | 510 | 0 | 28 | 538 |
-| [lib/screens/login\_screen.dart](/lib/screens/login_screen.dart) | Dart | 296 | 0 | 25 | 321 |
+| [lib/screens/login\_screen.dart](/lib/screens/login_screen.dart) | Dart | 365 | 6 | 27 | 398 |
 | [lib/screens/seller/cancellation\_screen.dart](/lib/screens/seller/cancellation_screen.dart) | Dart | 78 | 0 | 6 | 84 |
 | [lib/screens/seller/completed\_screen.dart](/lib/screens/seller/completed_screen.dart) | Dart | 83 | 0 | 8 | 91 |
 | [lib/screens/seller/edit\_product\_screen.dart](/lib/screens/seller/edit_product_screen.dart) | Dart | 627 | 1 | 41 | 669 |
@@ -85,8 +85,7 @@ Total : 144 files,  18392 codes, 319 comments, 1433 blanks, all 20144 lines
 | [lib/screens/seller/profile\_screen.dart](/lib/screens/seller/profile_screen.dart) | Dart | 745 | 0 | 17 | 762 |
 | [lib/screens/seller/rating\_screen.dart](/lib/screens/seller/rating_screen.dart) | Dart | 117 | 1 | 5 | 123 |
 | [lib/screens/seller/transaction\_history\_screen.dart](/lib/screens/seller/transaction_history_screen.dart) | Dart | 514 | 0 | 24 | 538 |
-| [lib/scripts/initialize\_firebase.py](/lib/scripts/initialize_firebase.py) | Python | 157 | 13 | 11 | 181 |
-| [lib/scripts/service\_account\_key.json](/lib/scripts/service_account_key.json) | JSON | 13 | 0 | 1 | 14 |
+| [lib/scripts/initialize\_firebase.py](/lib/scripts/initialize_firebase.py) | Python | 155 | 7 | 10 | 172 |
 | [lib/services/calendar\_service.dart](/lib/services/calendar_service.dart) | Dart | 234 | 0 | 30 | 264 |
 | [lib/utils/app\_theme.dart](/lib/utils/app_theme.dart) | Dart | 137 | 0 | 4 | 141 |
 | [lib/utils/calendar\_utils.dart](/lib/utils/calendar_utils.dart) | Dart | 39 | 0 | 5 | 44 |

@@ -47,7 +47,7 @@ class Product {
       title: data['title'] ?? '',
       subtitle: data['subtitle'] ?? '',
       price: data['price'] ?? '',
-      imgBase64: data['imgBase64'] ?? '', // Tambahkan
+      imgBase64: data['imgBase64'] ?? '', 
       time: data['time'] ?? '',
       tenantName: data['tenantName'] ?? '',
       sellerEmail: data['sellerEmail'] ?? '',

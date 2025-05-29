@@ -227,15 +227,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Center(
-                                child: Image.asset(
-                                  'assets/logo/u.png',
-                                  width: 80,
-                                  height: 80,
-                                  errorBuilder: (context, error, stackTrace) => 
-                                    const FlutterLogo(size: 80),
-                                ),
-                              ),
                               const SizedBox(height: 20),
                               Text(
                                 'Welcome Back',
