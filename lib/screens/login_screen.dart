@@ -175,13 +175,13 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
-    final blueColor = Colors.blue[800]!;
-    final lightBlue = Colors.blue[100]!;
+    final blueColor = isDarkMode ? Colors.blue[400]! : Colors.blue[800]!;
+    final lightBlue = isDarkMode ? Colors.blue[900]! : Colors.blue[100]!;
 
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        backgroundColor: isDarkMode ? Colors.grey[900] : Colors.grey[50],
+        backgroundColor: isDarkMode ? const Color(0xFF121212) : Colors.grey[50],
         body: Stack(
           children: [
             // Background decoration
@@ -192,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 width: 200,
                 height: 200,
                 decoration: BoxDecoration(
-                  color: blueColor.withOpacity(0.1),
+                  color: blueColor.withOpacity(isDarkMode ? 0.2 : 0.1),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -204,7 +204,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 width: 300,
                 height: 300,
                 decoration: BoxDecoration(
-                  color: lightBlue.withOpacity(0.2),
+                  color: lightBlue.withOpacity(isDarkMode ? 0.3 : 0.2),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -219,7 +219,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Spacer(flex: 2),
-                      // Header with logo and title
+                      // Header with title only (logo removed)
                       FadeTransition(
                         opacity: _opacityAnimation,
                         child: SlideTransition(
@@ -227,7 +227,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 80), // Space reserved for removed logo
                               Text(
                                 'Welcome Back',
                                 style: TextStyle(
@@ -257,7 +257,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           child: Container(
                             padding: const EdgeInsets.all(24),
                             decoration: BoxDecoration(
-                              color: isDarkMode ? Colors.grey[850] : Colors.white,
+                              color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(
@@ -277,10 +277,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     controller: _emailController,
                                     decoration: InputDecoration(
                                       filled: true,
-                                      fillColor: isDarkMode ? Colors.grey[800] : Colors.grey[100],
+                                      fillColor: isDarkMode ? const Color(0xFF2D2D2D) : Colors.grey[100],
                                       hintText: 'Email',
                                       hintStyle: TextStyle(
-                                        color: isDarkMode ? Colors.grey[400] : Colors.grey[600]),
+                                        color: isDarkMode ? Colors.grey[500] : Colors.grey[600]),
                                       prefixIcon: Icon(
                                         Icons.email,
                                         color: blueColor,
@@ -302,10 +302,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     obscureText: _obscurePassword,
                                     decoration: InputDecoration(
                                       filled: true,
-                                      fillColor: isDarkMode ? Colors.grey[800] : Colors.grey[100],
+                                      fillColor: isDarkMode ? const Color(0xFF2D2D2D) : Colors.grey[100],
                                       hintText: 'Password',
                                       hintStyle: TextStyle(
-                                        color: isDarkMode ? Colors.grey[400] : Colors.grey[600]),
+                                        color: isDarkMode ? Colors.grey[500] : Colors.grey[600]),
                                       prefixIcon: Icon(
                                         Icons.lock,
                                         color: blueColor,
@@ -336,7 +336,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                       onPressed: _isLoading ? null : _handleLogin,
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: blueColor,
-                                        foregroundColor: Colors.white,
+                                        foregroundColor: isDarkMode ? Colors.black : Colors.white,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(12),
                                         ),
@@ -357,7 +357,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                               style: TextStyle(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.bold,
-                                                color: Colors.white,
+                                                color: isDarkMode ? Colors.black : Colors.white,
                                               ),
                                             ),
                                     ),
