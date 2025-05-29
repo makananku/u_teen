@@ -21,13 +21,24 @@ import 'package:u_teen/data/data_initializer.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Initialize Firebase with error handling
   try {
-    await DataInitializer.initializeData();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    
+    // Initialize data only if it's the first run
+    final firstRun = await DataInitializer.isFirstRun();
+    if (firstRun) {
+      try {
+        await DataInitializer.initializeData();
+        await DataInitializer.setFirstRunComplete();
+      } catch (e) {
+        debugPrint('Error during data initialization: $e');
+      }
+    }
   } catch (e) {
-    print('Error during data initialization: $e');
-    // Continue the app even if initialization fails
+    debugPrint('Firebase initialization error: $e');
   }
 
   await initializeDateFormatting('id_ID', null);
@@ -84,25 +95,64 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
+    final auth = Provider.of<AuthProvider>(context, listen: false);
 
     return FutureBuilder(
       future: auth.initialize(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasError) {
+            // Add error recovery option
             return Scaffold(
               body: Center(
-                child: Text(
-                  'Error initializing app: ${snapshot.error}',
-                  style: const TextStyle(color: Colors.red),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Error initializing app: ${snapshot.error}',
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        auth.initialize().then((_) {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AuthWrapper(),
+                            ),
+                          );
+                        });
+                      },
+                      child: const Text('Retry'),
+                    ),
+                  ],
                 ),
               ),
             );
           }
           return const SplashScreen();
         }
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        return Scaffold(
+          backgroundColor: Colors.blue[800],
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Loading...',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
       },
     );
   }
@@ -143,12 +193,7 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     _initializeControllers();
     _initializeAnimations();
-
-    Future.delayed(Duration.zero, () {
-      _startAnimations();
-    });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => _startAnimations());
+    _startAnimations();
   }
 
   Widget _buildDynamicContent() {
@@ -253,12 +298,22 @@ class _SplashScreenState extends State<SplashScreen>
     _bgColor = ColorTween(
       begin: Colors.blue[800],
       end: Colors.white,
-    ).animate(_bgController);
+    ).animate(
+      CurvedAnimation(
+        parent: _bgController,
+        curve: const Interval(0.0, 1.0, curve: Curves.easeInOut),
+      ),
+    );
 
     _textColor = ColorTween(
       begin: Colors.white,
       end: Colors.blue[800],
-    ).animate(_bgController);
+    ).animate(
+      CurvedAnimation(
+        parent: _bgController,
+        curve: const Interval(0.0, 1.0, curve: Curves.easeInOut),
+      ),
+    );
 
     _buttonScale = Tween<double>(begin: 0.95, end: 1.0).animate(
       CurvedAnimation(
@@ -283,27 +338,37 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _startAnimations() async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 300));
     _logoController.forward();
 
-    await Future.delayed(const Duration(milliseconds: 900));
+    await Future.delayed(const Duration(milliseconds: 700));
     _textController.forward();
 
-    await Future.delayed(const Duration(milliseconds: 800));
+    await Future.delayed(const Duration(milliseconds: 600));
     if (!mounted) return;
 
-    _bgController.forward().then((_) {
+    _bgController.forward().then((_) async {
       if (!mounted) return;
       _logoController.reverse();
       _textShiftController.forward();
 
       final auth = Provider.of<AuthProvider>(context, listen: false);
+      await Future.delayed(const Duration(milliseconds: 500));
+      
       if (auth.isLoggedIn) {
+        if (!mounted) return;
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (context) => 
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
                 auth.isSeller ? const SellerHomeScreen() : const HomeScreen(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return FadeTransition(
+                opacity: animation,
+                child: child,
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 800),
           ),
         );
       } else {
@@ -445,7 +510,10 @@ class _SplashScreenState extends State<SplashScreen>
                         secondaryAnimation,
                         child,
                       ) {
-                        return FadeTransition(opacity: animation, child: child);
+                        return FadeTransition(
+                          opacity: animation,
+                          child: child,
+                        );
                       },
                       transitionDuration: const Duration(milliseconds: 800),
                       settings: const RouteSettings(name: '/login'),
