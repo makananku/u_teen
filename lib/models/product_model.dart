@@ -17,7 +17,7 @@ class Product {
     required this.title,
     required this.subtitle,
     required this.price,
-    required this.imgBase64, // Tambahkan
+    required this.imgBase64,
     required this.time,
     required this.tenantName,
     required this.sellerEmail,
@@ -32,7 +32,7 @@ class Product {
       title: data['title'] ?? '',
       subtitle: data['subtitle'] ?? '',
       price: data['price'] ?? '',
-      imgBase64: data['imgBase64'] ?? '', // Tambahkan
+      imgBase64: data['imgBase64'] ?? '',
       time: data['time'] ?? '',
       tenantName: data['tenantName'] ?? '',
       sellerEmail: data['sellerEmail'] ?? '',
@@ -47,7 +47,7 @@ class Product {
       title: data['title'] ?? '',
       subtitle: data['subtitle'] ?? '',
       price: data['price'] ?? '',
-      imgBase64: data['imgBase64'] ?? '', 
+      imgBase64: data['imgBase64'] ?? '',
       time: data['time'] ?? '',
       tenantName: data['tenantName'] ?? '',
       sellerEmail: data['sellerEmail'] ?? '',
@@ -62,7 +62,7 @@ class Product {
       'title': title,
       'subtitle': subtitle,
       'price': price,
-      'imgBase64': imgBase64, // Tambahkan
+      'imgBase64': imgBase64,
       'time': time,
       'tenantName': tenantName,
       'sellerEmail': sellerEmail,
@@ -75,10 +75,11 @@ class Product {
     String? title,
     String? subtitle,
     String? price,
-    String? imgBase64, 
+    String? imgBase64,
     String? time,
     String? tenantName,
     String? sellerEmail,
+    String? category, // Added missing category parameter
     bool? isActive,
   }) {
     return Product(
@@ -90,7 +91,7 @@ class Product {
       time: time ?? this.time,
       tenantName: tenantName ?? this.tenantName,
       sellerEmail: sellerEmail ?? this.sellerEmail,
-      category: sellerEmail ?? this.category,
+      category: category ?? this.category, // Fixed to use category instead of sellerEmail
       isActive: isActive ?? this.isActive,
     );
   }

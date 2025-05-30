@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../utils/app_theme.dart';
 import '../../providers/theme_notifier.dart';
 import 'package:provider/provider.dart';
@@ -8,52 +9,102 @@ import 'dart:convert';
 class FoodList extends StatelessWidget {
   final String selectedCategory;
   final Function(String, String, String, String, String) onFoodItemTap;
-  final List<Product> products;
 
   const FoodList({
     Key? key,
     required this.selectedCategory,
     required this.onFoodItemTap,
-    required this.products,
   }) : super(key: key);
+
+  // Helper method to assign priority for sorting
+  int _getCategoryPriority(String category) {
+    switch (category) {
+      case 'Food':
+        return 1;
+      case 'Drinks':
+        return 2;
+      case 'Snack':
+        return 3;
+      default:
+        return 4;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('Building FoodList with ${products.length} products');
-    final foodItems = selectedCategory == 'All'
-        ? products
-        : products.where((food) => food.subtitle == selectedCategory).toList();
-    debugPrint('Filtered food items for category $selectedCategory: ${foodItems.length}');
-
-    return SizedBox(
-      height: 220,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: foodItems.length,
-        itemBuilder: (context, index) {
-          final food = foodItems[index];
-          return Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: FoodCard(
-              title: food.title,
-              subtitle: food.subtitle,
-              time: food.time,
-              imgBase64: food.imgBase64,
-              price: food.price.toString(),
-              sellerEmail: food.sellerEmail ?? '',
-              onTap: () => onFoodItemTap(
-                food.title,
-                food.price.toString(),
-                food.imgBase64,
-                food.subtitle,
-                food.sellerEmail ?? '',
-              ),
-            ),
+    debugPrint('Building FoodList with category: $selectedCategory');
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('products').where('isActive', isEqualTo: true).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox(
+            height: 220,
+            child: Center(child: CircularProgressIndicator()),
           );
-        },
-      ),
+        }
+
+        if (snapshot.hasError) {
+          debugPrint('Error fetching products: ${snapshot.error}');
+          return const SizedBox(
+            height: 220,
+            child: Center(child: Text('Error loading products')),
+          );
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          debugPrint('No products found');
+          return const SizedBox(
+            height: 220,
+            child: Center(child: Text('No products available')),
+          );
+        }
+
+        // Convert Firestore documents to Product objects
+        List<Product> products = snapshot.data!.docs.map((doc) => Product.fromFirestore(doc)).toList();
+
+        // Filter products based on selected category
+        List<Product> foodItems = selectedCategory == 'All'
+            ? products
+            : products.where((food) => food.category == selectedCategory).toList();
+
+        // Sort products for "All" category: Food, Drinks, Snack
+        if (selectedCategory == 'All') {
+          foodItems.sort((a, b) => _getCategoryPriority(a.category).compareTo(_getCategoryPriority(b.category)));
+        }
+
+        debugPrint('Filtered food Ascending order food items for category $selectedCategory: ${foodItems.length}');
+
+        return SizedBox(
+          height: 220,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: foodItems.length,
+            itemBuilder: (context, index) {
+              final food = foodItems[index];
+              return Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: FoodCard(
+                  title: food.title,
+                  subtitle: food.subtitle,
+                  time: food.time,
+                  imgBase64: food.imgBase64,
+                  price: food.price,
+                  sellerEmail: food.sellerEmail,
+                  onTap: () => onFoodItemTap(
+                    food.title,
+                    food.price,
+                    food.imgBase64,
+                    food.subtitle,
+                    food.sellerEmail,
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

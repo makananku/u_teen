@@ -15,7 +15,6 @@ import '../../widgets/customer/search_widget.dart';
 import '../../widgets/customer/category_selector.dart';
 import '../../widgets/customer/food_list.dart';
 import '../../widgets/customer/detail_box.dart';
-import '../../providers/food_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   final String? initialFoodItem;
@@ -66,7 +65,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 300),
     );
     _loadRecentSearches();
-    Provider.of<FoodProvider>(context, listen: false).loadProducts(context);
 
     _searchFocusNode.addListener(() {
       setState(() {
@@ -245,7 +243,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           onFoodItemTap: (title, price, imgUrl, subtitle, sellerEmail) {
             _handleFoodItemTap(title, price, imgUrl, subtitle, sellerEmail);
           },
-          products: Provider.of<FoodProvider>(context).products, // Use FoodProvider
         ),
         const SizedBox(height: 24),
         if (orderAgainItems.isNotEmpty) ...[

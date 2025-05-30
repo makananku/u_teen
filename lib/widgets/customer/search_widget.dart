@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
-import '../../providers/food_provider.dart';
+import 'package:provider/provider.dart';
 import '../../data/search_data.dart';
 import '../../utils/app_theme.dart';
 import '../../providers/theme_notifier.dart';
@@ -58,8 +58,6 @@ class _SearchWidgetState extends State<SearchWidget> {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
-    final foodProvider = Provider.of<FoodProvider>(context);
-    final searchResults = _searchFoodItems(searchQuery, foodProvider.products);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,7 +72,7 @@ class _SearchWidgetState extends State<SearchWidget> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (searchQuery.isNotEmpty)
-                _buildSearchResults(searchResults, isDarkMode),
+                _buildSearchResults(isDarkMode),
               if (searchQuery.isEmpty)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,7 +87,7 @@ class _SearchWidgetState extends State<SearchWidget> {
           ),
         if (widget.showFoodLists) ...[
           const SizedBox(height: 20),
-          _buildRecommendedSection(context, isDarkMode, foodProvider.products),
+          _buildRecommendedSection(context, isDarkMode),
           const SizedBox(height: 24),
           if (widget.orderAgainItems.isNotEmpty)
             _buildOrderAgainSection(context, isDarkMode),
@@ -250,24 +248,35 @@ class _SearchWidgetState extends State<SearchWidget> {
     );
   }
 
-  Widget _buildSearchResults(List<Product> searchResults, bool isDarkMode) {
-    debugPrint('Building search results: ${searchResults.length} items');
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: Text(
-            "Search Results",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.getPrimaryText(isDarkMode),
+  Widget _buildSearchResults(bool isDarkMode) {
+    debugPrint('Building search results for query: $searchQuery');
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('products')
+          .where('isActive', isEqualTo: true)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          debugPrint('Error fetching search results: ${snapshot.error}');
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Center(
+              child: Text(
+                "Error loading results",
+                style: TextStyle(
+                  color: AppTheme.getSecondaryText(isDarkMode),
+                  fontSize: 16,
+                ),
+              ),
             ),
-          ),
-        ),
-        if (searchResults.isEmpty)
-          Padding(
+          );
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          debugPrint('No search results found');
+          return Padding(
             padding: const EdgeInsets.symmetric(vertical: 20),
             child: Center(
               child: Column(
@@ -289,70 +298,123 @@ class _SearchWidgetState extends State<SearchWidget> {
                 ],
               ),
             ),
-          ),
-        if (searchResults.isNotEmpty)
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: searchResults.length,
-            separatorBuilder: (context, index) => Divider(
-              height: 1,
-              color: AppTheme.getDivider(isDarkMode),
+          );
+        }
+
+        final products = snapshot.data!.docs
+            .map((doc) => Product.fromFirestore(doc))
+            .toList();
+        final searchResults = products.where((food) {
+          final titleMatch = food.title.toLowerCase().contains(searchQuery.toLowerCase());
+          final subtitleMatch = food.subtitle.toLowerCase().contains(searchQuery.toLowerCase());
+          return titleMatch || subtitleMatch;
+        }).toList();
+
+        debugPrint('Search results for query "$searchQuery": ${searchResults.length} items');
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: Text(
+                "Search Results",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.getPrimaryText(isDarkMode),
+                ),
+              ),
             ),
-            itemBuilder: (context, index) {
-              final food = searchResults[index];
-              return ListTile(
-                leading: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: food.imgBase64.isNotEmpty
-                      ? Image.memory(
-                          base64Decode(food.imgBase64),
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                        )
-                      : Icon(
-                          Icons.image,
+            if (searchResults.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.search_off,
+                        size: 48,
+                        color: AppTheme.getSecondaryText(isDarkMode),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "No results found",
+                        style: TextStyle(
                           color: AppTheme.getSecondaryText(isDarkMode),
+                          fontSize: 16,
                         ),
-                ),
-                title: Text(
-                  food.title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    color: AppTheme.getPrimaryText(isDarkMode),
+                      ),
+                    ],
                   ),
                 ),
-                subtitle: Text(
-                  food.subtitle,
-                  style: TextStyle(color: AppTheme.getSecondaryText(isDarkMode)),
+              ),
+            if (searchResults.isNotEmpty)
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: searchResults.length,
+                separatorBuilder: (context, index) => Divider(
+                  height: 1,
+                  color: AppTheme.getDivider(isDarkMode),
                 ),
-                trailing: Text(
-                  "Rp${food.price}",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.getAccentBlueInfo(isDarkMode),
-                  ),
-                ),
-                onTap: () {
-                  FocusScope.of(context).unfocus();
-                  widget.onFoodItemTap(
-                    food.title,
-                    food.price,
-                    food.imgBase64,
-                    food.subtitle,
-                    food.sellerEmail,
+                itemBuilder: (context, index) {
+                  final food = searchResults[index];
+                  return ListTile(
+                    leading: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: food.imgBase64.isNotEmpty
+                          ? Image.memory(
+                              base64Decode(food.imgBase64),
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                            )
+                          : Icon(
+                              Icons.image,
+                              color: AppTheme.getSecondaryText(isDarkMode),
+                            ),
+                    ),
+                    title: Text(
+                      food.title,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: AppTheme.getPrimaryText(isDarkMode),
+                      ),
+                    ),
+                    subtitle: Text(
+                      food.subtitle,
+                      style: TextStyle(color: AppTheme.getSecondaryText(isDarkMode)),
+                    ),
+                    trailing: Text(
+                      "Rp${food.price}",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.getAccentBlueInfo(isDarkMode),
+                      ),
+                    ),
+                    onTap: () {
+                      FocusScope.of(context).unfocus();
+                      widget.onFoodItemTap(
+                        food.title,
+                        food.price,
+                        food.imgBase64,
+                        food.subtitle,
+                        food.sellerEmail,
+                      );
+                      if (userEmail != null) {
+                        SearchData.addRecentSearch(food.title, userEmail!);
+                        debugPrint('Added to recent search: ${food.title}');
+                      }
+                    },
                   );
-                  if (userEmail != null) {
-                    SearchData.addRecentSearch(food.title, userEmail!);
-                    debugPrint('Added to recent search: ${food.title}');
-                  }
                 },
-              );
-            },
-          ),
-      ],
+              ),
+          ],
+        );
+      },
     );
   }
 
@@ -427,7 +489,7 @@ class _SearchWidgetState extends State<SearchWidget> {
     );
   }
 
-  Widget _buildRecommendedSection(BuildContext context, bool isDarkMode, List<Product> products) {
+  Widget _buildRecommendedSection(BuildContext context, bool isDarkMode) {
     debugPrint('Building recommended section');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -459,7 +521,6 @@ class _SearchWidgetState extends State<SearchWidget> {
         FoodList(
           selectedCategory: 'All',
           onFoodItemTap: widget.onFoodItemTap,
-          products: products,
         ),
       ],
     );
@@ -509,13 +570,13 @@ class _SearchWidgetState extends State<SearchWidget> {
                   title: food["title"]!,
                   subtitle: food["subtitle"]!,
                   time: food["time"]!,
-                  imgBase64: food["imgUrl"]!, // Asumsi imgUrl di sini sebenarnya imgBase64
+                  imgBase64: food["imgBase64"]!, // Fixed from imgUrl
                   price: food["price"]!,
                   sellerEmail: food["sellerEmail"] ?? '',
                   onTap: () => widget.onFoodItemTap(
                     food["title"]!,
                     food["price"]!,
-                    food["imgUrl"]!, // Asumsi imgUrl di sini sebenarnya imgBase64
+                    food["imgBase64"]!, // Fixed from imgUrl
                     food["subtitle"]!,
                     food["sellerEmail"] ?? '',
                   ),
@@ -526,16 +587,5 @@ class _SearchWidgetState extends State<SearchWidget> {
         ),
       ],
     );
-  }
-
-  List<Product> _searchFoodItems(String query, List<Product> products) {
-    if (query.isEmpty) return [];
-    final results = products.where((food) {
-      final titleMatch = food.title.toLowerCase().contains(query.toLowerCase());
-      final subtitleMatch = food.subtitle.toLowerCase().contains(query.toLowerCase());
-      return titleMatch || subtitleMatch;
-    }).toList();
-    debugPrint('Search results for query "$query": ${results.length} items');
-    return results;
   }
 }
