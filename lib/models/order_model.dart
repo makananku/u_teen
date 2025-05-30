@@ -164,7 +164,7 @@ class Order {
 
 class OrderItem {
   final String name;
-  final String image;
+  final String imgBase64; // Renamed from image
   final String subtitle;
   final int price;
   final int quantity;
@@ -172,7 +172,7 @@ class OrderItem {
 
   OrderItem({
     required this.name,
-    required this.image,
+    required this.imgBase64, // Renamed from image
     required this.subtitle,
     required this.price,
     required this.quantity,
@@ -182,7 +182,7 @@ class OrderItem {
   Map<String, dynamic> toMap() {
     return {
       'name': name,
-      'image': image,
+      'imgBase64': imgBase64, // Renamed from image
       'subtitle': subtitle,
       'price': price,
       'quantity': quantity,
@@ -193,7 +193,7 @@ class OrderItem {
   factory OrderItem.fromMap(Map<String, dynamic> map) {
     return OrderItem(
       name: map['name'] ?? '',
-      image: map['image'] ?? '',
+      imgBase64: map['imgBase64'] ?? map['image'] ?? '', // Support legacy image field
       subtitle: map['subtitle'] ?? '',
       price: map['price'] ?? 0,
       quantity: map['quantity'] ?? 1,
@@ -203,7 +203,7 @@ class OrderItem {
 
   OrderItem copyWith({
     String? name,
-    String? image,
+    String? imgBase64, // Renamed from image
     String? subtitle,
     int? price,
     int? quantity,
@@ -211,7 +211,7 @@ class OrderItem {
   }) {
     return OrderItem(
       name: name ?? this.name,
-      image: image ?? this.image,
+      imgBase64: imgBase64 ?? this.imgBase64, // Renamed from image
       subtitle: subtitle ?? this.subtitle,
       price: price ?? this.price,
       quantity: quantity ?? this.quantity,

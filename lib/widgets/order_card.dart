@@ -483,7 +483,7 @@ class OrderCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               color: isDarkMode ? Colors.grey[800] : Colors.grey[100],
               image: DecorationImage(
-                image: AssetImage(item.image),
+                image: AssetImage(item.imgBase64),
                 fit: BoxFit.cover,
                 onError: (_, __) => Container(),
               ),

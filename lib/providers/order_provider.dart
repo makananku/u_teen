@@ -95,7 +95,7 @@ class OrderProvider with ChangeNotifier {
         final itemData = {
           'title': item.name,
           'subtitle': item.subtitle,
-          'imgUrl': item.image,
+          'imgBase64': item.imgBase64,
           'price': item.price.toString(),
           'sellerEmail': item.sellerEmail,
           'orderTime': order.completedAt?.toIso8601String() ?? order.orderTime.toIso8601String(),
@@ -292,7 +292,7 @@ class OrderProvider with ChangeNotifier {
       items: [
         order.OrderItem(
           name: 'Withdrawal',
-          image: 'assets/withdrawal.png',
+          imgBase64: 'assets/withdrawal.png',
           subtitle: 'Withdrawal to $method',
           price: amount.round(),
           quantity: 1,

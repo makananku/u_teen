@@ -342,7 +342,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             .map(
               (item) => OrderItem(
                 name: item.name,
-                image: item.image,
+                imgBase64: item.image,
                 subtitle: item.subtitle,
                 price: item.price,
                 quantity: item.quantity,

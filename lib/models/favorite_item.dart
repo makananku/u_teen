@@ -1,13 +1,13 @@
 class FavoriteItem {
   final String name;
   final String price;
-  final String imgBase64;
+  final String imgBase64; // Renamed from image
   final String? subtitle;
 
   FavoriteItem({
     required this.name,
     required this.price,
-    required this.imgBase64, 
+    required this.imgBase64, // Renamed from image
     this.subtitle,
   });
 
@@ -15,7 +15,7 @@ class FavoriteItem {
     return {
       'name': name,
       'price': price,
-      'imgBase64': imgBase64, 
+      'imgBase64': imgBase64, // Renamed from image
       'subtitle': subtitle,
     };
   }
@@ -24,7 +24,7 @@ class FavoriteItem {
     return FavoriteItem(
       name: map['name'] ?? '',
       price: map['price'] ?? '',
-      imgBase64: map['imgBase64'] ?? '',
+      imgBase64: map['imgBase64'] ?? map['image'] ?? '', // Support legacy image field
       subtitle: map['subtitle'],
     );
   }
@@ -35,8 +35,8 @@ class FavoriteItem {
       other is FavoriteItem &&
           runtimeType == other.runtimeType &&
           name == other.name &&
-          imgBase64 == other.imgBase64; 
+          imgBase64 == other.imgBase64; // Renamed from image
 
   @override
-  int get hashCode => name.hashCode ^ imgBase64.hashCode;
+  int get hashCode => name.hashCode ^ imgBase64.hashCode; // Renamed from image
 }

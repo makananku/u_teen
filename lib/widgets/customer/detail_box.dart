@@ -11,16 +11,18 @@ import 'dart:convert';
 class DetailBox extends StatelessWidget {
   final String selectedFoodItem;
   final String selectedFoodPrice;
-  final String selectedFoodImgBase64; // Renamed from selectedFoodImgUrl
+  final String selectedFoodImgBase64;
   final String selectedFoodSubtitle;
+  final String sellerEmail; // Added for dynamic sellerEmail
   final VoidCallback onClose;
 
   const DetailBox({
     Key? key,
     required this.selectedFoodItem,
     required this.selectedFoodPrice,
-    required this.selectedFoodImgBase64, // Renamed from selectedFoodImgUrl
+    required this.selectedFoodImgBase64,
     required this.selectedFoodSubtitle,
+    required this.sellerEmail, // Added
     required this.onClose,
   }) : super(key: key);
 
@@ -30,7 +32,7 @@ class DetailBox extends StatelessWidget {
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     final isFavorite = favoriteProvider.favoriteItems.any((item) =>
-        item.name == selectedFoodItem && item.imgBase64 == selectedFoodImgBase64); // Updated to use selectedFoodImgBase64
+        item.name == selectedFoodItem && item.imgBase64 == selectedFoodImgBase64);
 
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 300),
@@ -93,7 +95,7 @@ class DetailBox extends StatelessWidget {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(20),
-                            child: selectedFoodImgBase64.isNotEmpty // Updated to use selectedFoodImgBase64
+                            child: selectedFoodImgBase64.isNotEmpty
                                 ? Image.memory(
                                     base64Decode(selectedFoodImgBase64),
                                     height: 220,
@@ -190,9 +192,9 @@ class DetailBox extends StatelessWidget {
                         cartProvider.addToCart(CartItem(
                           name: selectedFoodItem,
                           price: price,
-                          image: selectedFoodImgBase64, // Updated to use selectedFoodImgBase64
+                          image: selectedFoodImgBase64, // Use imgBase64
                           subtitle: selectedFoodSubtitle,
-                          sellerEmail: 'masakan.minang@example.com',
+                          sellerEmail: sellerEmail, // Use dynamic sellerEmail
                         ));
                         Navigator.pop(context);
                       },
@@ -239,7 +241,7 @@ class DetailBox extends StatelessWidget {
                             favoriteProvider.addToFavorites(FavoriteItem(
                               name: selectedFoodItem,
                               price: selectedFoodPrice,
-                              imgBase64: selectedFoodImgBase64, // Updated to use selectedFoodImgBase64
+                              imgBase64: selectedFoodImgBase64, // Use imgBase64
                               subtitle: selectedFoodSubtitle,
                             ));
                             ScaffoldMessenger.of(context).showSnackBar(
