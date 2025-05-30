@@ -30,7 +30,7 @@ class DetailBox extends StatelessWidget {
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     final isFavorite = favoriteProvider.favoriteItems.any((item) =>
-        item.name == selectedFoodItem && item.image == selectedFoodImgBase64); // Updated to use selectedFoodImgBase64
+        item.name == selectedFoodItem && item.imgBase64 == selectedFoodImgBase64); // Updated to use selectedFoodImgBase64
 
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 300),
@@ -239,7 +239,7 @@ class DetailBox extends StatelessWidget {
                             favoriteProvider.addToFavorites(FavoriteItem(
                               name: selectedFoodItem,
                               price: selectedFoodPrice,
-                              image: selectedFoodImgBase64, // Updated to use selectedFoodImgBase64
+                              imgBase64: selectedFoodImgBase64, // Updated to use selectedFoodImgBase64
                               subtitle: selectedFoodSubtitle,
                             ));
                             ScaffoldMessenger.of(context).showSnackBar(

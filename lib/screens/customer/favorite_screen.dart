@@ -5,6 +5,7 @@ import '../../models/favorite_item.dart';
 import '../../utils/app_theme.dart';
 import '../../providers/theme_notifier.dart';
 import 'home_screen.dart';
+import 'dart:convert';
 
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
@@ -17,7 +18,7 @@ class FavoritesScreen extends StatelessWidget {
         builder: (context) => HomeScreen(
           initialFoodItem: item.name,
           initialFoodPrice: item.price,
-          initialFoodImgUrl: item.image,
+          initialFoodImg64: item.imgBase64, // Updated from image
           initialFoodSubtitle: item.subtitle ?? '',
         ),
       ),
@@ -142,12 +143,34 @@ class FavoritesScreen extends StatelessWidget {
                     ),
                     leading: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.asset(
-                        item.image,
-                        width: 60,
-                        height: 60,
-                        fit: BoxFit.cover,
-                      ),
+                      child: item.imgBase64.isNotEmpty // Updated from image
+                          ? Image.memory(
+                              base64Decode(item.imgBase64), // Updated from Image.asset
+                              width: 60,
+                              height: 60,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) {
+                                debugPrint('Error loading Base64 image for ${item.name}');
+                                return Container(
+                                  width: 60,
+                                  height: 60,
+                                  color: AppTheme.getDivider(isDarkMode),
+                                  child: Icon(
+                                    Icons.fastfood,
+                                    color: AppTheme.getPrimaryText(isDarkMode),
+                                  ),
+                                );
+                              },
+                            )
+                          : Container(
+                              width: 60,
+                              height: 60,
+                              color: AppTheme.getDivider(isDarkMode),
+                              child: Icon(
+                                Icons.fastfood,
+                                color: AppTheme.getPrimaryText(isDarkMode),
+                              ),
+                            ),
                     ),
                     title: Text(
                       item.name,

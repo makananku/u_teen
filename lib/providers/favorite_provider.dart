@@ -27,7 +27,8 @@ class FavoriteProvider with ChangeNotifier {
               .map((item) => FavoriteItem(
                     name: item['name'],
                     price: item['price'],
-                    image: item['image'],
+                    imgBase64: item['imgBase64'], 
+                    
                     subtitle: item['subtitle'],
                   ))
               .toList();
@@ -50,7 +51,7 @@ class FavoriteProvider with ChangeNotifier {
         'items': _favoriteItems.map((item) => {
               'name': item.name,
               'price': item.price,
-              'image': item.image,
+              'imgBase64': item.imgBase64, 
               'subtitle': item.subtitle,
             }).toList(),
       };
@@ -65,7 +66,7 @@ class FavoriteProvider with ChangeNotifier {
 
   Future<void> addToFavorites(FavoriteItem item) async {
     if (!_favoriteItems.any((existingItem) =>
-        existingItem.name == item.name && existingItem.image == item.image)) {
+        existingItem.name == item.name && existingItem.imgBase64 == item.imgBase64)) { 
       _favoriteItems.add(item);
       await _saveFavorites();
       notifyListeners();
@@ -74,14 +75,14 @@ class FavoriteProvider with ChangeNotifier {
 
   Future<void> removeFromFavorites(FavoriteItem item) async {
     _favoriteItems.removeWhere((existingItem) =>
-        existingItem.name == item.name && existingItem.image == item.image);
+        existingItem.name == item.name && existingItem.imgBase64 == item.imgBase64);
     await _saveFavorites();
     notifyListeners();
   }
 
   bool isFavorite(FavoriteItem item) {
     return _favoriteItems.any((existingItem) =>
-        existingItem.name == item.name && existingItem.image == item.image);
+        existingItem.name == item.name && existingItem.imgBase64 == item.imgBase64); 
   }
 
   Future<void> clearFavorites() async {

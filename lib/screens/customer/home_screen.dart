@@ -19,14 +19,14 @@ import '../../widgets/customer/detail_box.dart';
 class HomeScreen extends StatefulWidget {
   final String? initialFoodItem;
   final String? initialFoodPrice;
-  final String? initialFoodImgUrl;
+  final String? initialFoodImg64;
   final String? initialFoodSubtitle;
 
   const HomeScreen({
     super.key,
     this.initialFoodItem,
     this.initialFoodPrice,
-    this.initialFoodImgUrl,
+    this.initialFoodImg64,
     this.initialFoodSubtitle,
   });
 
@@ -40,8 +40,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool isDetailVisible = false;
   String selectedFoodItem = '';
   String selectedFoodPrice = '';
-  String selectedFoodImgUrl = '';
   String selectedFoodSubtitle = '';
+  String selectedFoodImgBase64 = '';
   late AnimationController _boxController;
   late AnimationController _navController;
   final TextEditingController _searchController = TextEditingController();
@@ -75,11 +75,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.initialFoodItem != null &&
           widget.initialFoodPrice != null &&
-          widget.initialFoodImgUrl != null) {
+          widget.initialFoodImg64 != null) {
         setState(() {
           selectedFoodItem = widget.initialFoodItem!;
           selectedFoodPrice = widget.initialFoodPrice!;
-          selectedFoodImgUrl = widget.initialFoodImgUrl!;
+          selectedFoodImgBase64 = widget.initialFoodImg64!;
           selectedFoodSubtitle = widget.initialFoodSubtitle ?? '';
           isDetailVisible = true;
           _boxController.forward();
@@ -189,14 +189,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void _handleFoodItemTap(
     String title,
     String price,
-    String imgUrl,
+    String imgBase64,
     String subtitle,
     String sellerEmail,
   ) {
     setState(() {
       selectedFoodItem = title;
       selectedFoodPrice = price;
-      selectedFoodImgUrl = imgUrl;
+      selectedFoodImgBase64 = imgBase64;
       selectedFoodSubtitle = subtitle;
       isDetailVisible = true;
       _boxController.forward();
@@ -240,8 +240,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         const SizedBox(height: 16),
         FoodList(
           selectedCategory: selectedCategory,
-          onFoodItemTap: (title, price, imgUrl, subtitle, sellerEmail) {
-            _handleFoodItemTap(title, price, imgUrl, subtitle, sellerEmail);
+          onFoodItemTap: (title, price, imgbase64, subtitle, sellerEmail) {
+            _handleFoodItemTap(title, price, imgbase64, subtitle, sellerEmail);
           },
         ),
         const SizedBox(height: 24),
@@ -291,7 +291,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     onTap: () => _handleFoodItemTap(
                       food["title"]!,
                       food["price"]!,
-                      food["imgUrl"]!,
+                      food["imgbase64"]!,
                       food["subtitle"]!,
                       food["sellerEmail"] ?? '',
                     ),
@@ -455,14 +455,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     onFoodItemTap: (
                                       title,
                                       price,
-                                      imgUrl,
+                                      imgbase64,
                                       subtitle,
                                       sellerEmail,
                                     ) {
                                       _handleFoodItemTap(
                                         title,
                                         price,
-                                        imgUrl,
+                                        imgbase64,
                                         subtitle,
                                         sellerEmail,
                                       );

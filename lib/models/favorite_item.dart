@@ -1,13 +1,13 @@
 class FavoriteItem {
   final String name;
   final String price;
-  final String image;
+  final String imgBase64;
   final String? subtitle;
 
   FavoriteItem({
     required this.name,
     required this.price,
-    required this.image,
+    required this.imgBase64, 
     this.subtitle,
   });
 
@@ -15,7 +15,7 @@ class FavoriteItem {
     return {
       'name': name,
       'price': price,
-      'image': image,
+      'imgBase64': imgBase64, 
       'subtitle': subtitle,
     };
   }
@@ -24,7 +24,7 @@ class FavoriteItem {
     return FavoriteItem(
       name: map['name'] ?? '',
       price: map['price'] ?? '',
-      image: map['image'] ?? '',
+      imgBase64: map['imgBase64'] ?? '',
       subtitle: map['subtitle'],
     );
   }
@@ -35,8 +35,8 @@ class FavoriteItem {
       other is FavoriteItem &&
           runtimeType == other.runtimeType &&
           name == other.name &&
-          image == other.image;
+          imgBase64 == other.imgBase64; 
 
   @override
-  int get hashCode => name.hashCode ^ image.hashCode;
+  int get hashCode => name.hashCode ^ imgBase64.hashCode;
 }
