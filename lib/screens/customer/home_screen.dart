@@ -496,7 +496,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           DetailBox(
                             selectedFoodItem: selectedFoodItem,
                             selectedFoodPrice: selectedFoodPrice,
-                            selectedFoodImgUrl: selectedFoodImgUrl,
+                            selectedFoodImgBase64: '', // Provide the appropriate base64 string here
                             selectedFoodSubtitle: selectedFoodSubtitle,
                             onClose: _closeDetailBox,
                           ),
