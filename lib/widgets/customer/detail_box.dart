@@ -6,11 +6,12 @@ import '../../providers/theme_notifier.dart';
 import '../../providers/cart_provider.dart';
 import '../../models/cart_item.dart';
 import '../../models/favorite_item.dart';
+import 'dart:convert';
 
 class DetailBox extends StatelessWidget {
   final String selectedFoodItem;
   final String selectedFoodPrice;
-  final String selectedFoodImgUrl;
+  final String selectedFoodImgBase64; // Renamed from selectedFoodImgUrl
   final String selectedFoodSubtitle;
   final VoidCallback onClose;
 
@@ -18,7 +19,7 @@ class DetailBox extends StatelessWidget {
     Key? key,
     required this.selectedFoodItem,
     required this.selectedFoodPrice,
-    required this.selectedFoodImgUrl,
+    required this.selectedFoodImgBase64, // Renamed from selectedFoodImgUrl
     required this.selectedFoodSubtitle,
     required this.onClose,
   }) : super(key: key);
@@ -29,7 +30,7 @@ class DetailBox extends StatelessWidget {
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     final isFavorite = favoriteProvider.favoriteItems.any((item) =>
-        item.name == selectedFoodItem && item.image == selectedFoodImgUrl);
+        item.name == selectedFoodItem && item.image == selectedFoodImgBase64); // Updated to use selectedFoodImgBase64
 
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 300),
@@ -92,12 +93,36 @@ class DetailBox extends StatelessWidget {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(20),
-                            child: Image.asset(
-                              selectedFoodImgUrl,
-                              height: 220,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                            ),
+                            child: selectedFoodImgBase64.isNotEmpty // Updated to use selectedFoodImgBase64
+                                ? Image.memory(
+                                    base64Decode(selectedFoodImgBase64),
+                                    height: 220,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) {
+                                      debugPrint('Error loading Base64 image for $selectedFoodItem');
+                                      return Container(
+                                        height: 220,
+                                        width: double.infinity,
+                                        color: AppTheme.getDivider(isDarkMode),
+                                        child: Icon(
+                                          Icons.fastfood,
+                                          size: 60,
+                                          color: AppTheme.getPrimaryText(isDarkMode),
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : Container(
+                                    height: 220,
+                                    width: double.infinity,
+                                    color: AppTheme.getDivider(isDarkMode),
+                                    child: Icon(
+                                      Icons.fastfood,
+                                      size: 60,
+                                      color: AppTheme.getPrimaryText(isDarkMode),
+                                    ),
+                                  ),
                           ),
                         ),
                         Positioned(
@@ -165,7 +190,7 @@ class DetailBox extends StatelessWidget {
                         cartProvider.addToCart(CartItem(
                           name: selectedFoodItem,
                           price: price,
-                          image: selectedFoodImgUrl,
+                          image: selectedFoodImgBase64, // Updated to use selectedFoodImgBase64
                           subtitle: selectedFoodSubtitle,
                           sellerEmail: 'masakan.minang@example.com',
                         ));
@@ -214,7 +239,7 @@ class DetailBox extends StatelessWidget {
                             favoriteProvider.addToFavorites(FavoriteItem(
                               name: selectedFoodItem,
                               price: selectedFoodPrice,
-                              image: selectedFoodImgUrl,
+                              image: selectedFoodImgBase64, // Updated to use selectedFoodImgBase64
                               subtitle: selectedFoodSubtitle,
                             ));
                             ScaffoldMessenger.of(context).showSnackBar(
