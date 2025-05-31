@@ -19,9 +19,9 @@ import '../../widgets/customer/detail_box.dart';
 class HomeScreen extends StatefulWidget {
   final String? initialFoodItem;
   final String? initialFoodPrice;
-  final String? initialFoodImgBase64;
+  final String? initialFoodImgBase64; // Renamed from initialFoodImg64
   final String? initialFoodSubtitle;
-  final String? initialSellerEmail;
+  final String? initialSellerEmail; // Added
 
   const HomeScreen({
     super.key,
@@ -44,11 +44,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   String selectedFoodPrice = '';
   String selectedFoodImgBase64 = '';
   String selectedFoodSubtitle = '';
-  String selectedSellerEmail = '';
+  String selectedSellerEmail = ''; // Added
   late AnimationController _boxController;
   late AnimationController _navController;
   final TextEditingController _searchController = TextEditingController();
-  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
   bool isKeyboardVisible = false;
   bool isSearchActive = false;
@@ -60,7 +59,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    debugPrint('HomeScreen: Initializing');
     _boxController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -98,7 +96,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    debugPrint('HomeScreen: Disposing');
     _boxController.dispose();
     _navController.dispose();
     _searchFocusNode.dispose();
@@ -107,7 +104,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Future<bool> _onWillPop() async {
-    debugPrint('HomeScreen: onWillPop called, isDetailVisible: $isDetailVisible');
     if (isDetailVisible) {
       _closeDetailBox();
       return false;
@@ -147,7 +143,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _refreshData() async {
-    debugPrint('HomeScreen: Refreshing data');
     await Future.delayed(const Duration(seconds: 2));
     setState(() {});
   }
@@ -160,14 +155,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _handleSearch(String query) {
-    debugPrint('HomeScreen: Handling search query: $query');
     setState(() {
       searchQuery = query;
     });
   }
 
   void _removeRecentSearch(String query) {
-    debugPrint('HomeScreen: Removing recent search: $query');
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final customerName = authProvider.user?.name ?? '';
     SearchData.removeRecentSearch(customerName, query);
@@ -175,7 +168,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _fillSearchBar(String query) {
-    debugPrint('HomeScreen: Filling search bar with: $query');
     setState(() {
       _searchController.text = query;
       searchQuery = query;
@@ -183,25 +175,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _onCategorySelected(String category) {
-    debugPrint('HomeScreen: Category selected: $category');
     setState(() {
       selectedCategory = category;
       if (isDetailVisible) {
-        _closeDetailBox();
+        isDetailVisible = false;
       }
     });
   }
 
   void _closeDetailBox() {
-    debugPrint('HomeScreen: Closing DetailBox');
     setState(() {
       isDetailVisible = false;
     });
     _boxController.reverse();
     _navController.forward();
-    if (_navigatorKey.currentState != null) {
-      _navigatorKey.currentState!.pop();
-    }
   }
 
   void _handleFoodItemTap(
@@ -211,7 +198,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     String subtitle,
     String sellerEmail,
   ) {
-    debugPrint('HomeScreen: Food item tapped, imgBase64 length: ${imgBase64.length}, sellerEmail: $sellerEmail');
     setState(() {
       selectedFoodItem = title;
       selectedFoodPrice = price;
@@ -221,23 +207,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       isDetailVisible = true;
       _boxController.forward();
       _navController.reverse();
+      debugPrint('HomeScreen: Food item tapped, imgBase64 length: ${imgBase64.length}, sellerEmail: $sellerEmail');
     });
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => DetailBox(
-          selectedFoodItem: title,
-          selectedFoodPrice: price,
-          selectedFoodImgBase64: imgBase64,
-          selectedFoodSubtitle: subtitle,
-          sellerEmail: sellerEmail,
-          onClose: _closeDetailBox,
-        ),
-      ),
-    );
   }
 
   Widget _buildMainContent(ThemeData theme, bool isDarkMode) {
-    debugPrint('HomeScreen: Building main content');
     final orderProvider = Provider.of<OrderProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
     final customerName = authProvider.user?.name ?? '';
@@ -324,7 +298,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     onTap: () => _handleFoodItemTap(
                       food["title"]!,
                       food["price"]!,
-                      food["imgBase64"]!,
+                      food["imgBase64"]!, // Fixed typo from imgbase64
                       food["subtitle"]!,
                       food["sellerEmail"] ?? '',
                     ),
@@ -341,7 +315,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('HomeScreen: Building');
     final favoriteProvider = Provider.of<FavoriteProvider>(context);
     final notificationProvider = Provider.of<NotificationProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
@@ -398,7 +371,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ],
               ),
               onPressed: () {
-                debugPrint('HomeScreen: Navigating to FavoritesScreen');
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -438,7 +410,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ],
                 ),
                 onPressed: () {
-                  debugPrint('HomeScreen: Navigating to NotificationScreen');
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -454,92 +425,93 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
             ),
           ),
-          body: Navigator(
-            key: _navigatorKey,
-            onGenerateRoute: (settings) {
-              return MaterialPageRoute(
-                builder: (context) => LayoutBuilder(
-                  builder: (context, constraints) {
-                    return KeyboardVisibilityBuilder(
-                      builder: (context, isKeyboardVisible) {
-                        this.isKeyboardVisible = isKeyboardVisible;
-                        debugPrint('HomeScreen: Keyboard visible: $isKeyboardVisible');
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              return KeyboardVisibilityBuilder(
+                builder: (context, isKeyboardVisible) {
+                  this.isKeyboardVisible = isKeyboardVisible;
 
-                        return GestureDetector(
-                          onTap: () {
-                            if (isDetailVisible) _closeDetailBox();
-                            setState(() {
-                              isSearchActive = false;
-                              _searchFocusNode.unfocus();
-                            });
-                          },
-                          child: Stack(
-                            children: [
-                              SingleChildScrollView(
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                child: ConstrainedBox(
-                                  constraints: BoxConstraints(
-                                    minHeight: constraints.maxHeight,
+                  return GestureDetector(
+                    onTap: () {
+                      if (isDetailVisible) _closeDetailBox();
+                      setState(() {
+                        isSearchActive = false;
+                        _searchFocusNode.unfocus();
+                      });
+                    },
+                    child: Stack(
+                      children: [
+                        SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight,
+                            ),
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 16,
                                   ),
-                                  child: Column(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 16,
-                                        ),
-                                        child: SearchWidget(
-                                          searchController: _searchController,
-                                          onSearchSubmitted: _handleSearch,
-                                          onFillSearchBar: _fillSearchBar,
-                                          onRemoveRecentSearch: _removeRecentSearch,
-                                          onFoodItemTap: (
-                                            title,
-                                            price,
-                                            imgBase64,
-                                            subtitle,
-                                            sellerEmail,
-                                          ) {
-                                            _handleFoodItemTap(
-                                              title,
-                                              price,
-                                              imgBase64,
-                                              subtitle,
-                                              sellerEmail,
-                                            );
-                                          },
-                                          isSearchActive: isSearchActive,
-                                          focusNode: _searchFocusNode,
-                                          categorySelector: CategorySelector(
-                                            selectedCategory: selectedCategory,
-                                            onCategorySelected: _onCategorySelected,
-                                          ),
-                                          showFoodLists: isSearchActive,
-                                          orderAgainItems: orderAgainItems,
-                                        ),
-                                      ),
-                                      if (!isSearchActive && !isKeyboardVisible)
-                                        _buildMainContent(theme, isDarkMode),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              if (isDetailVisible)
-                                Positioned.fill(
-                                  child: GestureDetector(
-                                    onTap: _closeDetailBox,
-                                    child: Container(
-                                      color: AppTheme.getPrimaryText(isDarkMode).withOpacity(0.4),
+                                  child: SearchWidget(
+                                    searchController: _searchController,
+                                    onSearchSubmitted: _handleSearch,
+                                    onFillSearchBar: _fillSearchBar,
+                                    onRemoveRecentSearch: _removeRecentSearch,
+                                    onFoodItemTap: (
+                                      title,
+                                      price,
+                                      imgBase64,
+                                      subtitle,
+                                      sellerEmail,
+                                    ) {
+                                      _handleFoodItemTap(
+                                        title,
+                                        price,
+                                        imgBase64,
+                                        subtitle,
+                                        sellerEmail,
+                                      );
+                                    },
+                                    isSearchActive: isSearchActive,
+                                    focusNode: _searchFocusNode,
+                                    categorySelector: CategorySelector(
+                                      selectedCategory: selectedCategory,
+                                      onCategorySelected: _onCategorySelected,
                                     ),
+                                    showFoodLists: isSearchActive,
+                                    orderAgainItems: orderAgainItems,
                                   ),
                                 ),
-                            ],
+                                if (!isSearchActive && !isKeyboardVisible)
+                                  _buildMainContent(theme, isDarkMode),
+                              ],
+                            ),
                           ),
-                        );
-                      },
-                    );
-                  },
-                ),
+                        ),
+                        if (isDetailVisible)
+                          Positioned.fill(
+                            child: GestureDetector(
+                              onTap: _closeDetailBox,
+                              child: Container(
+                                color: AppTheme.getPrimaryText(isDarkMode).withOpacity(0.4),
+                              ),
+                            ),
+                          ),
+                        if (isDetailVisible)
+                          DetailBox(
+                            selectedFoodItem: selectedFoodItem,
+                            selectedFoodPrice: selectedFoodPrice,
+                            selectedFoodImgBase64: selectedFoodImgBase64,
+                            selectedFoodSubtitle: selectedFoodSubtitle,
+                            sellerEmail: selectedSellerEmail,
+                            onClose: _closeDetailBox,
+                          ),
+                      ],
+                    ),
+                  );
+                },
               );
             },
           ),
@@ -548,7 +520,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           floatingActionButton: AnimatedPositioned(
             duration: const Duration(milliseconds: 300),
             bottom:
-                isKeyboardVisible ? MediaQuery.of(context).viewInsets.bottom + 16 : 16,
+                isKeyboardVisible ? MediaQuery.of(context).viewInsets.bottom + 16 : 0,
             left: 0,
             right: 0,
             child: AnimatedOpacity(
