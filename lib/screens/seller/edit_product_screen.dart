@@ -690,6 +690,7 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isUploading = true);
     debugPrint('Saving product');
+    debugPrint('Selected category: $_selectedCategory');
 
     final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
     final isDarkMode = themeNotifier.isDarkMode;
