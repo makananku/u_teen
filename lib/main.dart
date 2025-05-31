@@ -315,18 +315,27 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(const Duration(milliseconds: 800));
     if (!mounted) return;
 
-    _bgController.forward().then((_) {
+    _bgController.forward().then((_) async {
       if (!mounted) return;
       _logoController.reverse();
       _textShiftController.forward();
 
       final auth = Provider.of<AuthProvider>(context, listen: false);
       if (auth.isLoggedIn) {
+        // Initialize providers after confirming login
+        try {
+          await Provider.of<FavoriteProvider>(context, listen: false).initialize(context);
+          debugPrint('FavoriteProvider initialized for user: ${auth.user?.email}');
+          await Provider.of<CartProvider>(context, listen: false).initialize(auth.user!.email);
+          debugPrint('CartProvider initialized for user: ${auth.user?.email}');
+        } catch (e) {
+          debugPrint('Error initializing providers: $e');
+        }
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) =>
-            auth.isSeller ? const SellerHomeScreen() : const HomeScreen(),
+                auth.isSeller ? const SellerHomeScreen() : const HomeScreen(),
           ),
         );
       } else {
@@ -425,8 +434,8 @@ class _SplashScreenState extends State<SplashScreen>
                 style: TextStyle(
                   fontSize: 16,
                   color: _bgController.value < 0.5 
-                    ? AppTheme.getAppBarText(isDarkMode).withOpacity(0.7) 
-                    : AppTheme.getGrey600(isDarkMode),
+                      ? AppTheme.getAppBarText(isDarkMode).withOpacity(0.7) 
+                      : AppTheme.getGrey600(isDarkMode),
                 ),
               ),
             ],
@@ -496,7 +505,7 @@ class _SplashScreenState extends State<SplashScreen>
                     context,
                     PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
-                      const LoginScreen(),
+                          const LoginScreen(),
                       transitionsBuilder: (
                           context,
                           animation,

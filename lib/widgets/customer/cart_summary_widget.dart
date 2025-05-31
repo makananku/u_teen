@@ -15,7 +15,7 @@ class CartSummaryWidget extends StatelessWidget {
     return cartItems.map((cartItem) => OrderItem(
       name: cartItem.name,
       price: cartItem.price,
-      imgBase64: cartItem.image,
+      imgBase64: cartItem.imgbase64,
       subtitle: cartItem.subtitle,
       sellerEmail: cartItem.sellerEmail,
       quantity: cartItem.quantity,

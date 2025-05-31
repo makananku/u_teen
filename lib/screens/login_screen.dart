@@ -6,6 +6,8 @@ import 'package:u_teen/screens/customer/home_screen.dart';
 import 'package:u_teen/screens/seller/home_screen.dart';
 import 'package:u_teen/utils/app_theme.dart';
 import 'package:u_teen/providers/theme_notifier.dart';
+import 'package:u_teen/providers/favorite_provider.dart';
+import 'package:u_teen/providers/cart_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -52,6 +54,14 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       await authProvider.initialize();
 
       if (authProvider.isLoggedIn && mounted) {
+        try {
+          await Provider.of<FavoriteProvider>(context, listen: false).initialize(context);
+          debugPrint('FavoriteProvider initialized for user: ${authProvider.user?.email}');
+          await Provider.of<CartProvider>(context, listen: false).initialize(authProvider.user!.email);
+          debugPrint('CartProvider initialized for user: ${authProvider.user?.email}');
+        } catch (e) {
+          debugPrint('Error initializing providers: $e');
+        }
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
@@ -102,17 +112,19 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
       if (user != null) {
         final success = await authProvider.login(
-          user.email,
-          user.name,
-          user.userType,
-          user.nim,
-          user.phoneNumber,
-          user.prodi,
-          user.angkatan,
-          user.tenantName,
+          email: email,
+          password: password,
         );
 
         if (success && mounted) {
+          try {
+            await Provider.of<FavoriteProvider>(context, listen: false).initialize(context);
+            debugPrint('FavoriteProvider initialized for user: ${authProvider.user?.email}');
+            await Provider.of<CartProvider>(context, listen: false).initialize(email);
+            debugPrint('CartProvider initialized for user: $email');
+          } catch (e) {
+            debugPrint('Error initializing providers: $e');
+          }
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
@@ -187,7 +199,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         backgroundColor: AppTheme.getBackground(isDarkMode),
         body: Stack(
           children: [
-            // Background decoration
             Positioned(
               top: -50,
               right: -50,
@@ -212,7 +223,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 ),
               ),
             ),
-            
             SingleChildScrollView(
               child: SizedBox(
                 height: MediaQuery.of(context).size.height,
@@ -222,7 +232,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Spacer(flex: 2),
-                      // Header with title only (logo removed)
                       FadeTransition(
                         opacity: _opacityAnimation,
                         child: SlideTransition(
@@ -230,7 +239,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const SizedBox(height: 80), // Space reserved for removed logo
+                              const SizedBox(height: 80),
                               Text(
                                 'Welcome Back',
                                 style: TextStyle(
@@ -252,7 +261,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         ),
                       ),
                       const Spacer(),
-                      // Login form
                       FadeTransition(
                         opacity: _opacityAnimation,
                         child: SlideTransition(
@@ -275,12 +283,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               key: _formKey,
                               child: Column(
                                 children: [
-                                  // Email field
                                   TextFormField(
                                     controller: _emailController,
                                     decoration: InputDecoration(
                                       filled: true,
-    fillColor: isDarkMode ? AppTheme.getDark2D(isDarkMode) : AppTheme.getCard(isDarkMode),
+                                      fillColor: isDarkMode ? AppTheme.getDark2D(isDarkMode) : AppTheme.getCard(isDarkMode),
                                       hintText: 'Email',
                                       hintStyle: TextStyle(
                                         color: isDarkMode ? AppTheme.getGrey500(isDarkMode) : AppTheme.getGrey600(isDarkMode)),
@@ -299,7 +306,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     onChanged: (value) => setState(() {}),
                                   ),
                                   const SizedBox(height: 20),
-                                  // Password field
                                   TextFormField(
                                     controller: _passwordController,
                                     obscureText: _obscurePassword,
@@ -331,7 +337,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     validator: _validatePassword,
                                   ),
                                   const SizedBox(height: 24),
-                                  // Login button
                                   SizedBox(
                                     width: double.infinity,
                                     height: 50,

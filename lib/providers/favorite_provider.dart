@@ -7,10 +7,15 @@ import '../../auth/auth_provider.dart';
 class FavoriteProvider with ChangeNotifier {
   List<FavoriteItem> _favoriteItems = [];
   String? _userEmail;
+  bool _isInitialized = false;
 
   List<FavoriteItem> get favoriteItems => List.unmodifiable(_favoriteItems);
 
   Future<void> initialize(BuildContext context) async {
+    if (_isInitialized) {
+      debugPrint('FavoriteProvider: Already initialized');
+      return;
+    }
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     _userEmail = authProvider.user?.email;
     if (_userEmail == null) {
@@ -21,6 +26,8 @@ class FavoriteProvider with ChangeNotifier {
     }
     debugPrint('FavoriteProvider: Initializing for user $_userEmail');
     await _loadFavorites();
+    _isInitialized = true;
+    notifyListeners();
   }
 
   Future<void> _loadFavorites() async {
@@ -73,17 +80,18 @@ class FavoriteProvider with ChangeNotifier {
       await FirebaseFirestore.instance
           .collection('favorites')
           .doc(_userEmail)
-          .set(favoritesData);
+          .set(favoritesData, SetOptions(merge: true));
       debugPrint('Favorites saved for $_userEmail');
     } catch (e) {
       debugPrint('Error saving favorites for $_userEmail: $e');
+      throw Exception('Failed to save favorites: $e');
     }
   }
 
   Future<void> addToFavorites(FavoriteItem item) async {
     if (_userEmail == null) {
       debugPrint('FavoriteProvider: Cannot add favorite, no user logged in');
-      return;
+      throw Exception('No user logged in');
     }
     if (!_favoriteItems.any((existingItem) =>
         existingItem.name == item.name && existingItem.imgBase64 == item.imgBase64)) {

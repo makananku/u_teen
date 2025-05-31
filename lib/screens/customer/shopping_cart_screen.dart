@@ -9,6 +9,8 @@ import '../../providers/theme_notifier.dart';
 import 'home_screen.dart';
 import 'payment_screen.dart';
 import '../../widgets/customer/custom_bottom_navigation.dart';
+import 'dart:convert';
+import 'dart:typed_data';
 
 class ShoppingCartScreen extends StatefulWidget {
   const ShoppingCartScreen({super.key});
@@ -335,12 +337,36 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
             tag: 'cart_${item.name}_${item.subtitle}',
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                item.image,
-                width: 50,
-                height: 50,
-                fit: BoxFit.cover,
-              ),
+              child: item.imgbase64.isNotEmpty
+                  ? Image.memory(
+                      _decodeBase64(item.imgbase64),
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) {
+                        debugPrint('Error loading Base64 image for ${item.name}');
+                        return Container(
+                          width: 50,
+                          height: 50,
+                          color: AppTheme.getDivider(isDarkMode),
+                          child: Icon(
+                            Icons.fastfood,
+                            size: 30,
+                            color: AppTheme.getPrimaryText(isDarkMode),
+                          ),
+                        );
+                      },
+                    )
+                  : Container(
+                      width: 50,
+                      height: 50,
+                      color: AppTheme.getDivider(isDarkMode),
+                      child: Icon(
+                        Icons.fastfood,
+                        size: 30,
+                        color: AppTheme.getPrimaryText(isDarkMode),
+                      ),
+                    ),
             ),
           ),
           title: Text(
@@ -358,6 +384,18 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
         ),
       ),
     );
+  }
+
+  Uint8List _decodeBase64(String base64String) {
+    try {
+      final String cleanedBase64 = base64String.startsWith('data:image')
+          ? base64String.split(',').last
+          : base64String;
+      return base64Decode(cleanedBase64);
+    } catch (e) {
+      debugPrint('Error decoding Base64: $e');
+      rethrow;
+    }
   }
 
   Future<bool?> _confirmDismiss(CartItem item) {

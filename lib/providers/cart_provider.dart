@@ -33,7 +33,7 @@ class CartProvider with ChangeNotifier {
               .map((item) => CartItem(
                     name: item['name'],
                     price: item['price'],
-                    image: item['image'],
+                    imgbase64: item['imgbase64'],
                     subtitle: item['subtitle'],
                     sellerEmail: item['sellerEmail'],
                     quantity: item['quantity'],
@@ -60,7 +60,7 @@ class CartProvider with ChangeNotifier {
         'items': _cartItems.map((item) => {
               'name': item.name,
               'price': item.price,
-              'image': item.image,
+              'imgbase64': item.imgbase64,
               'subtitle': item.subtitle,
               'sellerEmail': item.sellerEmail,
               'quantity': item.quantity,

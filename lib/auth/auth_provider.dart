@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthProvider extends ChangeNotifier {
   User? _user;
@@ -10,6 +12,8 @@ class AuthProvider extends ChangeNotifier {
   String? _sellerNim;
   String? _customerProdi;
   String? _customerAngkatan;
+  final AuthService _authService = AuthService();
+  final fb.FirebaseAuth _firebaseAuth = fb.FirebaseAuth.instance;
 
   User? get user => _user;
   bool get isLoggedIn => _isLoggedIn;
@@ -19,93 +23,131 @@ class AuthProvider extends ChangeNotifier {
   String? get sellerNim => _sellerNim;
   String? get customerProdi => _customerProdi;
   String? get customerAngkatan => _customerAngkatan;
-  String? get tenantName => _user?.tenantName; // Added for sellers
-  String? get sellerEmail => _user?.email; // For consistency
+  String? get tenantName => _user?.tenantName;
+  String? get sellerEmail => _user?.email;
 
   AuthProvider() {
     initialize();
+    _firebaseAuth.authStateChanges().listen((fb.User? firebaseUser) {
+      if (firebaseUser == null) {
+        logout();
+      } else if (_user == null || _user!.email != firebaseUser.email) {
+        _loadUserData();
+      }
+    });
   }
 
   Future<void> initialize() async {
-    final prefs = await SharedPreferences.getInstance();
-    final email = prefs.getString('email');
-    final name = prefs.getString('name');
-    final userType = prefs.getString('userType');
-    final nim = prefs.getString('nim');
-    final phoneNumber = prefs.getString('phoneNumber');
-    final prodi = prefs.getString('prodi');
-    final angkatan = prefs.getString('angkatan');
-    final tenantName = prefs.getString('tenantName');
+    await _loadUserData();
+  }
 
-    if (email != null && name != null && userType != null) {
-      _user = User(
-        email: email,
-        name: name,
-        userType: userType,
-        nim: nim,
-        phoneNumber: phoneNumber,
-        prodi: prodi,
-        angkatan: angkatan,
-        tenantName: tenantName,
-      );
-      _isLoggedIn = true;
-      _isSeller = userType == 'seller';
-      _customerNim = !_isSeller ? nim : null;
-      _sellerNim = _isSeller ? nim : null;
-      _customerProdi = !_isSeller ? prodi : null;
-      _customerAngkatan = !_isSeller ? angkatan : null;
-      notifyListeners();
+  Future<void> _loadUserData() async {
+    try {
+      final firebaseUser = _firebaseAuth.currentUser;
+      if (firebaseUser == null || firebaseUser.isAnonymous) {
+        debugPrint('AuthProvider: No authenticated user or anonymous user');
+        await logout();
+        return;
+      }
+
+      final prefs = await SharedPreferences.getInstance();
+      final email = prefs.getString('email');
+      final name = prefs.getString('name');
+      final userType = prefs.getString('userType');
+      final nim = prefs.getString('nim');
+      final phoneNumber = prefs.getString('phoneNumber');
+      final prodi = prefs.getString('prodi');
+      final angkatan = prefs.getString('angkatan');
+      final tenantName = prefs.getString('tenantName');
+
+      if (email != null && name != null && userType != null && email == firebaseUser.email) {
+        _user = User(
+          email: email,
+          name: name,
+          userType: userType,
+          nim: nim,
+          phoneNumber: phoneNumber,
+          prodi: prodi,
+          angkatan: angkatan,
+          tenantName: tenantName,
+        );
+        _isLoggedIn = true;
+        _isSeller = userType == 'seller';
+        _customerNim = !_isSeller ? nim : null;
+        _sellerNim = _isSeller ? nim : null;
+        _customerProdi = !_isSeller ? prodi : null;
+        _customerAngkatan = !_isSeller ? angkatan : null;
+        debugPrint('AuthProvider: Loaded user from SharedPreferences: $email');
+        notifyListeners();
+      } else {
+        // Fetch from Firestore if SharedPreferences is outdated
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(firebaseUser.uid)
+            .get();
+        if (userDoc.exists) {
+          _user = User.fromFirestore(userDoc);
+          await _saveToPrefs(_user!);
+          _isLoggedIn = true;
+          _isSeller = _user!.userType == 'seller';
+          _customerNim = !_isSeller ? _user!.nim : null;
+          _sellerNim = _isSeller ? _user!.nim : null;
+          _customerProdi = !_isSeller ? _user!.prodi : null;
+          _customerAngkatan = !_isSeller ? _user!.angkatan : null;
+          debugPrint('AuthProvider: Loaded user from Firestore: ${_user!.email}');
+          notifyListeners();
+        } else {
+          await logout();
+        }
+      }
+    } catch (e) {
+      debugPrint('AuthProvider initialize error: $e');
+      await logout();
     }
   }
 
-  Future<bool> login(
-    String email,
-    String name,
-    String userType,
-    String? nim,
-    String? phoneNumber,
-    String? prodi,
-    String? angkatan,
-    String? tenantName, // Added for sellers
-  ) async {
+  Future<bool> login({
+    required String email,
+    required String password,
+  }) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('email', email);
-      await prefs.setString('name', name);
-      await prefs.setString('userType', userType);
-      if (nim != null) await prefs.setString('nim', nim);
-      if (phoneNumber != null) await prefs.setString('phoneNumber', phoneNumber);
-      if (prodi != null) await prefs.setString('prodi', prodi);
-      if (angkatan != null) await prefs.setString('angkatan', angkatan);
-      if (tenantName != null) await prefs.setString('tenantName', tenantName);
-
-      _user = User(
-        email: email,
-        name: name,
-        userType: userType,
-        nim: nim,
-        phoneNumber: phoneNumber,
-        prodi: prodi,
-        angkatan: angkatan,
-        tenantName: tenantName,
-      );
+      final user = await _authService.login(email, password);
+      if (user == null) {
+        debugPrint('AuthProvider: Login failed');
+        return false;
+      }
+      _user = user;
+      await _saveToPrefs(user);
       _isLoggedIn = true;
-      _isSeller = userType == 'seller';
-      _customerNim = !_isSeller ? nim : null;
-      _sellerNim = _isSeller ? nim : null;
-      _customerProdi = !_isSeller ? prodi : null;
-      _customerAngkatan = !_isSeller ? angkatan : null;
-
+      _isSeller = user.userType == 'seller';
+      _customerNim = !_isSeller ? user.nim : null;
+      _sellerNim = _isSeller ? user.nim : null;
+      _customerProdi = !_isSeller ? user.prodi : null;
+      _customerAngkatan = !_isSeller ? user.angkatan : null;
+      debugPrint('AuthProvider: Logged in user: ${user.email}');
       notifyListeners();
       return true;
     } catch (e) {
-      debugPrint('Login save error: $e');
+      debugPrint('AuthProvider login error: $e');
       return false;
     }
   }
 
+  Future<void> _saveToPrefs(User user) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('email', user.email);
+    await prefs.setString('name', user.name);
+    await prefs.setString('userType', user.userType);
+    if (user.nim != null) await prefs.setString('nim', user.nim!);
+    if (user.phoneNumber != null) await prefs.setString('phoneNumber', user.phoneNumber!);
+    if (user.prodi != null) await prefs.setString('prodi', user.prodi!);
+    if (user.angkatan != null) await prefs.setString('angkatan', user.angkatan!);
+    if (user.tenantName != null) await prefs.setString('tenantName', user.tenantName!);
+  }
+
   Future<bool> logout() async {
     try {
+      await _firebaseAuth.signOut();
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
       _user = null;
@@ -115,10 +157,11 @@ class AuthProvider extends ChangeNotifier {
       _sellerNim = null;
       _customerProdi = null;
       _customerAngkatan = null;
+      debugPrint('AuthProvider: Logged out');
       notifyListeners();
       return true;
     } catch (e) {
-      debugPrint('Logout error: $e');
+      debugPrint('AuthProvider logout error: $e');
       return false;
     }
   }

@@ -1,0 +1,16 @@
+"filename", "language", "Dart", "comment", "blank", "total"
+"c:\Users\Acer\u_teen\lib\auth\auth_provider.dart", "Dart", 41, 1, 1, 43
+"c:\Users\Acer\u_teen\lib\data\data_initializer.dart", "Dart", -7, -7, 0, -14
+"c:\Users\Acer\u_teen\lib\main.dart", "Dart", 16, -3, 4, 17
+"c:\Users\Acer\u_teen\lib\models\favorite_item.dart", "Dart", 9, 0, 1, 10
+"c:\Users\Acer\u_teen\lib\models\product_model.dart", "Dart", 1, 0, 0, 1
+"c:\Users\Acer\u_teen\lib\providers\favorite_provider.dart", "Dart", 40, 0, 0, 40
+"c:\Users\Acer\u_teen\lib\screens\customer\favorite_screen.dart", "Dart", 38, 1, 1, 40
+"c:\Users\Acer\u_teen\lib\screens\customer\home_screen.dart", "Dart", 5, 0, 0, 5
+"c:\Users\Acer\u_teen\lib\screens\customer\shopping_cart_screen.dart", "Dart", 37, 0, 1, 38
+"c:\Users\Acer\u_teen\lib\screens\login_screen.dart", "Dart", 0, 0, 1, 1
+"c:\Users\Acer\u_teen\lib\utils\app_theme.dart", "Dart", 22, 0, -1, 21
+"c:\Users\Acer\u_teen\lib\widgets\customer\detail_box.dart", "Dart", 67, 0, 2, 69
+"c:\Users\Acer\u_teen\lib\widgets\customer\food_list.dart", "Dart", 40, 4, 7, 51
+"c:\Users\Acer\u_teen\lib\widgets\customer\search_widget.dart", "Dart", 48, 0, 2, 50
+"Total", "-", 357, -4, 19, 372

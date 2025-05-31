@@ -32,9 +32,10 @@ class DetailBox extends StatelessWidget {
     final favoriteProvider = Provider.of<FavoriteProvider>(context);
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
+    final cleanPrice = selectedFoodPrice.replaceAll(RegExp(r'[^0-9]'), '');
     final isFavorite = favoriteProvider.isFavorite(FavoriteItem(
       name: selectedFoodItem,
-      price: selectedFoodPrice,
+      price: cleanPrice,
       imgBase64: selectedFoodImgBase64,
       subtitle: selectedFoodSubtitle,
     ));
@@ -195,14 +196,15 @@ class DetailBox extends StatelessWidget {
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: () {
-                        final price = int.tryParse(selectedFoodPrice.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+                        final price = int.tryParse(cleanPrice) ?? 0;
                         cartProvider.addToCart(CartItem(
                           name: selectedFoodItem,
                           price: price,
-                          image: selectedFoodImgBase64, // Changed from imgBase64 to image
+                          imgbase64: selectedFoodImgBase64,
                           subtitle: selectedFoodSubtitle,
                           sellerEmail: sellerEmail,
                         ));
+                        debugPrint('Added to cart: ${selectedFoodItem}, imgBase64 length: ${selectedFoodImgBase64.length}');
                         Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
@@ -227,10 +229,10 @@ class DetailBox extends StatelessWidget {
                     const SizedBox(height: 16),
                     Center(
                       child: InkWell(
-                        onTap: () {
+                        onTap: () async {
                           final favoriteItem = FavoriteItem(
                             name: selectedFoodItem,
-                            price: selectedFoodPrice,
+                            price: cleanPrice,
                             imgBase64: selectedFoodImgBase64,
                             subtitle: selectedFoodSubtitle,
                           );
@@ -251,23 +253,42 @@ class DetailBox extends StatelessWidget {
                               ),
                             );
                           } else {
-                            favoriteProvider.addToFavorites(favoriteItem);
-                            debugPrint('Added to favorites from DetailBox: ${favoriteItem.name}, imgBase64 length: ${favoriteItem.imgBase64.length}');
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  '$selectedFoodItem added to favorites!',
-                                  style: TextStyle(
-                                    color: AppTheme.getPrimaryText(!isDarkMode),
+                            try {
+                              await favoriteProvider.addToFavorites(favoriteItem);
+                              debugPrint('Added to favorites from DetailBox: ${favoriteItem.name}, imgBase64 length: ${favoriteItem.imgBase64.length}');
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    '$selectedFoodItem added to favorites!',
+                                    style: TextStyle(
+                                      color: AppTheme.getPrimaryText(!isDarkMode),
+                                    ),
+                                  ),
+                                  backgroundColor: AppTheme.getSnackBarInfo(isDarkMode),
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
                                 ),
-                                backgroundColor: AppTheme.getSnackBarInfo(isDarkMode),
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                              );
+                            } catch (e) {
+                              debugPrint('Error adding to favorites: $e');
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Failed to add $selectedFoodItem to favorites',
+                                    style: TextStyle(
+                                      color: AppTheme.getPrimaryText(!isDarkMode),
+                                    ),
+                                  ),
+                                  backgroundColor: AppTheme.getSnackBarError(isDarkMode),
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
                                 ),
-                              ),
-                            );
+                              );
+                            }
                           }
                         },
                         borderRadius: BorderRadius.circular(20),
