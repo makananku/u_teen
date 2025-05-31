@@ -9,7 +9,7 @@ import '../../models/favorite_item.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 
-class DetailBox extends StatelessWidget {
+class DetailBox extends StatefulWidget {
   final String selectedFoodItem;
   final String selectedFoodPrice;
   final String selectedFoodImgBase64;
@@ -28,19 +28,26 @@ class DetailBox extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _DetailBoxState createState() => _DetailBoxState();
+}
+
+class _DetailBoxState extends State<DetailBox> {
+  bool _isAddingToCart = false;
+
+  @override
   Widget build(BuildContext context) {
     final favoriteProvider = Provider.of<FavoriteProvider>(context);
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
-    final cleanPrice = selectedFoodPrice.replaceAll(RegExp(r'[^0-9]'), '');
+    final cleanPrice = widget.selectedFoodPrice.replaceAll(RegExp(r'[^0-9]'), '');
     final isFavorite = favoriteProvider.isFavorite(FavoriteItem(
-      name: selectedFoodItem,
+      name: widget.selectedFoodItem,
       price: cleanPrice,
-      imgBase64: selectedFoodImgBase64,
-      subtitle: selectedFoodSubtitle,
+      imgBase64: widget.selectedFoodImgBase64,
+      subtitle: widget.selectedFoodSubtitle,
     ));
 
-    debugPrint('DetailBox: Rendering $selectedFoodItem, imgBase64 length: ${selectedFoodImgBase64.length}');
+    debugPrint('DetailBox: Rendering ${widget.selectedFoodItem}, imgBase64 length: ${widget.selectedFoodImgBase64.length}');
 
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 300),
@@ -67,7 +74,7 @@ class DetailBox extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             GestureDetector(
-              onTap: onClose,
+              onTap: widget.onClose,
               child: Center(
                 child: Container(
                   width: 60,
@@ -103,14 +110,14 @@ class DetailBox extends StatelessWidget {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(20),
-                            child: selectedFoodImgBase64.isNotEmpty
+                            child: widget.selectedFoodImgBase64.isNotEmpty
                                 ? Image.memory(
-                                    _decodeBase64(selectedFoodImgBase64),
+                                    _decodeBase64(widget.selectedFoodImgBase64),
                                     height: 220,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
                                     errorBuilder: (_, __, ___) {
-                                      debugPrint('Error loading Base64 image for $selectedFoodItem');
+                                      debugPrint('Error loading Base64 image for ${widget.selectedFoodItem}');
                                       return Container(
                                         height: 220,
                                         width: double.infinity,
@@ -162,7 +169,7 @@ class DetailBox extends StatelessWidget {
                           bottom: 16,
                           right: 16,
                           child: Text(
-                            selectedFoodPrice,
+                            widget.selectedFoodPrice,
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
@@ -174,7 +181,7 @@ class DetailBox extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      selectedFoodItem,
+                      widget.selectedFoodItem,
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -186,7 +193,7 @@ class DetailBox extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      selectedFoodSubtitle,
+                      widget.selectedFoodSubtitle,
                       style: TextStyle(
                         fontSize: 16,
                         color: AppTheme.getSecondaryText(isDarkMode),
@@ -195,44 +202,55 @@ class DetailBox extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(
-                      onPressed: () async {
-                        try {
-                          final price = int.tryParse(cleanPrice) ?? 0;
-                          if (selectedFoodImgBase64.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Cannot add item: No image data'),
-                                backgroundColor: AppTheme.getSnackBarError(isDarkMode),
-                              ),
-                            );
-                            return;
-                          }
-                          await cartProvider.addToCart(CartItem(
-                            name: selectedFoodItem,
-                            price: price,
-                            imgbase64: selectedFoodImgBase64,
-                            subtitle: selectedFoodSubtitle,
-                            sellerEmail: sellerEmail,
-                          ));
-                          debugPrint('Added to cart: ${selectedFoodItem}, imgBase64 length: ${selectedFoodImgBase64.length}');
-                          // Small delay to allow rendering to stabilize
-                          await Future.delayed(const Duration(milliseconds: 50));
-                          if (context.mounted) {
-                            debugPrint('Popping DetailBox for $selectedFoodItem');
-                            Navigator.pop(context);
-                          }
-                        } catch (e) {
-                          debugPrint('Error adding to cart: $e');
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Failed to add item to cart: $e'),
-                                backgroundColor: AppTheme.getSnackBarError(isDarkMode),
-                              ),
-                            );
-                          }
-                        }
-                      },
+                      onPressed: _isAddingToCart
+                          ? null
+                          : () async {
+                              setState(() {
+                                _isAddingToCart = true;
+                              });
+                              try {
+                                final price = int.tryParse(cleanPrice) ?? 0;
+                                if (widget.selectedFoodImgBase64.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Cannot add item: No image data'),
+                                      backgroundColor: AppTheme.getSnackBarError(isDarkMode),
+                                    ),
+                                  );
+                                  return;
+                                }
+                                await cartProvider.addToCart(CartItem(
+                                  name: widget.selectedFoodItem,
+                                  price: price,
+                                  imgbase64: widget.selectedFoodImgBase64,
+                                  subtitle: widget.selectedFoodSubtitle,
+                                  sellerEmail: widget.sellerEmail,
+                                ));
+                                debugPrint('Added to cart: ${widget.selectedFoodItem}, imgBase64 length: ${widget.selectedFoodImgBase64.length}');
+                                // Increased delay to stabilize rendering
+                                await Future.delayed(const Duration(milliseconds: 100));
+                                if (context.mounted) {
+                                  debugPrint('Popping DetailBox for ${widget.selectedFoodItem}');
+                                  Navigator.pop(context);
+                                }
+                              } catch (e) {
+                                debugPrint('Error adding to cart: $e');
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Failed to add item to cart: $e'),
+                                      backgroundColor: AppTheme.getSnackBarError(isDarkMode),
+                                    ),
+                                  );
+                                }
+                              } finally {
+                                if (mounted) {
+                                  setState(() {
+                                    _isAddingToCart = false;
+                                  });
+                                }
+                              }
+                            },
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 56),
                         backgroundColor: AppTheme.getButton(isDarkMode),
@@ -244,29 +262,38 @@ class DetailBox extends StatelessWidget {
                         shadowColor: Colors.transparent,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      child: const Text(
-                        "Add to Cart",
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      child: _isAddingToCart
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppTheme.getPrimaryText(!isDarkMode),
+                              ),
+                            )
+                          : const Text(
+                              "Add to Cart",
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                     ),
                     const SizedBox(height: 16),
                     Center(
                       child: InkWell(
                         onTap: () async {
                           final favoriteItem = FavoriteItem(
-                            name: selectedFoodItem,
+                            name: widget.selectedFoodItem,
                             price: cleanPrice,
-                            imgBase64: selectedFoodImgBase64,
-                            subtitle: selectedFoodSubtitle,
+                            imgBase64: widget.selectedFoodImgBase64,
+                            subtitle: widget.selectedFoodSubtitle,
                           );
                           if (isFavorite) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  '$selectedFoodItem is already in favorites',
+                                  '${widget.selectedFoodItem} is already in favorites',
                                   style: TextStyle(
                                     color: AppTheme.getPrimaryText(!isDarkMode),
                                   ),
@@ -285,7 +312,7 @@ class DetailBox extends StatelessWidget {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    '$selectedFoodItem added to favorites!',
+                                    '${widget.selectedFoodItem} added to favorites!',
                                     style: TextStyle(
                                       color: AppTheme.getPrimaryText(!isDarkMode),
                                     ),
@@ -302,7 +329,7 @@ class DetailBox extends StatelessWidget {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    'Failed to add $selectedFoodItem to favorites',
+                                    'Failed to add ${widget.selectedFoodItem} to favorites',
                                     style: TextStyle(
                                       color: AppTheme.getPrimaryText(!isDarkMode),
                                     ),
@@ -383,7 +410,7 @@ class DetailBox extends StatelessWidget {
           : base64String;
       return base64Decode(cleanedBase64);
     } catch (e) {
-      debugPrint('Error decoding Base64 for $selectedFoodItem: $e');
+      debugPrint('Error decoding Base64 for ${widget.selectedFoodItem}: $e');
       const placeholderBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAEAwFLLYL9WAAAAABJRU5ErkJggg==';
       return base64Decode(placeholderBase64);
     }

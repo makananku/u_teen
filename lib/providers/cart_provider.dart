@@ -98,7 +98,10 @@ class CartProvider with ChangeNotifier {
         debugPrint('Added new item: ${item.name}');
       }
       await _saveCart();
-      notifyListeners();
+      // Delay notifyListeners to reduce rendering load
+      Future.delayed(const Duration(milliseconds: 150), () {
+        notifyListeners();
+      });
     } catch (e) {
       debugPrint('Error adding to cart: $e');
       throw e;
