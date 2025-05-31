@@ -12,6 +12,7 @@ class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
 
   void _navigateToDetail(BuildContext context, FavoriteItem item) {
+    debugPrint('Navigating to detail for ${item.name}, imgBase64 length: ${item.imgBase64.length}');
     Navigator.pop(context);
     Navigator.push(
       context,
@@ -19,8 +20,9 @@ class FavoritesScreen extends StatelessWidget {
         builder: (context) => HomeScreen(
           initialFoodItem: item.name,
           initialFoodPrice: item.price,
-          initialFoodImg64: item.imgBase64,
+          initialFoodImgBase64: item.imgBase64, // Updated from initialFoodImg64
           initialFoodSubtitle: item.subtitle ?? '',
+          initialSellerEmail: null, // Added, as FavoriteItem lacks sellerEmail
         ),
       ),
     );

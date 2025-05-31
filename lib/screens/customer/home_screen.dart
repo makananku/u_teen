@@ -19,15 +19,17 @@ import '../../widgets/customer/detail_box.dart';
 class HomeScreen extends StatefulWidget {
   final String? initialFoodItem;
   final String? initialFoodPrice;
-  final String? initialFoodImg64;
+  final String? initialFoodImgBase64; // Renamed from initialFoodImg64
   final String? initialFoodSubtitle;
+  final String? initialSellerEmail; // Added
 
   const HomeScreen({
     super.key,
     this.initialFoodItem,
     this.initialFoodPrice,
-    this.initialFoodImg64,
+    this.initialFoodImgBase64,
     this.initialFoodSubtitle,
+    this.initialSellerEmail,
   });
 
   @override
@@ -40,8 +42,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool isDetailVisible = false;
   String selectedFoodItem = '';
   String selectedFoodPrice = '';
-  String selectedFoodSubtitle = '';
   String selectedFoodImgBase64 = '';
+  String selectedFoodSubtitle = '';
+  String selectedSellerEmail = ''; // Added
   late AnimationController _boxController;
   late AnimationController _navController;
   final TextEditingController _searchController = TextEditingController();
@@ -75,15 +78,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.initialFoodItem != null &&
           widget.initialFoodPrice != null &&
-          widget.initialFoodImg64 != null) {
+          widget.initialFoodImgBase64 != null) {
         setState(() {
           selectedFoodItem = widget.initialFoodItem!;
           selectedFoodPrice = widget.initialFoodPrice!;
-          selectedFoodImgBase64 = widget.initialFoodImg64!;
+          selectedFoodImgBase64 = widget.initialFoodImgBase64!;
           selectedFoodSubtitle = widget.initialFoodSubtitle ?? '';
+          selectedSellerEmail = widget.initialSellerEmail ?? '';
           isDetailVisible = true;
           _boxController.forward();
           _navController.reverse();
+          debugPrint('HomeScreen: Initialized with imgBase64 length: ${selectedFoodImgBase64.length}');
         });
       }
     });
@@ -198,9 +203,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       selectedFoodPrice = price;
       selectedFoodImgBase64 = imgBase64;
       selectedFoodSubtitle = subtitle;
+      selectedSellerEmail = sellerEmail;
       isDetailVisible = true;
       _boxController.forward();
       _navController.reverse();
+      debugPrint('HomeScreen: Food item tapped, imgBase64 length: ${imgBase64.length}, sellerEmail: $sellerEmail');
     });
   }
 
@@ -240,8 +247,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         const SizedBox(height: 16),
         FoodList(
           selectedCategory: selectedCategory,
-          onFoodItemTap: (title, price, imgbase64, subtitle, sellerEmail) {
-            _handleFoodItemTap(title, price, imgbase64, subtitle, sellerEmail);
+          onFoodItemTap: (title, price, imgBase64, subtitle, sellerEmail) {
+            _handleFoodItemTap(title, price, imgBase64, subtitle, sellerEmail);
           },
         ),
         const SizedBox(height: 24),
@@ -291,7 +298,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     onTap: () => _handleFoodItemTap(
                       food["title"]!,
                       food["price"]!,
-                      food["imgbase64"]!,
+                      food["imgBase64"]!, // Fixed typo from imgbase64
                       food["subtitle"]!,
                       food["sellerEmail"] ?? '',
                     ),
@@ -455,14 +462,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     onFoodItemTap: (
                                       title,
                                       price,
-                                      imgbase64,
+                                      imgBase64,
                                       subtitle,
                                       sellerEmail,
                                     ) {
                                       _handleFoodItemTap(
                                         title,
                                         price,
-                                        imgbase64,
+                                        imgBase64,
                                         subtitle,
                                         sellerEmail,
                                       );
@@ -496,9 +503,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           DetailBox(
                             selectedFoodItem: selectedFoodItem,
                             selectedFoodPrice: selectedFoodPrice,
-                            selectedFoodImgBase64: '',
+                            selectedFoodImgBase64: selectedFoodImgBase64,
                             selectedFoodSubtitle: selectedFoodSubtitle,
-                            sellerEmail: '',
+                            sellerEmail: selectedSellerEmail,
                             onClose: _closeDetailBox,
                           ),
                       ],
