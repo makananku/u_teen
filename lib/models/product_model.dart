@@ -66,6 +66,7 @@ class Product {
       'time': time,
       'tenantName': tenantName,
       'sellerEmail': sellerEmail,
+      'category': category, // Ditambahkan untuk menyimpan kategori ke Firestore
       'isActive': isActive,
     };
   }
@@ -91,7 +92,7 @@ class Product {
       time: time ?? this.time,
       tenantName: tenantName ?? this.tenantName,
       sellerEmail: sellerEmail ?? this.sellerEmail,
-      category: category ?? this.category, // Fixed to use category instead of sellerEmail
+      category: category ?? this.category,
       isActive: isActive ?? this.isActive,
     );
   }
