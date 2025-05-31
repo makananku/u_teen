@@ -6,6 +6,7 @@ import '../../utils/app_theme.dart';
 import '../../providers/theme_notifier.dart';
 import 'home_screen.dart';
 import 'dart:convert';
+import 'dart:typed_data';
 
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
@@ -18,7 +19,7 @@ class FavoritesScreen extends StatelessWidget {
         builder: (context) => HomeScreen(
           initialFoodItem: item.name,
           initialFoodPrice: item.price,
-          initialFoodImg64: item.imgBase64, // Updated from image
+          initialFoodImg64: item.imgBase64,
           initialFoodSubtitle: item.subtitle ?? '',
         ),
       ),
@@ -80,6 +81,7 @@ class FavoritesScreen extends StatelessWidget {
               ),
               itemBuilder: (context, index) {
                 final item = favoriteItems[index];
+                debugPrint('Rendering favorite: ${item.name}, imgBase64 length: ${item.imgBase64.length}');
                 return Dismissible(
                   key: Key(item.name),
                   background: Container(
@@ -143,9 +145,9 @@ class FavoritesScreen extends StatelessWidget {
                     ),
                     leading: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: item.imgBase64.isNotEmpty // Updated from image
+                      child: item.imgBase64.isNotEmpty
                           ? Image.memory(
-                              base64Decode(item.imgBase64), // Updated from Image.asset
+                              _decodeBase64(item.imgBase64),
                               width: 60,
                               height: 60,
                               fit: BoxFit.cover,
@@ -249,5 +251,18 @@ class FavoritesScreen extends StatelessWidget {
               },
             ),
     );
+  }
+
+  Uint8List _decodeBase64(String base64String) {
+    try {
+      // Remove data URI prefix if present
+      final String cleanedBase64 = base64String.startsWith('data:image')
+          ? base64String.split(',').last
+          : base64String;
+      return base64Decode(cleanedBase64);
+    } catch (e) {
+      debugPrint('Error decoding Base64: $e');
+      rethrow;
+    }
   }
 }

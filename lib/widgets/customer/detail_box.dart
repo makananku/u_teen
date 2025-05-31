@@ -7,13 +7,14 @@ import '../../providers/cart_provider.dart';
 import '../../models/cart_item.dart';
 import '../../models/favorite_item.dart';
 import 'dart:convert';
+import 'dart:typed_data';
 
 class DetailBox extends StatelessWidget {
   final String selectedFoodItem;
   final String selectedFoodPrice;
   final String selectedFoodImgBase64;
   final String selectedFoodSubtitle;
-  final String sellerEmail; // Added for dynamic sellerEmail
+  final String sellerEmail;
   final VoidCallback onClose;
 
   const DetailBox({
@@ -22,7 +23,7 @@ class DetailBox extends StatelessWidget {
     required this.selectedFoodPrice,
     required this.selectedFoodImgBase64,
     required this.selectedFoodSubtitle,
-    required this.sellerEmail, // Added
+    required this.sellerEmail,
     required this.onClose,
   }) : super(key: key);
 
@@ -33,6 +34,8 @@ class DetailBox extends StatelessWidget {
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     final isFavorite = favoriteProvider.favoriteItems.any((item) =>
         item.name == selectedFoodItem && item.imgBase64 == selectedFoodImgBase64);
+
+    debugPrint('DetailBox: Rendering $selectedFoodItem, imgBase64 length: ${selectedFoodImgBase64.length}');
 
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 300),
@@ -97,7 +100,7 @@ class DetailBox extends StatelessWidget {
                             borderRadius: BorderRadius.circular(20),
                             child: selectedFoodImgBase64.isNotEmpty
                                 ? Image.memory(
-                                    base64Decode(selectedFoodImgBase64),
+                                    _decodeBase64(selectedFoodImgBase64),
                                     height: 220,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
@@ -192,9 +195,9 @@ class DetailBox extends StatelessWidget {
                         cartProvider.addToCart(CartItem(
                           name: selectedFoodItem,
                           price: price,
-                          image: selectedFoodImgBase64, // Use imgBase64
+                          image: selectedFoodImgBase64,
                           subtitle: selectedFoodSubtitle,
-                          sellerEmail: sellerEmail, // Use dynamic sellerEmail
+                          sellerEmail: sellerEmail,
                         ));
                         Navigator.pop(context);
                       },
@@ -238,12 +241,14 @@ class DetailBox extends StatelessWidget {
                               ),
                             );
                           } else {
-                            favoriteProvider.addToFavorites(FavoriteItem(
+                            final favoriteItem = FavoriteItem(
                               name: selectedFoodItem,
                               price: selectedFoodPrice,
-                              imgBase64: selectedFoodImgBase64, // Use imgBase64
+                              imgBase64: selectedFoodImgBase64,
                               subtitle: selectedFoodSubtitle,
-                            ));
+                            );
+                            favoriteProvider.addToFavorites(favoriteItem);
+                            debugPrint('Added to favorites from DetailBox: ${favoriteItem.name}, imgBase64 length: ${favoriteItem.imgBase64.length}');
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
@@ -318,5 +323,18 @@ class DetailBox extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Uint8List _decodeBase64(String base64String) {
+    try {
+      // Remove data URI prefix if present
+      final String cleanedBase64 = base64String.startsWith('data:image')
+          ? base64String.split(',').last
+          : base64String;
+      return base64Decode(cleanedBase64);
+    } catch (e) {
+      debugPrint('Error decoding Base64 for $selectedFoodItem: $e');
+      rethrow;
+    }
   }
 }
