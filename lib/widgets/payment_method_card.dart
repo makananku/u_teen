@@ -26,7 +26,9 @@ class _PaymentMethodCardState extends State<PaymentMethodCard>
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _elevationAnimation;
-  late Animation<Color?> _colorAnimation;
+  late Animation<BorderRadius?> _borderRadiusAnimation;
+  late Animation<Color?> _borderColorAnimation;
+  late Animation<Color?> _backgroundColorAnimation;
 
   @override
   void initState() {
@@ -45,20 +47,33 @@ class _PaymentMethodCardState extends State<PaymentMethodCard>
 
   void _initializeAnimations() {
     final isDarkMode = Provider.of<ThemeNotifier>(context, listen: false).isDarkMode;
+    final primaryColor = widget.method.primaryColor ?? AppTheme.getAccentPrimaryBlue(isDarkMode);
+    
     _scaleAnimation = Tween<double>(
       begin: 1.0,
       end: 0.98,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     _elevationAnimation = Tween<double>(
-      begin: isDarkMode ? 0 : 2,
-      end: isDarkMode ? 0 : 6,
+      begin: isDarkMode ? 0 : 1,
+      end: isDarkMode ? 2 : 3,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
-    _colorAnimation = ColorTween(
+    _borderRadiusAnimation = BorderRadiusTween(
+      begin: BorderRadius.circular(12),
+      end: BorderRadius.circular(16),
+    ).animate(_controller);
+
+    _borderColorAnimation = ColorTween(
+      begin: Colors.transparent,
+      end: primaryColor.withOpacity(0.3),
+    ).animate(_controller);
+
+    _backgroundColorAnimation = ColorTween(
       begin: AppTheme.getCard(isDarkMode),
-      end: widget.method.primaryColor?.withOpacity(0.05) ??
-          AppTheme.getButton(isDarkMode).withOpacity(0.05),
+      end: isDarkMode 
+          ? AppTheme.getDark2D(isDarkMode).withOpacity(0.8)
+          : Colors.white.withOpacity(0.9),
     ).animate(_controller);
   }
 
@@ -83,6 +98,8 @@ class _PaymentMethodCardState extends State<PaymentMethodCard>
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
+    final primaryColor = widget.method.primaryColor ?? AppTheme.getAccentPrimaryBlue(isDarkMode);
+    
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
@@ -91,18 +108,16 @@ class _PaymentMethodCardState extends State<PaymentMethodCard>
           child: Card(
             elevation: _elevationAnimation.value,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: _borderRadiusAnimation.value ?? BorderRadius.circular(12),
               side: BorderSide(
-                color: widget.isSelected
-                    ? (widget.method.primaryColor?.withOpacity(0.5) ??
-                        AppTheme.getButton(isDarkMode).withOpacity(0.5))
-                    : AppTheme.getDivider(isDarkMode),
-                width: widget.isSelected ? 1.2 : 0.8,
+                color: _borderColorAnimation.value!,
+                width: 1.5,
               ),
             ),
-            color: _colorAnimation.value,
+            color: _backgroundColorAnimation.value,
+            margin: const EdgeInsets.symmetric(vertical: 4),
             child: InkWell(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: _borderRadiusAnimation.value,
               onTap: () {
                 HapticFeedback.lightImpact();
                 widget.onTap();
@@ -112,18 +127,26 @@ class _PaymentMethodCardState extends State<PaymentMethodCard>
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(10),
                         color: widget.isSelected
-                            ? (widget.method.primaryColor?.withOpacity(0.1) ??
-                                AppTheme.getButton(isDarkMode).withOpacity(0.1))
-                            : AppTheme.getDivider(isDarkMode),
+                            ? primaryColor.withOpacity(0.08)
+                            : AppTheme.getDivider(isDarkMode).withOpacity(0.2),
+                        border: Border.all(
+                          color: widget.isSelected
+                              ? primaryColor.withOpacity(0.3)
+                              : AppTheme.getDivider(isDarkMode).withOpacity(0.3),
+                          width: 1,
+                        ),
                       ),
                       child: Image.asset(
                         widget.method.iconPath,
-                        height: 28,
-                        width: 28,
+                        height: 24,
+                        width: 24,
+                        color: widget.isSelected
+                            ? primaryColor
+                            : AppTheme.getSecondaryText(isDarkMode),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -134,11 +157,10 @@ class _PaymentMethodCardState extends State<PaymentMethodCard>
                           Text(
                             widget.method.name,
                             style: TextStyle(
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                               fontSize: 16,
                               color: widget.isSelected
-                                  ? (widget.method.primaryColor ??
-                                      AppTheme.getButton(isDarkMode))
+                                  ? primaryColor
                                   : AppTheme.getPrimaryText(isDarkMode),
                             ),
                           ),
@@ -148,31 +170,31 @@ class _PaymentMethodCardState extends State<PaymentMethodCard>
                             style: TextStyle(
                               fontSize: 13,
                               color: widget.isSelected
-                                  ? (widget.method.primaryColor?.withOpacity(0.8) ??
-                                      AppTheme.getButton(isDarkMode).withOpacity(0.8))
+                                  ? primaryColor.withOpacity(0.8)
                                   : AppTheme.getSecondaryText(isDarkMode),
                             ),
                           ),
                           if (widget.method.supportsTopUp) ...[
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 6),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 6,
-                                vertical: 2,
+                                vertical: 3,
                               ),
                               decoration: BoxDecoration(
-                                color: (widget.method.primaryColor ??
-                                        AppTheme.getButton(isDarkMode))
-                                    .withOpacity(0.1),
+                                color: primaryColor.withOpacity(0.08),
                                 borderRadius: BorderRadius.circular(4),
+                                border: Border.all(
+                                  color: primaryColor.withOpacity(0.2),
+                                  width: 0.5,
+                                ),
                               ),
                               child: Text(
                                 'Instant Transfer',
                                 style: TextStyle(
                                   fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: widget.method.primaryColor ??
-                                      AppTheme.getButton(isDarkMode),
+                                  fontWeight: FontWeight.w500,
+                                  color: primaryColor,
                                 ),
                               ),
                             ),
@@ -180,40 +202,30 @@ class _PaymentMethodCardState extends State<PaymentMethodCard>
                         ],
                       ),
                     ),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      transitionBuilder: (child, animation) => ScaleTransition(
-                        scale: animation,
-                        child: FadeTransition(
-                          opacity: animation,
-                          child: child,
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: widget.isSelected
+                              ? primaryColor
+                              : AppTheme.getDivider(isDarkMode),
+                          width: widget.isSelected ? 8 : 1.5,
                         ),
                       ),
                       child: widget.isSelected
-                          ? Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: widget.method.primaryColor ??
-                                    AppTheme.getButton(isDarkMode),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.check,
-                                color: AppTheme.getPrimaryText(!isDarkMode),
-                                size: 16,
-                              ),
-                            )
-                          : Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: AppTheme.getDivider(isDarkMode),
-                                  width: 1.5,
+                          ? Center(
+                              child: Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: AppTheme.getPrimaryText(!isDarkMode),
                                 ),
                               ),
-                            ),
+                            )
+                          : null,
                     ),
                   ],
                 ),
