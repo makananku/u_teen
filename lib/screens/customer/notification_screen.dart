@@ -49,7 +49,8 @@ class NotificationScreen extends StatelessWidget {
           : RefreshIndicator(
               color: AppTheme.getButton(isDarkMode),
               onRefresh: () async {
-                await Future.delayed(const Duration(seconds: 1));
+                await notificationProvider.initialize(); // Refresh data from Firestore
+                await Future.delayed(const Duration(seconds: 1)); // Delay for UI feedback
               },
               child: ListView.separated(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
@@ -80,6 +81,7 @@ class NotificationScreen extends StatelessWidget {
         if (notification.payload != null && notification.payload!['orderId'] != null) {
           final orderId = notification.payload!['orderId'];
           debugPrint('Navigating to order details for order ID: $orderId');
+          // Tambahkan navigasi ke detail order jika diperlukan
         }
       },
       child: Container(

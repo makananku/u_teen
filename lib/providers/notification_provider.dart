@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
 import '../models/notification_model.dart';
 
 class NotificationProvider with ChangeNotifier {
   final List<NotificationModel> _notifications = [];
   bool _isLoading = false;
+  StreamSubscription? _subscription;
 
   List<NotificationModel> get notifications => List.unmodifiable(_notifications);
   List<NotificationModel> get unreadNotifications =>
@@ -38,6 +40,7 @@ class NotificationProvider with ChangeNotifier {
           .get();
       _notifications.clear();
       _notifications.addAll(snapshot.docs.map((doc) => NotificationModel.fromMap(doc.data())));
+      debugPrint('Loaded ${snapshot.docs.length} notifications');
     } catch (e) {
       debugPrint('Error loading notifications: $e');
     } finally {
@@ -46,19 +49,37 @@ class NotificationProvider with ChangeNotifier {
     }
   }
 
+  void _setupRealTimeListener() {
+    _subscription = FirebaseFirestore.instance
+        .collection('notifications')
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .listen((snapshot) {
+      _notifications.clear();
+      _notifications.addAll(snapshot.docs.map((doc) => NotificationModel.fromMap(doc.data())));
+      debugPrint('Real-time update: Loaded ${snapshot.docs.length} notifications');
+      notifyListeners();
+    }, onError: (error) {
+      debugPrint('Error in real-time listener: $error');
+    });
+  }
+
   Future<void> _saveNotification(NotificationModel notification) async {
     try {
       await FirebaseFirestore.instance
           .collection('notifications')
           .doc(notification.id)
-          .set(notification.toMap());
+          .set(notification.toMap(), SetOptions(merge: true));
+      debugPrint('Notification saved with ID: ${notification.id}');
     } catch (e) {
       debugPrint('Error saving notification: $e');
+      throw Exception('Failed to save notification: $e');
     }
   }
 
   Future<void> initialize() async {
     await _loadNotifications();
+    _setupRealTimeListener();
   }
 
   Future<void> addNotification(NotificationModel notification) async {
@@ -112,5 +133,11 @@ class NotificationProvider with ChangeNotifier {
     await batch.commit();
     _notifications.clear();
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 }
