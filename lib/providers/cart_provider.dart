@@ -11,14 +11,14 @@ class CartProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
 
   Future<void> initialize(String userEmail) async {
-    debugPrint('Initializing CartProvider for user: $userEmail');
+    debugPrint('CartProvider: Initializing for user: $userEmail');
     _userEmail = userEmail;
     await _loadCart();
   }
 
   Future<void> _loadCart() async {
     if (_userEmail == null) {
-      debugPrint('Cannot load cart: userEmail is null');
+      debugPrint('CartProvider: Cannot load cart: userEmail is null');
       return;
     }
     _isLoading = true;
@@ -30,7 +30,7 @@ class CartProvider with ChangeNotifier {
           .doc(_userEmail)
           .get()
           .timeout(const Duration(seconds: 3), onTimeout: () {
-        debugPrint('Firestore load timeout for $_userEmail');
+        debugPrint('CartProvider: Firestore load timeout for $_userEmail');
         throw Exception('Firestore load timeout');
       });
       if (doc.exists) {
@@ -39,17 +39,17 @@ class CartProvider with ChangeNotifier {
           _cartItems = (data['items'] as List)
               .map((item) => CartItem.fromMap(item))
               .toList();
-          debugPrint('Loaded ${_cartItems.length} items from Firestore');
+          debugPrint('CartProvider: Loaded ${_cartItems.length} items from Firestore');
         } else {
           _cartItems = [];
-          debugPrint('No items found in Firestore cart');
+          debugPrint('CartProvider: No items found in Firestore cart');
         }
       } else {
         _cartItems = [];
-        debugPrint('Cart document does not exist for $_userEmail');
+        debugPrint('CartProvider: Cart document does not exist for $_userEmail');
       }
     } catch (e) {
-      debugPrint('Error loading cart: $e');
+      debugPrint('CartProvider: Error loading cart: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -58,11 +58,11 @@ class CartProvider with ChangeNotifier {
 
   Future<void> _saveCart() async {
     if (_userEmail == null) {
-      debugPrint('Cannot save cart: userEmail is null');
+      debugPrint('CartProvider: Cannot save cart: userEmail is null');
       throw Exception('User email not set');
     }
     try {
-      debugPrint('Saving ${_cartItems.length} items to Firestore for $_userEmail');
+      debugPrint('CartProvider: Saving ${_cartItems.length} items to Firestore for $_userEmail');
       final cartData = {
         'items': _cartItems.map((item) => item.toMap()).toList(),
       };
@@ -71,19 +71,19 @@ class CartProvider with ChangeNotifier {
           .doc(_userEmail)
           .set(cartData, SetOptions(merge: false))
           .timeout(const Duration(seconds: 3), onTimeout: () {
-        debugPrint('Firestore save timeout for $_userEmail');
+        debugPrint('CartProvider: Firestore save timeout for $_userEmail');
         throw Exception('Firestore save timeout');
       });
-      debugPrint('Cart saved successfully for $_userEmail');
+      debugPrint('CartProvider: Cart saved successfully for $_userEmail');
     } catch (e) {
-      debugPrint('Error saving cart: $e');
+      debugPrint('CartProvider: Error saving cart: $e');
       throw Exception('Failed to save cart: $e');
     }
   }
 
   Future<void> addToCart(CartItem item) async {
     try {
-      debugPrint('Adding to cart: ${item.name}, imgbase64 length: ${item.imgbase64.length}');
+      debugPrint('CartProvider: Adding to cart: ${item.name}, imgbase64 length: ${item.imgbase64.length}');
       if (item.name.isEmpty || item.sellerEmail.isEmpty) {
         throw Exception('Invalid cart item: name or sellerEmail is empty');
       }
@@ -92,47 +92,47 @@ class CartProvider with ChangeNotifier {
       );
       if (existingItemIndex != -1) {
         _cartItems[existingItemIndex].quantity++;
-        debugPrint('Incremented quantity for ${item.name}');
+        debugPrint('CartProvider: Incremented quantity for ${item.name}');
       } else {
         _cartItems.add(item);
-        debugPrint('Added new item: ${item.name}');
+        debugPrint('CartProvider: Added new item: ${item.name}');
       }
       await _saveCart();
-      // Delay notifyListeners to reduce rendering load
-      Future.delayed(const Duration(milliseconds: 150), () {
-        notifyListeners();
-      });
+      // Delay notifyListeners to avoid rendering issues
+      await Future.delayed(const Duration(milliseconds: 250));
+      debugPrint('CartProvider: Notifying listeners after cart update');
+      notifyListeners();
     } catch (e) {
-      debugPrint('Error adding to cart: $e');
+      debugPrint('CartProvider: Error adding to cart: $e');
       throw e;
     }
   }
 
   Future<void> removeFromCart(CartItem item) async {
     try {
-      debugPrint('Removing from cart: ${item.name}');
+      debugPrint('CartProvider: Removing from cart: ${item.name}');
       _cartItems.remove(item);
       await _saveCart();
       notifyListeners();
     } catch (e) {
-      debugPrint('Error removing from cart: $e');
+      debugPrint('CartProvider: Error removing from cart: $e');
     }
   }
 
   Future<void> increaseQuantity(CartItem item) async {
     try {
-      debugPrint('Increasing quantity for ${item.name}');
+      debugPrint('CartProvider: Increasing quantity for ${item.name}');
       item.quantity++;
       await _saveCart();
       notifyListeners();
     } catch (e) {
-      debugPrint('Error increasing quantity: $e');
+      debugPrint('CartProvider: Error increasing quantity: $e');
     }
   }
 
   Future<void> decreaseQuantity(CartItem item) async {
     try {
-      debugPrint('Decreasing quantity for ${item.name}');
+      debugPrint('CartProvider: Decreasing quantity for ${item.name}');
       if (item.quantity > 1) {
         item.quantity--;
       } else {
@@ -141,29 +141,29 @@ class CartProvider with ChangeNotifier {
       await _saveCart();
       notifyListeners();
     } catch (e) {
-      debugPrint('Error decreasing quantity: $e');
+      debugPrint('CartProvider: Error decreasing quantity: $e');
     }
   }
 
   Future<void> removeItems(List<CartItem> items) async {
     try {
-      debugPrint('Removing ${items.length} items');
+      debugPrint('CartProvider: Removing ${items.length} items');
       _cartItems.removeWhere((item) => items.contains(item));
       await _saveCart();
       notifyListeners();
     } catch (e) {
-      debugPrint('Error removing items: $e');
+      debugPrint('CartProvider: Error removing items: $e');
     }
   }
 
   Future<void> clearCart() async {
     try {
-      debugPrint('Clearing cart');
+      debugPrint('CartProvider: Clearing cart');
       _cartItems.clear();
       await _saveCart();
       notifyListeners();
     } catch (e) {
-      debugPrint('Error clearing cart: $e');
+      debugPrint('CartProvider: Error clearing cart: $e');
     }
   }
 

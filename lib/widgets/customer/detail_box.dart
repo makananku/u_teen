@@ -74,7 +74,10 @@ class _DetailBoxState extends State<DetailBox> {
           mainAxisSize: MainAxisSize.min,
           children: [
             GestureDetector(
-              onTap: widget.onClose,
+              onTap: () {
+                debugPrint('DetailBox: Closing via onClose');
+                widget.onClose();
+              },
               child: Center(
                 child: Container(
                   width: 60,
@@ -205,6 +208,7 @@ class _DetailBoxState extends State<DetailBox> {
                       onPressed: _isAddingToCart
                           ? null
                           : () async {
+                              debugPrint('DetailBox: Add to Cart button pressed for ${widget.selectedFoodItem}');
                               setState(() {
                                 _isAddingToCart = true;
                               });
@@ -226,15 +230,15 @@ class _DetailBoxState extends State<DetailBox> {
                                   subtitle: widget.selectedFoodSubtitle,
                                   sellerEmail: widget.sellerEmail,
                                 ));
-                                debugPrint('Added to cart: ${widget.selectedFoodItem}, imgBase64 length: ${widget.selectedFoodImgBase64.length}');
-                                // Increased delay to stabilize rendering
-                                await Future.delayed(const Duration(milliseconds: 100));
+                                debugPrint('DetailBox: Added to cart: ${widget.selectedFoodItem}, imgBase64 length: ${widget.selectedFoodImgBase64.length}');
+                                // Increased delay to ensure rendering stability
+                                await Future.delayed(const Duration(milliseconds: 200));
                                 if (context.mounted) {
-                                  debugPrint('Popping DetailBox for ${widget.selectedFoodItem}');
-                                  Navigator.pop(context);
+                                  debugPrint('DetailBox: Popping context for ${widget.selectedFoodItem}');
+                                  Navigator.of(context).pop();
                                 }
                               } catch (e) {
-                                debugPrint('Error adding to cart: $e');
+                                debugPrint('DetailBox: Error adding to cart: $e');
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
@@ -308,7 +312,7 @@ class _DetailBoxState extends State<DetailBox> {
                           } else {
                             try {
                               await favoriteProvider.addToFavorites(favoriteItem);
-                              debugPrint('Added to favorites from DetailBox: ${favoriteItem.name}, imgBase64 length: ${favoriteItem.imgBase64.length}');
+                              debugPrint('DetailBox: Added to favorites: ${favoriteItem.name}, imgBase64 length: ${favoriteItem.imgBase64.length}');
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
@@ -325,7 +329,7 @@ class _DetailBoxState extends State<DetailBox> {
                                 ),
                               );
                             } catch (e) {
-                              debugPrint('Error adding to favorites: $e');
+                              debugPrint('DetailBox: Error adding to favorites: $e');
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
@@ -408,11 +412,11 @@ class _DetailBoxState extends State<DetailBox> {
       final String cleanedBase64 = base64String.startsWith('data:image')
           ? base64String.split(',').last
           : base64String;
+      debugPrint('DetailBox: Decoding Base64 for ${widget.selectedFoodItem}, length: ${cleanedBase64.length}');
       return base64Decode(cleanedBase64);
     } catch (e) {
-      debugPrint('Error decoding Base64 for ${widget.selectedFoodItem}: $e');
-      const placeholderBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAEAwFLLYL9WAAAAABJRU5ErkJggg==';
-      return base64Decode(placeholderBase64);
+      debugPrint('DetailBox: Error decoding Base64 for ${widget.selectedFoodItem}: $e');
+      return Uint8List(0); // Trigger errorBuilder
     }
   }
 }

@@ -5,6 +5,7 @@ import '../../providers/theme_notifier.dart';
 import 'package:provider/provider.dart';
 import '../../models/product_model.dart';
 import 'dart:convert';
+import 'dart:typed_data';
 
 class FoodList extends StatefulWidget {
   final String selectedCategory;
@@ -23,11 +24,15 @@ class FoodList extends StatefulWidget {
 class _FoodListState extends State<FoodList> {
   @override
   Widget build(BuildContext context) {
-    debugPrint('Building FoodList with category: ${widget.selectedCategory}');
+    debugPrint('FoodList: Building with category: ${widget.selectedCategory}');
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('products').where('isActive', isEqualTo: true).snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('products')
+          .where('isActive', isEqualTo: true)
+          .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
+          debugPrint('FoodList: Waiting for Firestore data');
           return const SizedBox(
             height: 220,
             child: Center(child: CircularProgressIndicator()),
@@ -35,7 +40,7 @@ class _FoodListState extends State<FoodList> {
         }
 
         if (snapshot.hasError) {
-          debugPrint('Error fetching products: ${snapshot.error}');
+          debugPrint('FoodList: Error fetching products: ${snapshot.error}');
           return const SizedBox(
             height: 220,
             child: Center(child: Text('Error loading products')),
@@ -43,7 +48,7 @@ class _FoodListState extends State<FoodList> {
         }
 
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          debugPrint('No products found');
+          debugPrint('FoodList: No products found');
           return const SizedBox(
             height: 220,
             child: Center(child: Text('No products available')),
@@ -56,11 +61,7 @@ class _FoodListState extends State<FoodList> {
             ? products
             : products.where((food) => food.category == widget.selectedCategory).toList();
 
-        if (widget.selectedCategory == 'All') {
-          foodItems.sort((a, b) => a.category.compareTo(b.category));
-        }
-
-        debugPrint('Filtered food items for category ${widget.selectedCategory}: ${foodItems.length}');
+        debugPrint('FoodList: Filtered food items for category ${widget.selectedCategory}: ${foodItems.length}');
 
         return SizedBox(
           height: 220,
@@ -81,7 +82,7 @@ class _FoodListState extends State<FoodList> {
                   price: food.price,
                   sellerEmail: food.sellerEmail,
                   onTap: () {
-                    debugPrint('Tapped food item: ${food.title}');
+                    debugPrint('FoodList: Tapped food item: ${food.title}');
                     widget.onFoodItemTap(
                       food.title,
                       food.price,
@@ -89,10 +90,10 @@ class _FoodListState extends State<FoodList> {
                       food.subtitle,
                       food.sellerEmail,
                     );
-                    // Force rebuild to ensure UI updates
-                    Future.microtask(() {
-                      if (mounted) setState(() {});
-                    });
+                    // Ensure rebuild after tap
+                    if (mounted) {
+                      setState(() {});
+                    }
                   },
                 ),
               );
@@ -126,11 +127,14 @@ class FoodCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('Building FoodCard for $title');
+    debugPrint('FoodCard: Building for $title');
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
 
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        debugPrint('FoodCard: Tapped $title');
+        onTap();
+      },
       child: Container(
         width: 180,
         decoration: BoxDecoration(
@@ -156,12 +160,12 @@ class FoodCard extends StatelessWidget {
                   ),
                   child: imgBase64.isNotEmpty
                       ? Image.memory(
-                          base64Decode(imgBase64),
+                          _decodeBase64(imgBase64),
                           height: 120,
                           width: 180,
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) {
-                            debugPrint('Error loading Base64 image for $title');
+                            debugPrint('FoodCard: Error loading Base64 image for $title');
                             return Container(
                               height: 120,
                               width: 180,
@@ -249,5 +253,18 @@ class FoodCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Uint8List _decodeBase64(String base64String) {
+    try {
+      final String cleanedBase64 = base64String.startsWith('data:image')
+          ? base64String.split(',').last
+          : base64String;
+      debugPrint('FoodCard: Decoding Base64 for $title, length: $cleanedBase64.length}');
+      return base64Decode(cleanedBase64);
+    } catch (e) {
+      debugPrint('FoodCard: Error decoding Base64 for $title: $e');
+      return Uint8List(0); // Trigger errorBuilder
+    }
   }
 }
