@@ -14,6 +14,7 @@ class AuthProvider extends ChangeNotifier {
   String? _customerAngkatan;
   final AuthService _authService = AuthService();
   final fb.FirebaseAuth _firebaseAuth = fb.FirebaseAuth.instance;
+  bool _isInitialized = false;
 
   User? get user => _user;
   bool get isLoggedIn => _isLoggedIn;
@@ -25,85 +26,106 @@ class AuthProvider extends ChangeNotifier {
   String? get customerAngkatan => _customerAngkatan;
   String? get tenantName => _user?.tenantName;
   String? get sellerEmail => _user?.email;
+  bool get isInitialized => _isInitialized;
 
   AuthProvider() {
-    initialize();
-    _firebaseAuth.authStateChanges().listen((fb.User? firebaseUser) {
-      if (firebaseUser == null) {
-        logout();
-      } else if (_user == null || _user!.email != firebaseUser.email) {
-        _loadUserData();
-      }
-    });
+    _firebaseAuth.authStateChanges().listen(_onAuthStateChanged);
+  }
+
+  Future<void> _onAuthStateChanged(fb.User? firebaseUser) async {
+    if (firebaseUser == null) {
+      await logout();
+    } else if (_user == null || _user!.email != firebaseUser.email) {
+      await _loadUserData(firebaseUser);
+    }
   }
 
   Future<void> initialize() async {
-    await _loadUserData();
-  }
-
-  Future<void> _loadUserData() async {
+    if (_isInitialized) return;
+    
     try {
       final firebaseUser = _firebaseAuth.currentUser;
-      if (firebaseUser == null || firebaseUser.isAnonymous) {
-        debugPrint('AuthProvider: No authenticated user or anonymous user');
+      if (firebaseUser != null) {
+        await _loadUserData(firebaseUser);
+      }
+      _isInitialized = true;
+    } catch (e) {
+      debugPrint('AuthProvider initialize error: $e');
+      _isInitialized = true;
+      notifyListeners();
+    }
+  }
+
+  Future<void> _loadUserData(fb.User firebaseUser) async {
+    try {
+      if (!firebaseUser.emailVerified) {
+        debugPrint('Email not verified');
         await logout();
         return;
       }
 
+      // Cek SharedPreferences terlebih dahulu
       final prefs = await SharedPreferences.getInstance();
-      final email = prefs.getString('email');
-      final name = prefs.getString('name');
-      final userType = prefs.getString('userType');
-      final nim = prefs.getString('nim');
-      final phoneNumber = prefs.getString('phoneNumber');
-      final prodi = prefs.getString('prodi');
-      final angkatan = prefs.getString('angkatan');
-      final tenantName = prefs.getString('tenantName');
+      final cachedEmail = prefs.getString('email');
+      
+      if (cachedEmail == firebaseUser.email) {
+        _loadFromPreferences(prefs);
+        return;
+      }
 
-      if (email != null && name != null && userType != null && email == firebaseUser.email) {
-        _user = User(
-          email: email,
-          name: name,
-          userType: userType,
-          nim: nim,
-          phoneNumber: phoneNumber,
-          prodi: prodi,
-          angkatan: angkatan,
-          tenantName: tenantName,
-        );
-        _isLoggedIn = true;
-        _isSeller = userType == 'seller';
-        _customerNim = !_isSeller ? nim : null;
-        _sellerNim = _isSeller ? nim : null;
-        _customerProdi = !_isSeller ? prodi : null;
-        _customerAngkatan = !_isSeller ? angkatan : null;
-        debugPrint('AuthProvider: Loaded user from SharedPreferences: $email');
-        notifyListeners();
+      // Jika tidak ada di SharedPreferences atau email berbeda, ambil dari Firestore
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(firebaseUser.uid)
+          .get();
+
+      if (userDoc.exists) {
+        _user = User.fromFirestore(userDoc);
+        await _saveToPrefs(_user!);
+        _updateUserState();
+        debugPrint('Loaded user from Firestore: ${_user!.email}');
       } else {
-        // Fetch from Firestore if SharedPreferences is outdated
-        final userDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(firebaseUser.uid)
-            .get();
-        if (userDoc.exists) {
-          _user = User.fromFirestore(userDoc);
-          await _saveToPrefs(_user!);
-          _isLoggedIn = true;
-          _isSeller = _user!.userType == 'seller';
-          _customerNim = !_isSeller ? _user!.nim : null;
-          _sellerNim = _isSeller ? _user!.nim : null;
-          _customerProdi = !_isSeller ? _user!.prodi : null;
-          _customerAngkatan = !_isSeller ? _user!.angkatan : null;
-          debugPrint('AuthProvider: Loaded user from Firestore: ${_user!.email}');
-          notifyListeners();
-        } else {
-          await logout();
-        }
+        debugPrint('User document does not exist in Firestore');
+        await logout();
       }
     } catch (e) {
-      debugPrint('AuthProvider initialize error: $e');
+      debugPrint('Error loading user data: $e');
       await logout();
     }
+  }
+
+  void _loadFromPreferences(SharedPreferences prefs) {
+    final email = prefs.getString('email');
+    final name = prefs.getString('name');
+    final userType = prefs.getString('userType');
+    
+    if (email == null || name == null || userType == null) {
+      throw Exception('Incomplete user data in SharedPreferences');
+    }
+
+    _user = User(
+      email: email,
+      name: name,
+      userType: userType,
+      nim: prefs.getString('nim'),
+      phoneNumber: prefs.getString('phoneNumber'),
+      prodi: prefs.getString('prodi'),
+      angkatan: prefs.getString('angkatan'),
+      tenantName: prefs.getString('tenantName'),
+    );
+    
+    _updateUserState();
+    debugPrint('Loaded user from SharedPreferences: $email');
+  }
+
+  void _updateUserState() {
+    _isLoggedIn = true;
+    _isSeller = _user!.userType == 'seller';
+    _customerNim = !_isSeller ? _user!.nim : null;
+    _sellerNim = _isSeller ? _user!.nim : null;
+    _customerProdi = !_isSeller ? _user!.prodi : null;
+    _customerAngkatan = !_isSeller ? _user!.angkatan : null;
+    notifyListeners();
   }
 
   Future<bool> login({
@@ -112,23 +134,22 @@ class AuthProvider extends ChangeNotifier {
   }) async {
     try {
       final user = await _authService.login(email, password);
-      if (user == null) {
-        debugPrint('AuthProvider: Login failed');
+      if (user == null) return false;
+
+      // Verifikasi email
+      final firebaseUser = _firebaseAuth.currentUser;
+      if (firebaseUser == null || !firebaseUser.emailVerified) {
+        debugPrint('Email not verified');
+        await logout();
         return false;
       }
+
       _user = user;
       await _saveToPrefs(user);
-      _isLoggedIn = true;
-      _isSeller = user.userType == 'seller';
-      _customerNim = !_isSeller ? user.nim : null;
-      _sellerNim = _isSeller ? user.nim : null;
-      _customerProdi = !_isSeller ? user.prodi : null;
-      _customerAngkatan = !_isSeller ? user.angkatan : null;
-      debugPrint('AuthProvider: Logged in user: ${user.email}');
-      notifyListeners();
+      _updateUserState();
       return true;
     } catch (e) {
-      debugPrint('AuthProvider login error: $e');
+      debugPrint('Login error: $e');
       return false;
     }
   }
@@ -150,6 +171,7 @@ class AuthProvider extends ChangeNotifier {
       await _firebaseAuth.signOut();
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
+      
       _user = null;
       _isLoggedIn = false;
       _isSeller = false;
@@ -157,11 +179,11 @@ class AuthProvider extends ChangeNotifier {
       _sellerNim = null;
       _customerProdi = null;
       _customerAngkatan = null;
-      debugPrint('AuthProvider: Logged out');
+      
       notifyListeners();
       return true;
     } catch (e) {
-      debugPrint('AuthProvider logout error: $e');
+      debugPrint('Logout error: $e');
       return false;
     }
   }
