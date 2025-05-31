@@ -26,18 +26,28 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    debugPrint('Main: Firebase initialized successfully');
+  } catch (e) {
+    debugPrint('Main: Firebase initialization error: $e');
+    runApp(MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: Text('Failed to initialize Firebase: $e'),
+        ),
+      ),
+    ));
+    return;
+  }
 
+  try {
     final firstRun = await DataInitializer.isFirstRun();
     if (firstRun) {
-      try {
-        await DataInitializer.initializeData();
-        await DataInitializer.setFirstRunComplete();
-      } catch (e) {
-        debugPrint('Error during data initialization: $e');
-      }
+      await DataInitializer.initializeData();
+      await DataInitializer.setFirstRunComplete();
+      debugPrint('Main: Initial data setup completed');
     }
   } catch (e) {
-    debugPrint('Firebase initialization error: $e');
+    debugPrint('Main: Error during data initialization: $e');
   }
 
   await initializeDateFormatting('id_ID', null);
@@ -98,10 +108,16 @@ class AuthWrapper extends StatelessWidget {
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
 
     return FutureBuilder(
-      future: auth.initialize(),
+      future: Future.wait([
+        auth.initialize().timeout(
+          const Duration(seconds: 10),
+          onTimeout: () => throw Exception('Initialization timed out'),
+        ),
+      ]),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasError) {
+            debugPrint('AuthWrapper: Initialization error: ${snapshot.error}');
             return Scaffold(
               body: Center(
                 child: Column(
@@ -114,14 +130,12 @@ class AuthWrapper extends StatelessWidget {
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () {
-                        auth.initialize().then((_) {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const AuthWrapper(),
-                            ),
-                          );
-                        });
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AuthWrapper(),
+                          ),
+                        );
                       },
                       child: const Text('Retry'),
                     ),
@@ -130,6 +144,7 @@ class AuthWrapper extends StatelessWidget {
               ),
             );
           }
+          debugPrint('AuthWrapper: Initialization complete, showing SplashScreen');
           return const SplashScreen();
         }
         return Scaffold(
@@ -164,8 +179,7 @@ class SplashScreen extends StatefulWidget {
   _SplashScreenState createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
-    with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
   late final AnimationController _logoController;
   late final Animation<double> _logoScale;
   late final Animation<double> _logoOpacity;
@@ -190,6 +204,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
+    debugPrint('SplashScreen: Initializing');
     _initializeControllers();
     _initializeAnimations();
     _startAnimations();
@@ -306,34 +321,49 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _startAnimations() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    _logoController.forward();
+  debugPrint('SplashScreen: Starting animations');
+  await Future.delayed(const Duration(milliseconds: 500));
+  _logoController.forward();
 
-    await Future.delayed(const Duration(milliseconds: 900));
-    _textController.forward();
+  await Future.delayed(const Duration(milliseconds: 900));
+  _textController.forward();
 
-    await Future.delayed(const Duration(milliseconds: 800));
+  await Future.delayed(const Duration(milliseconds: 800));
+  if (!mounted) return;
+
+  _bgController.forward().then((_) async {
     if (!mounted) return;
+    _logoController.reverse();
+    _textShiftController.forward();
 
-    _bgController.forward().then((_) {
-      if (!mounted) return;
-      _logoController.reverse();
-      _textShiftController.forward();
-
-      final auth = Provider.of<AuthProvider>(context, listen: false);
-      if (auth.isLoggedIn) {
+    debugPrint('SplashScreen: Checking authentication status');
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    if (auth.isLoggedIn && auth.user != null) {
+      debugPrint('SplashScreen: User is logged in, email: ${auth.user!.email}');
+      try {
+        await Provider.of<FavoriteProvider>(context, listen: false).initialize(context);
+        debugPrint('FavoriteProvider initialized for user: ${auth.user!.email}');
+        await Provider.of<CartProvider>(context, listen: false).initialize(auth.user!.email);
+        debugPrint('CartProvider initialized for user: ${auth.user!.email}');
+      } catch (e) {
+        debugPrint('SplashScreen: Error initializing providers: $e');
+      }
+      if (mounted) {
+        debugPrint('SplashScreen: Navigating to home screen');
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) =>
-            auth.isSeller ? const SellerHomeScreen() : const HomeScreen(),
+                auth.isSeller ? const SellerHomeScreen() : const HomeScreen(),
           ),
         );
-      } else {
-        _buttonController.forward();
       }
-    });
-  }
+    } else {
+      debugPrint('SplashScreen: No logged-in user, showing login button');
+      _buttonController.forward();
+    }
+  });
+}
 
   @override
   void dispose() {
@@ -342,6 +372,7 @@ class _SplashScreenState extends State<SplashScreen>
     _textShiftController.dispose();
     _bgController.dispose();
     _buttonController.dispose();
+    debugPrint('SplashScreen: Disposed');
     super.dispose();
   }
 
@@ -425,8 +456,8 @@ class _SplashScreenState extends State<SplashScreen>
                 style: TextStyle(
                   fontSize: 16,
                   color: _bgController.value < 0.5 
-                    ? AppTheme.getAppBarText(isDarkMode).withOpacity(0.7) 
-                    : AppTheme.getGrey600(isDarkMode),
+                      ? AppTheme.getAppBarText(isDarkMode).withOpacity(0.7) 
+                      : AppTheme.getGrey600(isDarkMode),
                 ),
               ),
             ],
@@ -492,11 +523,12 @@ class _SplashScreenState extends State<SplashScreen>
                   elevation: 0,
                 ),
                 onPressed: () {
+                  debugPrint('SplashScreen: Navigating to LoginScreen');
                   Navigator.pushReplacement(
                     context,
                     PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
-                      const LoginScreen(),
+                          const LoginScreen(),
                       transitionsBuilder: (
                           context,
                           animation,

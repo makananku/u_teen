@@ -6,6 +6,8 @@ import 'package:u_teen/screens/customer/home_screen.dart';
 import 'package:u_teen/screens/seller/home_screen.dart';
 import 'package:u_teen/utils/app_theme.dart';
 import 'package:u_teen/providers/theme_notifier.dart';
+import 'package:u_teen/providers/favorite_provider.dart';
+import 'package:u_teen/providers/cart_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -28,30 +30,41 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   DateTime? _lastBackPressTime;
 
   @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    );
-    
-    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOutCubic),
-    );
-    
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.2),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutQuart,
-    ));
+void initState() {
+  super.initState();
+  _animationController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1000),
+  );
+  
+  _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    CurvedAnimation(parent: _animationController, curve: Curves.easeInOutCubic),
+  );
+  
+  _slideAnimation = Tween<Offset>(
+    begin: const Offset(0, 0.2),
+    end: Offset.zero,
+  ).animate(CurvedAnimation(
+    parent: _animationController,
+    curve: Curves.easeOutQuart,
+  ));
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      await authProvider.initialize();
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    debugPrint('LoginScreen: Initializing AuthProvider');
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    await authProvider.initialize();
 
-      if (authProvider.isLoggedIn && mounted) {
+    if (authProvider.isLoggedIn && authProvider.user != null && mounted) {
+      debugPrint('LoginScreen: User is logged in, email: ${authProvider.user!.email}');
+      try {
+        await Provider.of<FavoriteProvider>(context, listen: false).initialize(context);
+        debugPrint('FavoriteProvider initialized for user: ${authProvider.user?.email}');
+        await Provider.of<CartProvider>(context, listen: false).initialize(authProvider.user!.email);
+        debugPrint('CartProvider initialized for user: ${authProvider.user?.email}');
+      } catch (e) {
+        debugPrint('LoginScreen: Error initializing providers: $e');
+      }
+      if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
@@ -61,83 +74,88 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
           ),
           (route) => false,
         );
-      } else {
-        _animationController.forward();
       }
-    });
-  }
+    } else {
+      debugPrint('LoginScreen: No logged-in user, showing login UI');
+      _animationController.forward();
+    }
+  });
+}
 
-  @override
-  void dispose() {
-    _animationController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
+Future<void> _handleLogin() async {
+  if (!_formKey.currentState!.validate()) return;
 
-  Future<void> _handleLogin() async {
-    if (!_formKey.currentState!.validate()) return;
+  setState(() => _isLoading = true);
 
-    setState(() => _isLoading = true);
+  final isDarkMode = Provider.of<ThemeNotifier>(context, listen: false).isDarkMode;
 
-    final isDarkMode = Provider.of<ThemeNotifier>(context, listen: false).isDarkMode;
+  try {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final authService = AuthService();
 
-    try {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final authService = AuthService();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
 
-      final email = _emailController.text.trim();
-      final password = _passwordController.text.trim();
+    debugPrint('LoginScreen: Attempting login for $email');
+    final emailValidationError = authService.validateEmail(email);
+    if (emailValidationError != null) {
+      _showSnackBar(emailValidationError, AppTheme.getSnackBarError(isDarkMode));
+      setState(() => _isLoading = false);
+      return;
+    }
 
-      final emailValidationError = authService.validateEmail(email);
-      if (emailValidationError != null) {
-        _showSnackBar(emailValidationError, AppTheme.getSnackBarError(isDarkMode));
-        setState(() => _isLoading = false);
-        return;
-      }
+    final user = await authService.login(email, password);
 
-      final user = await authService.login(email, password);
+    if (!mounted) return;
 
-      if (!mounted) return;
+    if (user != null) {
+      final success = await authProvider.login(
+        email: email,
+        password: password,
+      );
 
-      if (user != null) {
-        final success = await authProvider.login(
-          user.email,
-          user.name,
-          user.userType,
-          user.nim,
-          user.phoneNumber,
-          user.prodi,
-          user.angkatan,
-          user.tenantName,
-        );
-
-        if (success && mounted) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (context) => user.userType == 'seller'
-                  ? const SellerHomeScreen()
-                  : const HomeScreen(),
-            ),
-            (route) => false,
-          );
-        } else {
-          _showSnackBar('Failed to save login session.', AppTheme.getSnackBarError(isDarkMode));
+      if (success && authProvider.user != null && mounted) {
+        try {
+          await Provider.of<FavoriteProvider>(context, listen: false).initialize(context);
+          debugPrint('FavoriteProvider initialized for user: ${authProvider.user!.email}');
+          await Provider.of<CartProvider>(context, listen: false).initialize(authProvider.user!.email);
+          debugPrint('CartProvider initialized for user: ${authProvider.user!.email}');
+          await Future.delayed(const Duration(milliseconds: 500));
+          if (mounted) {
+            debugPrint('LoginScreen: Login successful, navigating to home');
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) => user.userType == 'seller'
+                    ? const SellerHomeScreen()
+                    : const HomeScreen(),
+              ),
+              (route) => false,
+            );
+          }
+        } catch (e) {
+          debugPrint('LoginScreen: Error initializing providers: $e');
+          _showSnackBar('Error initializing app: $e', AppTheme.getSnackBarError(isDarkMode));
         }
       } else {
-        _showSnackBar('Login failed. Incorrect email or password.', AppTheme.getSnackBarError(isDarkMode));
+        debugPrint('LoginScreen: Failed to save login session');
+        _showSnackBar('Failed to save login session.', AppTheme.getSnackBarError(isDarkMode));
       }
-    } catch (e) {
-      if (mounted) {
-        _showSnackBar('An error occurred: $e', AppTheme.getSnackBarError(isDarkMode));
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+    } else {
+      debugPrint('LoginScreen: Login failed, user is null');
+      _showSnackBar('Login failed. Incorrect email or password, or user data not found.', AppTheme.getSnackBarError(isDarkMode));
+    }
+  } catch (e) {
+    debugPrint('LoginScreen: Login error: $e');
+    if (mounted) {
+      _showSnackBar('An error occurred: $e', AppTheme.getSnackBarError(isDarkMode));
+    }
+  } finally {
+    if (mounted) {
+      setState(() => _isLoading = false);
     }
   }
+}
 
   void _showSnackBar(String message, Color backgroundColor) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -187,7 +205,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         backgroundColor: AppTheme.getBackground(isDarkMode),
         body: Stack(
           children: [
-            // Background decoration
             Positioned(
               top: -50,
               right: -50,
@@ -212,7 +229,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 ),
               ),
             ),
-            
             SingleChildScrollView(
               child: SizedBox(
                 height: MediaQuery.of(context).size.height,
@@ -222,7 +238,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Spacer(flex: 2),
-                      // Header with title only (logo removed)
                       FadeTransition(
                         opacity: _opacityAnimation,
                         child: SlideTransition(
@@ -230,7 +245,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const SizedBox(height: 80), // Space reserved for removed logo
+                              const SizedBox(height: 80),
                               Text(
                                 'Welcome Back',
                                 style: TextStyle(
@@ -252,7 +267,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         ),
                       ),
                       const Spacer(),
-                      // Login form
                       FadeTransition(
                         opacity: _opacityAnimation,
                         child: SlideTransition(
@@ -275,12 +289,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               key: _formKey,
                               child: Column(
                                 children: [
-                                  // Email field
                                   TextFormField(
                                     controller: _emailController,
                                     decoration: InputDecoration(
                                       filled: true,
-    fillColor: isDarkMode ? AppTheme.getDark2D(isDarkMode) : AppTheme.getCard(isDarkMode),
+                                      fillColor: isDarkMode ? AppTheme.getDark2D(isDarkMode) : AppTheme.getCard(isDarkMode),
                                       hintText: 'Email',
                                       hintStyle: TextStyle(
                                         color: isDarkMode ? AppTheme.getGrey500(isDarkMode) : AppTheme.getGrey600(isDarkMode)),
@@ -299,7 +312,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     onChanged: (value) => setState(() {}),
                                   ),
                                   const SizedBox(height: 20),
-                                  // Password field
                                   TextFormField(
                                     controller: _passwordController,
                                     obscureText: _obscurePassword,
@@ -331,7 +343,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     validator: _validatePassword,
                                   ),
                                   const SizedBox(height: 24),
-                                  // Login button
                                   SizedBox(
                                     width: double.infinity,
                                     height: 50,

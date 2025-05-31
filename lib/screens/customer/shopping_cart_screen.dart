@@ -337,9 +337,9 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
             tag: 'cart_${item.name}_${item.subtitle}',
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: item.imgbase64.isNotEmpty
+              child: item.imgBase64.isNotEmpty
                   ? Image.memory(
-                      _decodeBase64(item.imgbase64),
+                      _decodeBase64(item.imgBase64),
                       width: 50,
                       height: 50,
                       fit: BoxFit.cover,

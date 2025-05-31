@@ -83,7 +83,7 @@ class CartProvider with ChangeNotifier {
 
   Future<void> addToCart(CartItem item) async {
     try {
-      debugPrint('CartProvider: Adding to cart: ${item.name}, imgbase64 length: ${item.imgbase64.length}');
+      debugPrint('CartProvider: Adding to cart: ${item.name}, imgbase64 length: ${item.imgBase64.length}');
       if (item.name.isEmpty || item.sellerEmail.isEmpty) {
         throw Exception('Invalid cart item: name or sellerEmail is empty');
       }

@@ -1,7 +1,7 @@
 class CartItem {
   final String name;
   final int price;
-  final String imgbase64;
+  final String imgBase64;
   final String subtitle;
   final String sellerEmail;
   int quantity;
@@ -9,7 +9,7 @@ class CartItem {
   CartItem({
     required this.name,
     required this.price,
-    required this.imgbase64,
+    required this.imgBase64,
     required this.subtitle,
     required this.sellerEmail,
     this.quantity = 1,
@@ -19,7 +19,7 @@ class CartItem {
     return {
       'name': name,
       'price': price,
-      'imgbase64': imgbase64,
+      'imgbase64': imgBase64,
       'subtitle': subtitle,
       'sellerEmail': sellerEmail,
       'quantity': quantity,
@@ -30,7 +30,7 @@ class CartItem {
     return CartItem(
       name: map['name'] ?? '',
       price: map['price'] ?? 0,
-      imgbase64: map['imgbase64'] ?? '',
+      imgBase64: map['imgBase64'] ?? map['imgbase64'] ?? '',
       subtitle: map['subtitle'] ?? '',
       sellerEmail: map['sellerEmail'] ?? '',
       quantity: map['quantity'] ?? 1,

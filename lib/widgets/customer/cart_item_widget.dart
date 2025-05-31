@@ -102,9 +102,9 @@ class CartItemWidget extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: item.imgbase64.isNotEmpty
+                  child: item.imgBase64.isNotEmpty
                       ? Image.memory(
-                          _decodeBase64(item.imgbase64),
+                          _decodeBase64(item.imgBase64),
                           width: 60,
                           height: 60,
                           fit: BoxFit.cover,

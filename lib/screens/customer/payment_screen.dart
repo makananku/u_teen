@@ -346,7 +346,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 price: item.price,
                 quantity: item.quantity,
                 sellerEmail: item.sellerEmail,
-                imgBase64: item.imgbase64
+                imgBase64: item.imgBase64
               ),
             )
             .toList(),

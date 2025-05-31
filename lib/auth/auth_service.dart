@@ -10,7 +10,7 @@ class User {
   final String? phoneNumber;
   final String? prodi;
   final String? angkatan;
-  final String? tenantName; // Added for sellers
+  final String? tenantName; 
 
   User({
     required this.email,

@@ -226,7 +226,7 @@ class _DetailBoxState extends State<DetailBox> {
                                 await cartProvider.addToCart(CartItem(
                                   name: widget.selectedFoodItem,
                                   price: price,
-                                  imgbase64: widget.selectedFoodImgBase64,
+                                  imgBase64: widget.selectedFoodImgBase64,
                                   subtitle: widget.selectedFoodSubtitle,
                                   sellerEmail: widget.sellerEmail,
                                 ));

@@ -12,23 +12,23 @@ class FavoriteProvider with ChangeNotifier {
   List<FavoriteItem> get favoriteItems => List.unmodifiable(_favoriteItems);
 
   Future<void> initialize(BuildContext context) async {
-    if (_isInitialized) {
-      debugPrint('FavoriteProvider: Already initialized');
-      return;
-    }
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    _userEmail = authProvider.user?.email;
-    if (_userEmail == null) {
-      debugPrint('FavoriteProvider: No user logged in, cannot initialize favorites');
-      _favoriteItems = [];
-      notifyListeners();
-      return;
-    }
-    debugPrint('FavoriteProvider: Initializing for user $_userEmail');
-    await _loadFavorites();
-    _isInitialized = true;
-    notifyListeners();
+  if (_isInitialized) {
+    debugPrint('FavoriteProvider: Already initialized');
+    return;
   }
+  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+  if (authProvider.user == null) {
+    debugPrint('FavoriteProvider: No user logged in, skipping initialization');
+    _favoriteItems = [];
+    notifyListeners();
+    return;
+  }
+  _userEmail = authProvider.user!.email;
+  debugPrint('FavoriteProvider: Initializing for user $_userEmail');
+  await _loadFavorites();
+  _isInitialized = true;
+  notifyListeners();
+}
 
   Future<void> _loadFavorites() async {
     if (_userEmail == null) {

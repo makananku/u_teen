@@ -22,7 +22,7 @@ class OrderRepository {
       cancelledAt: null,
       items: items.map((item) => OrderItem(
         name: item.name,
-        imgBase64: item.imgbase64,
+        imgBase64: item.imgBase64,
         subtitle: item.subtitle,
         price: item.price,
         quantity: item.quantity, sellerEmail: '',
