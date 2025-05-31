@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 import '../models/favorite_item.dart';
+import '../../auth/auth_provider.dart';
 
 class FavoriteProvider with ChangeNotifier {
   List<FavoriteItem> _favoriteItems = [];
@@ -8,13 +10,24 @@ class FavoriteProvider with ChangeNotifier {
 
   List<FavoriteItem> get favoriteItems => List.unmodifiable(_favoriteItems);
 
-  Future<void> initialize(String userEmail) async {
-    _userEmail = userEmail;
+  Future<void> initialize(BuildContext context) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    _userEmail = authProvider.user?.email;
+    if (_userEmail == null) {
+      debugPrint('FavoriteProvider: No user logged in, cannot initialize favorites');
+      _favoriteItems = [];
+      notifyListeners();
+      return;
+    }
+    debugPrint('FavoriteProvider: Initializing for user $_userEmail');
     await _loadFavorites();
   }
 
   Future<void> _loadFavorites() async {
-    if (_userEmail == null) return;
+    if (_userEmail == null) {
+      debugPrint('FavoriteProvider: Cannot load favorites, no user email');
+      return;
+    }
     try {
       final doc = await FirebaseFirestore.instance
           .collection('favorites')
@@ -25,12 +38,7 @@ class FavoriteProvider with ChangeNotifier {
         if (data != null && data['items'] != null) {
           _favoriteItems = (data['items'] as List)
               .map((item) {
-                final favoriteItem = FavoriteItem(
-                  name: item['name'],
-                  price: item['price'],
-                  imgBase64: item['imgBase64'] ?? item['image'] ?? '',
-                  subtitle: item['subtitle'],
-                );
+                final favoriteItem = FavoriteItem.fromMap(item);
                 debugPrint('Loaded favorite: ${item['name']}, imgBase64 length: ${favoriteItem.imgBase64.length}');
                 return favoriteItem;
               })
@@ -45,23 +53,22 @@ class FavoriteProvider with ChangeNotifier {
       }
       notifyListeners();
     } catch (e) {
-      debugPrint('Error loading favorites: $e');
+      debugPrint('Error loading favorites for $_userEmail: $e');
     }
   }
 
   Future<void> _saveFavorites() async {
-    if (_userEmail == null) return;
+    if (_userEmail == null) {
+      debugPrint('FavoriteProvider: Cannot save favorites, no user email');
+      return;
+    }
     try {
       final favoritesData = {
         'items': _favoriteItems.map((item) {
           debugPrint('Saving favorite: ${item.name}, imgBase64 length: ${item.imgBase64.length}');
-          return {
-            'name': item.name,
-            'price': item.price,
-            'imgBase64': item.imgBase64,
-            'subtitle': item.subtitle,
-          };
+          return item.toMap();
         }).toList(),
+        'lastUpdated': FieldValue.serverTimestamp(),
       };
       await FirebaseFirestore.instance
           .collection('favorites')
@@ -69,11 +76,15 @@ class FavoriteProvider with ChangeNotifier {
           .set(favoritesData);
       debugPrint('Favorites saved for $_userEmail');
     } catch (e) {
-      debugPrint('Error saving favorites: $e');
+      debugPrint('Error saving favorites for $_userEmail: $e');
     }
   }
 
   Future<void> addToFavorites(FavoriteItem item) async {
+    if (_userEmail == null) {
+      debugPrint('FavoriteProvider: Cannot add favorite, no user logged in');
+      return;
+    }
     if (!_favoriteItems.any((existingItem) =>
         existingItem.name == item.name && existingItem.imgBase64 == item.imgBase64)) {
       _favoriteItems.add(item);
@@ -84,6 +95,10 @@ class FavoriteProvider with ChangeNotifier {
   }
 
   Future<void> removeFromFavorites(FavoriteItem item) async {
+    if (_userEmail == null) {
+      debugPrint('FavoriteProvider: Cannot remove favorite, no user logged in');
+      return;
+    }
     _favoriteItems.removeWhere((existingItem) =>
         existingItem.name == item.name && existingItem.imgBase64 == item.imgBase64);
     debugPrint('Removed from favorites: ${item.name}');
@@ -97,6 +112,10 @@ class FavoriteProvider with ChangeNotifier {
   }
 
   Future<void> clearFavorites() async {
+    if (_userEmail == null) {
+      debugPrint('FavoriteProvider: Cannot clear favorites, no user logged in');
+      return;
+    }
     _favoriteItems.clear();
     debugPrint('Cleared all favorites for $_userEmail');
     await _saveFavorites();
