@@ -6,8 +6,6 @@ import 'package:u_teen/screens/customer/home_screen.dart';
 import 'package:u_teen/screens/seller/home_screen.dart';
 import 'package:u_teen/utils/app_theme.dart';
 import 'package:u_teen/providers/theme_notifier.dart';
-import 'package:u_teen/providers/favorite_provider.dart';
-import 'package:u_teen/providers/cart_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -50,33 +48,20 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     ));
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      debugPrint('LoginScreen: Initializing AuthProvider');
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       await authProvider.initialize();
 
       if (authProvider.isLoggedIn && mounted) {
-        debugPrint('LoginScreen: User is logged in, navigating to home');
-        try {
-          await Provider.of<FavoriteProvider>(context, listen: false).initialize(context);
-          debugPrint('FavoriteProvider initialized for user: ${authProvider.user?.email}');
-          await Provider.of<CartProvider>(context, listen: false).initialize(authProvider.user!.email);
-          debugPrint('CartProvider initialized for user: ${authProvider.user?.email}');
-        } catch (e) {
-          debugPrint('LoginScreen: Error initializing providers: $e');
-        }
-        if (mounted) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (context) => authProvider.isSeller
-                  ? const SellerHomeScreen()
-                  : const HomeScreen(),
-            ),
-            (route) => false,
-          );
-        }
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => authProvider.isSeller
+                ? const SellerHomeScreen()
+                : const HomeScreen(),
+          ),
+          (route) => false,
+        );
       } else {
-        debugPrint('LoginScreen: No logged-in user, showing login UI');
         _animationController.forward();
       }
     });
@@ -104,7 +89,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
 
-      debugPrint('LoginScreen: Attempting login for $email');
       final emailValidationError = authService.validateEmail(email);
       if (emailValidationError != null) {
         _showSnackBar(emailValidationError, AppTheme.getSnackBarError(isDarkMode));
@@ -118,43 +102,33 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
       if (user != null) {
         final success = await authProvider.login(
-          email: email,
-          password: password,
+          user.email,
+          user.name,
+          user.userType,
+          user.nim,
+          user.phoneNumber,
+          user.prodi,
+          user.angkatan,
+          user.tenantName,
         );
 
         if (success && mounted) {
-          try {
-            await Provider.of<FavoriteProvider>(context, listen: false).initialize(context);
-            debugPrint('FavoriteProvider initialized for user: ${authProvider.user?.email}');
-            await Provider.of<CartProvider>(context, listen: false).initialize(email);
-            debugPrint('CartProvider initialized for user: $email');
-            await Future.delayed(const Duration(milliseconds: 500)); // Penundaan untuk memastikan state diperbarui
-            if (mounted) {
-              debugPrint('LoginScreen: Login successful, navigating to home');
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => user.userType == 'seller'
-                      ? const SellerHomeScreen()
-                      : const HomeScreen(),
-                ),
-                (route) => false,
-              );
-            }
-          } catch (e) {
-            debugPrint('LoginScreen: Error initializing providers: $e');
-            _showSnackBar('Error initializing app: $e', AppTheme.getSnackBarError(isDarkMode));
-          }
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) => user.userType == 'seller'
+                  ? const SellerHomeScreen()
+                  : const HomeScreen(),
+            ),
+            (route) => false,
+          );
         } else {
-          debugPrint('LoginScreen: Failed to save login session');
           _showSnackBar('Failed to save login session.', AppTheme.getSnackBarError(isDarkMode));
         }
       } else {
-        debugPrint('LoginScreen: Login failed, user is null');
-        _showSnackBar('Login failed. Incorrect email or password, or user data not found.', AppTheme.getSnackBarError(isDarkMode));
+        _showSnackBar('Login failed. Incorrect email or password.', AppTheme.getSnackBarError(isDarkMode));
       }
     } catch (e) {
-      debugPrint('LoginScreen: Login error: $e');
       if (mounted) {
         _showSnackBar('An error occurred: $e', AppTheme.getSnackBarError(isDarkMode));
       }
@@ -213,6 +187,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         backgroundColor: AppTheme.getBackground(isDarkMode),
         body: Stack(
           children: [
+            // Background decoration
             Positioned(
               top: -50,
               right: -50,
@@ -237,6 +212,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 ),
               ),
             ),
+            
             SingleChildScrollView(
               child: SizedBox(
                 height: MediaQuery.of(context).size.height,
@@ -246,6 +222,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Spacer(flex: 2),
+                      // Header with title only (logo removed)
                       FadeTransition(
                         opacity: _opacityAnimation,
                         child: SlideTransition(
@@ -253,7 +230,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const SizedBox(height: 80),
+                              const SizedBox(height: 80), // Space reserved for removed logo
                               Text(
                                 'Welcome Back',
                                 style: TextStyle(
@@ -275,6 +252,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         ),
                       ),
                       const Spacer(),
+                      // Login form
                       FadeTransition(
                         opacity: _opacityAnimation,
                         child: SlideTransition(
@@ -297,11 +275,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               key: _formKey,
                               child: Column(
                                 children: [
+                                  // Email field
                                   TextFormField(
                                     controller: _emailController,
                                     decoration: InputDecoration(
                                       filled: true,
-                                      fillColor: isDarkMode ? AppTheme.getDark2D(isDarkMode) : AppTheme.getCard(isDarkMode),
+    fillColor: isDarkMode ? AppTheme.getDark2D(isDarkMode) : AppTheme.getCard(isDarkMode),
                                       hintText: 'Email',
                                       hintStyle: TextStyle(
                                         color: isDarkMode ? AppTheme.getGrey500(isDarkMode) : AppTheme.getGrey600(isDarkMode)),
@@ -320,6 +299,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     onChanged: (value) => setState(() {}),
                                   ),
                                   const SizedBox(height: 20),
+                                  // Password field
                                   TextFormField(
                                     controller: _passwordController,
                                     obscureText: _obscurePassword,
@@ -351,6 +331,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     validator: _validatePassword,
                                   ),
                                   const SizedBox(height: 24),
+                                  // Login button
                                   SizedBox(
                                     width: double.infinity,
                                     height: 50,

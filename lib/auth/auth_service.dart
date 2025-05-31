@@ -25,18 +25,10 @@ class User {
 
   factory User.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    final email = data['email'] ?? '';
-    final name = data['name'] ?? '';
-    final userType = data['userType'] ?? 'customer';
-
-    if (email.isEmpty || name.isEmpty || userType.isEmpty) {
-      throw Exception('Invalid user data: email, name, or userType is missing');
-    }
-
     return User(
-      email: email,
-      name: name,
-      userType: userType,
+      email: data['email'] ?? '',
+      name: data['name'] ?? '',
+      userType: data['userType'] ?? 'customer',
       nim: data['nim'],
       phoneNumber: data['phoneNumber'],
       prodi: data['prodi'],
@@ -52,7 +44,6 @@ class AuthService {
 
   Future<User?> login(String email, String password) async {
     try {
-      debugPrint('AuthService: Attempting login for $email');
       // Authenticate with Firebase
       final credential = await _auth.signInWithEmailAndPassword(
         email: email,
@@ -60,11 +51,9 @@ class AuthService {
       );
 
       if (credential.user == null) {
-        debugPrint('AuthService: Login failed, no user found');
         throw Exception('Login failed: No user found');
       }
 
-      debugPrint('AuthService: Authenticated user UID: ${credential.user!.uid}');
       // Fetch user data from Firestore
       final doc = await _firestore
           .collection('users')
@@ -72,27 +61,13 @@ class AuthService {
           .get();
 
       if (!doc.exists) {
-        debugPrint('AuthService: Firestore document not found for UID: ${credential.user!.uid}');
-        throw Exception('User data not found in Firestore for UID: ${credential.user!.uid}');
+        throw Exception('User data not found in Firestore');
       }
 
-      final user = User.fromFirestore(doc);
-      debugPrint('AuthService: Successfully fetched user: ${user.email}, type: ${user.userType}');
-      return user;
-    } on fb.FirebaseAuthException catch (e) {
-      debugPrint('AuthService: FirebaseAuth error: ${e.code} - ${e.message}');
-      if (e.code == 'user-not-found') {
-        throw Exception('No user found for that email.');
-      } else if (e.code == 'wrong-password') {
-        throw Exception('Wrong password provided.');
-      } else if (e.code == 'invalid-email') {
-        throw Exception('Invalid email format.');
-      } else {
-        throw Exception('Authentication error: ${e.message}');
-      }
+      return User.fromFirestore(doc);
     } catch (e) {
-      debugPrint('AuthService: Login error: $e');
-      throw Exception('Login failed: $e');
+      debugPrint('Login error: $e');
+      return null;
     }
   }
 
