@@ -11,6 +11,7 @@ class CartProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
 
   Future<void> initialize(String userEmail) async {
+    debugPrint('Initializing CartProvider for user: $userEmail');
     _userEmail = userEmail;
     await _loadCart();
   }
@@ -41,11 +42,14 @@ class CartProvider with ChangeNotifier {
                     quantity: item['quantity'] ?? 1,
                   ))
               .toList();
+          debugPrint('Loaded ${_cartItems.length} items from Firestore');
         } else {
           _cartItems = [];
+          debugPrint('No items found in Firestore cart');
         }
       } else {
         _cartItems = [];
+        debugPrint('Cart document does not exist');
       }
     } catch (e) {
       debugPrint('Error loading cart: $e');
@@ -58,9 +62,10 @@ class CartProvider with ChangeNotifier {
   Future<void> _saveCart() async {
     if (_userEmail == null) {
       debugPrint('Cannot save cart: userEmail is null');
-      return;
+      throw Exception('User email not set');
     }
     try {
+      debugPrint('Saving ${_cartItems.length} items to Firestore');
       final cartData = {
         'items': _cartItems.map((item) => {
               'name': item.name,
@@ -74,7 +79,8 @@ class CartProvider with ChangeNotifier {
       await FirebaseFirestore.instance
           .collection('cart')
           .doc(_userEmail)
-          .set(cartData);
+          .set(cartData, SetOptions(merge: false));
+      debugPrint('Cart saved successfully');
     } catch (e) {
       debugPrint('Error saving cart: $e');
       throw Exception('Failed to save cart: $e');
@@ -83,17 +89,22 @@ class CartProvider with ChangeNotifier {
 
   Future<void> addToCart(CartItem item) async {
     try {
-      // Validate item
+      debugPrint('Adding to cart: ${item.name}, imgbase64 length: ${item.imgbase64.length}');
       if (item.name.isEmpty || item.sellerEmail.isEmpty) {
         throw Exception('Invalid cart item: name or sellerEmail is empty');
+      }
+      if (item.imgbase64.length > 50000) {
+        throw Exception('Image too large: ${item.imgbase64.length} chars');
       }
       final existingItemIndex = _cartItems.indexWhere(
         (i) => i.name == item.name && i.subtitle == item.subtitle,
       );
       if (existingItemIndex != -1) {
         _cartItems[existingItemIndex].quantity++;
+        debugPrint('Incremented quantity for ${item.name}');
       } else {
         _cartItems.add(item);
+        debugPrint('Added new item: ${item.name}');
       }
       await _saveCart();
       notifyListeners();
@@ -105,6 +116,7 @@ class CartProvider with ChangeNotifier {
 
   Future<void> removeFromCart(CartItem item) async {
     try {
+      debugPrint('Removing from cart: ${item.name}');
       _cartItems.remove(item);
       await _saveCart();
       notifyListeners();
@@ -115,6 +127,7 @@ class CartProvider with ChangeNotifier {
 
   Future<void> increaseQuantity(CartItem item) async {
     try {
+      debugPrint('Increasing quantity for ${item.name}');
       item.quantity++;
       await _saveCart();
       notifyListeners();
@@ -125,6 +138,7 @@ class CartProvider with ChangeNotifier {
 
   Future<void> decreaseQuantity(CartItem item) async {
     try {
+      debugPrint('Decreasing quantity for ${item.name}');
       if (item.quantity > 1) {
         item.quantity--;
       } else {
@@ -139,6 +153,7 @@ class CartProvider with ChangeNotifier {
 
   Future<void> removeItems(List<CartItem> items) async {
     try {
+      debugPrint('Removing ${items.length} items');
       _cartItems.removeWhere((item) => items.contains(item));
       await _saveCart();
       notifyListeners();
@@ -149,6 +164,7 @@ class CartProvider with ChangeNotifier {
 
   Future<void> clearCart() async {
     try {
+      debugPrint('Clearing cart');
       _cartItems.clear();
       await _saveCart();
       notifyListeners();

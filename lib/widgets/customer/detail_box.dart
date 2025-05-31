@@ -42,243 +42,239 @@ class DetailBox extends StatelessWidget {
 
     debugPrint('DetailBox: Rendering $selectedFoodItem, imgBase64 length: ${selectedFoodImgBase64.length}');
 
-    return AnimatedPositioned(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppTheme.getCard(isDarkMode),
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.getPrimaryText(isDarkMode).withOpacity(0.2),
-              blurRadius: 20,
-              offset: const Offset(0, -5),
+    // Cache decoded image
+    Uint8List? cachedImage;
+    try {
+      cachedImage = _decodeBase64(selectedFoodImgBase64);
+    } catch (e) {
+      debugPrint('Error decoding image: $e');
+    }
+
+    return SafeArea(
+      child: AnimatedPositioned(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppTheme.getCard(isDarkMode),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(30),
+              topRight: Radius.circular(30),
             ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            GestureDetector(
-              onTap: onClose,
-              child: Center(
-                child: Container(
-                  width: 60,
-                  height: 5,
-                  margin: const EdgeInsets.only(top: 12, bottom: 12),
-                  decoration: BoxDecoration(
-                    color: AppTheme.getDivider(isDarkMode),
-                    borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.getPrimaryText(isDarkMode).withOpacity(0.2),
+                blurRadius: 20,
+                offset: const Offset(0, -5),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              GestureDetector(
+                onTap: onClose,
+                child: Center(
+                  child: Container(
+                    width: 60,
+                    height: 5,
+                    margin: const EdgeInsets.only(top: 12, bottom: 12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.getDivider(isDarkMode),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
               ),
-            ),
-            Flexible(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Stack(
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.getPrimaryText(isDarkMode)
-                                    .withOpacity(0.1),
-                                blurRadius: 15,
-                                offset: const Offset(0, 5),
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: selectedFoodImgBase64.isNotEmpty
-                                ? Image.memory(
-                                    _decodeBase64(selectedFoodImgBase64),
-                                    height: 220,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) {
-                                      debugPrint('Error loading Base64 image for $selectedFoodItem');
-                                      return Container(
-                                        height: 220,
-                                        width: double.infinity,
-                                        color: AppTheme.getDivider(isDarkMode),
-                                        child: Icon(
-                                          Icons.fastfood,
-                                          size: 60,
-                                          color: AppTheme.getPrimaryText(isDarkMode),
-                                        ),
-                                      );
-                                    },
-                                  )
-                                : Container(
-                                    height: 220,
-                                    width: double.infinity,
-                                    color: AppTheme.getDivider(isDarkMode),
-                                    child: Icon(
-                                      Icons.fastfood,
-                                      size: 60,
-                                      color: AppTheme.getPrimaryText(isDarkMode),
-                                    ),
-                                  ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          child: Container(
-                            height: 80,
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Stack(
+                        children: [
+                          Container(
                             decoration: BoxDecoration(
-                              borderRadius: const BorderRadius.only(
-                                bottomLeft: Radius.circular(20),
-                                bottomRight: Radius.circular(20),
-                              ),
-                              gradient: LinearGradient(
-                                begin: Alignment.bottomCenter,
-                                end: Alignment.topCenter,
-                                colors: [
-                                  AppTheme.getPrimaryText(isDarkMode)
-                                      .withOpacity(0.7),
-                                  Colors.transparent,
-                                ],
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.getPrimaryText(isDarkMode)
+                                      .withOpacity(0.1),
+                                  blurRadius: 15,
+                                  offset: const Offset(0, 5),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: cachedImage != null
+                                  ? Image.memory(
+                                      cachedImage,
+                                      height: 220,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) {
+                                        debugPrint('Error loading Base64 image for $selectedFoodItem');
+                                        return Container(
+                                          height: 220,
+                                          width: double.infinity,
+                                          color: AppTheme.getDivider(isDarkMode),
+                                          child: Icon(
+                                            Icons.fastfood,
+                                            size: 60,
+                                            color: AppTheme.getPrimaryText(isDarkMode),
+                                          ),
+                                        );
+                                      },
+                                    )
+                                  : Container(
+                                      height: 220,
+                                      width: double.infinity,
+                                      color: AppTheme.getDivider(isDarkMode),
+                                      child: Icon(
+                                        Icons.fastfood,
+                                        size: 60,
+                                        color: AppTheme.getPrimaryText(isDarkMode),
+                                      ),
+                                    ),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            child: Container(
+                              height: 80,
+                              decoration: BoxDecoration(
+                                borderRadius: const BorderRadius.only(
+                                  bottomLeft: Radius.circular(20),
+                                  bottomRight: Radius.circular(20),
+                                ),
+                                gradient: LinearGradient(
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                  colors: [
+                                    AppTheme.getPrimaryText(isDarkMode)
+                                        .withOpacity(0.7),
+                                    Colors.transparent,
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        Positioned(
-                          bottom: 16,
-                          right: 16,
-                          child: Text(
-                            selectedFoodPrice,
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w800,
-                              color: AppTheme.getPrimaryText(!isDarkMode),
+                          Positioned(
+                            bottom: 16,
+                            right: 16,
+                            child: Text(
+                              selectedFoodPrice,
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
+                                color: AppTheme.getPrimaryText(!isDarkMode),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      selectedFoodItem,
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        height: 1.2,
-                        color: AppTheme.getPrimaryText(isDarkMode),
+                        ],
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      selectedFoodSubtitle,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: AppTheme.getSecondaryText(isDarkMode),
-                        height: 1.4,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: () {
-                        try {
-                          final price = int.tryParse(cleanPrice) ?? 0;
-                          if (selectedFoodImgBase64.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Cannot add item: No image data'),
-                                backgroundColor: AppTheme.getSnackBarError(isDarkMode),
-                              ),
-                            );
-                            return;
-                          }
-                          cartProvider.addToCart(CartItem(
-                            name: selectedFoodItem,
-                            price: price,
-                            imgbase64: selectedFoodImgBase64,
-                            subtitle: selectedFoodSubtitle,
-                            sellerEmail: sellerEmail,
-                          ));
-                          debugPrint('Added to cart: ${selectedFoodItem}, imgBase64 length: ${selectedFoodImgBase64.length}');
-                          Navigator.pop(context);
-                        } catch (e) {
-                          debugPrint('Error adding to cart: $e');
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Failed to add item to cart'),
-                              backgroundColor: AppTheme.getSnackBarError(isDarkMode),
-                            ),
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 56),
-                        backgroundColor: AppTheme.getButton(isDarkMode),
-                        foregroundColor: AppTheme.getPrimaryText(!isDarkMode),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        elevation: 0,
-                        shadowColor: Colors.transparent,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: const Text(
-                        "Add to Cart",
+                      const SizedBox(height: 24),
+                      Text(
+                        selectedFoodItem,
                         style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          height: 1.2,
+                          color: AppTheme.getPrimaryText(isDarkMode),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        selectedFoodSubtitle,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: AppTheme.getSecondaryText(isDarkMode),
+                          height: 1.4,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Center(
-                      child: InkWell(
-                        onTap: () async {
-                          final favoriteItem = FavoriteItem(
-                            name: selectedFoodItem,
-                            price: cleanPrice,
-                            imgBase64: selectedFoodImgBase64,
-                            subtitle: selectedFoodSubtitle,
-                          );
-                          if (isFavorite) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  '$selectedFoodItem is already in favorites',
-                                  style: TextStyle(
-                                    color: AppTheme.getPrimaryText(!isDarkMode),
-                                  ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: () async {
+                          try {
+                            final price = int.tryParse(cleanPrice) ?? 0;
+                            if (selectedFoodImgBase64.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Cannot add item: No image data'),
+                                  backgroundColor: AppTheme.getSnackBarError(isDarkMode),
                                 ),
-                                backgroundColor: AppTheme.getSnackBarInfo(isDarkMode),
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                              );
+                              return;
+                            }
+                            await cartProvider.addToCart(CartItem(
+                              name: selectedFoodItem,
+                              price: price,
+                              imgbase64: selectedFoodImgBase64,
+                              subtitle: selectedFoodSubtitle,
+                              sellerEmail: sellerEmail,
+                            ));
+                            debugPrint('Added to cart: ${selectedFoodItem}, imgBase64 length: ${selectedFoodImgBase64.length}');
+                            // Delay to allow UI to stabilize
+                            await Future.delayed(const Duration(milliseconds: 100));
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                            }
+                          } catch (e) {
+                            debugPrint('Error adding to cart: $e');
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Failed to add item to cart: $e'),
+                                  backgroundColor: AppTheme.getSnackBarError(isDarkMode),
                                 ),
-                              ),
+                              );
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 56),
+                          backgroundColor: AppTheme.getButton(isDarkMode),
+                          foregroundColor: AppTheme.getPrimaryText(!isDarkMode),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          elevation: 0,
+                          shadowColor: Colors.transparent,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        child: const Text(
+                          "Add to Cart",
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Center(
+                        child: InkWell(
+                          onTap: () async {
+                            final favoriteItem = FavoriteItem(
+                              name: selectedFoodItem,
+                              price: cleanPrice,
+                              imgBase64: selectedFoodImgBase64,
+                              subtitle: selectedFoodSubtitle,
                             );
-                          } else {
-                            try {
-                              await favoriteProvider.addToFavorites(favoriteItem);
-                              debugPrint('Added to favorites from DetailBox: ${favoriteItem.name}, imgBase64 length: ${favoriteItem.imgBase64.length}');
+                            if (isFavorite) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    '$selectedFoodItem added to favorites!',
+                                    '$selectedFoodItem is already in favorites',
                                     style: TextStyle(
                                       color: AppTheme.getPrimaryText(!isDarkMode),
                                     ),
@@ -290,80 +286,100 @@ class DetailBox extends StatelessWidget {
                                   ),
                                 ),
                               );
-                            } catch (e) {
-                              debugPrint('Error adding to favorites: $e');
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Failed to add $selectedFoodItem to favorites',
-                                    style: TextStyle(
-                                      color: AppTheme.getPrimaryText(!isDarkMode),
+                            } else {
+                              try {
+                                await favoriteProvider.addToFavorites(favoriteItem);
+                                debugPrint('Added to favorites from DetailBox: ${favoriteItem.name}, imgBase64 length: ${favoriteItem.imgBase64.length}');
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      '$selectedFoodItem added to favorites!',
+                                      style: TextStyle(
+                                        color: AppTheme.getPrimaryText(!isDarkMode),
+                                      ),
+                                    ),
+                                    backgroundColor: AppTheme.getSnackBarInfo(isDarkMode),
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                   ),
-                                  backgroundColor: AppTheme.getSnackBarError(isDarkMode),
-                                  behavior: SnackBarBehavior.floating,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
+                                );
+                              } catch (e) {
+                                debugPrint('Error adding to favorites: $e');
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Failed to add $selectedFoodItem to favorites',
+                                      style: TextStyle(
+                                        color: AppTheme.getPrimaryText(!isDarkMode),
+                                      ),
+                                    ),
+                                    backgroundColor: AppTheme.getSnackBarError(isDarkMode),
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
                                   ),
-                                ),
-                              );
+                                );
+                              }
                             }
-                          }
-                        },
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 24),
-                          decoration: BoxDecoration(
-                            color: isFavorite
-                                ? AppTheme.getSnackBarError(isDarkMode)
-                                    .withOpacity(0.1)
-                                : null,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
+                          },
+                          borderRadius: BorderRadius.circular(20),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 24),
+                            decoration: BoxDecoration(
                               color: isFavorite
                                   ? AppTheme.getSnackBarError(isDarkMode)
-                                      .withOpacity(0.3)
-                                  : AppTheme.getDivider(isDarkMode),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                isFavorite
-                                    ? Icons.favorite
-                                    : Icons.favorite_outline,
+                                      .withOpacity(0.1)
+                                  : null,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
                                 color: isFavorite
                                     ? AppTheme.getSnackBarError(isDarkMode)
-                                    : AppTheme.getSecondaryText(isDarkMode),
-                                size: 22,
+                                        .withOpacity(0.3)
+                                    : AppTheme.getDivider(isDarkMode),
+                                width: 1.5,
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                isFavorite
-                                    ? 'Saved to favorites'
-                                    : 'Save to favorites',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  isFavorite
+                                      ? Icons.favorite
+                                      : Icons.favorite_outline,
                                   color: isFavorite
                                       ? AppTheme.getSnackBarError(isDarkMode)
                                       : AppTheme.getSecondaryText(isDarkMode),
+                                  size: 22,
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 8),
+                                Text(
+                                  isFavorite
+                                      ? 'Saved to favorites'
+                                      : 'Save to favorites',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: isFavorite
+                                        ? AppTheme.getSnackBarError(isDarkMode)
+                                        : AppTheme.getSecondaryText(isDarkMode),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -371,15 +387,18 @@ class DetailBox extends StatelessWidget {
 
   Uint8List _decodeBase64(String base64String) {
     try {
+      if (base64String.length > 50000) {
+        debugPrint('Base64 string too large: ${base64String.length} chars');
+        throw Exception('Image too large');
+      }
       final String cleanedBase64 = base64String.startsWith('data:image')
           ? base64String.split(',').last
           : base64String;
       return base64Decode(cleanedBase64);
     } catch (e) {
       debugPrint('Error decoding Base64 for $selectedFoodItem: $e');
-      // Return a small placeholder image data to avoid crash
       const placeholderBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAEAwFLLYL9WAAAAABJRU5ErkJggg==';
       return base64Decode(placeholderBase64);
     }
-  } 
+  }
 }
