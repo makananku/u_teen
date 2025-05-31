@@ -10,14 +10,16 @@ class CartProvider with ChangeNotifier {
   List<CartItem> get cartItems => List.unmodifiable(_cartItems);
   bool get isLoading => _isLoading;
 
-  // Initialize with user email to scope cart data
   Future<void> initialize(String userEmail) async {
     _userEmail = userEmail;
     await _loadCart();
   }
 
   Future<void> _loadCart() async {
-    if (_userEmail == null) return;
+    if (_userEmail == null) {
+      debugPrint('Cannot load cart: userEmail is null');
+      return;
+    }
     _isLoading = true;
     notifyListeners();
 
@@ -31,12 +33,12 @@ class CartProvider with ChangeNotifier {
         if (data != null && data['items'] != null) {
           _cartItems = (data['items'] as List)
               .map((item) => CartItem(
-                    name: item['name'],
-                    price: item['price'],
-                    imgbase64: item['imgbase64'],
-                    subtitle: item['subtitle'],
-                    sellerEmail: item['sellerEmail'],
-                    quantity: item['quantity'],
+                    name: item['name'] ?? '',
+                    price: item['price'] ?? 0,
+                    imgbase64: item['imgbase64'] ?? '',
+                    subtitle: item['subtitle'] ?? '',
+                    sellerEmail: item['sellerEmail'] ?? '',
+                    quantity: item['quantity'] ?? 1,
                   ))
               .toList();
         } else {
@@ -54,7 +56,10 @@ class CartProvider with ChangeNotifier {
   }
 
   Future<void> _saveCart() async {
-    if (_userEmail == null) return;
+    if (_userEmail == null) {
+      debugPrint('Cannot save cart: userEmail is null');
+      return;
+    }
     try {
       final cartData = {
         'items': _cartItems.map((item) => {
@@ -72,54 +77,84 @@ class CartProvider with ChangeNotifier {
           .set(cartData);
     } catch (e) {
       debugPrint('Error saving cart: $e');
+      throw Exception('Failed to save cart: $e');
     }
   }
 
   Future<void> addToCart(CartItem item) async {
-    final existingItemIndex = _cartItems.indexWhere(
-      (i) => i.name == item.name && i.subtitle == item.subtitle,
-    );
-    if (existingItemIndex != -1) {
-      _cartItems[existingItemIndex].quantity++;
-    } else {
-      _cartItems.add(item);
+    try {
+      // Validate item
+      if (item.name.isEmpty || item.sellerEmail.isEmpty) {
+        throw Exception('Invalid cart item: name or sellerEmail is empty');
+      }
+      final existingItemIndex = _cartItems.indexWhere(
+        (i) => i.name == item.name && i.subtitle == item.subtitle,
+      );
+      if (existingItemIndex != -1) {
+        _cartItems[existingItemIndex].quantity++;
+      } else {
+        _cartItems.add(item);
+      }
+      await _saveCart();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error adding to cart: $e');
+      rethrow;
     }
-    await _saveCart();
-    notifyListeners();
   }
 
   Future<void> removeFromCart(CartItem item) async {
-    _cartItems.remove(item);
-    await _saveCart();
-    notifyListeners();
+    try {
+      _cartItems.remove(item);
+      await _saveCart();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error removing from cart: $e');
+    }
   }
 
   Future<void> increaseQuantity(CartItem item) async {
-    item.quantity++;
-    await _saveCart();
-    notifyListeners();
+    try {
+      item.quantity++;
+      await _saveCart();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error increasing quantity: $e');
+    }
   }
 
   Future<void> decreaseQuantity(CartItem item) async {
-    if (item.quantity > 1) {
-      item.quantity--;
-    } else {
-      _cartItems.remove(item);
+    try {
+      if (item.quantity > 1) {
+        item.quantity--;
+      } else {
+        _cartItems.remove(item);
+      }
+      await _saveCart();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error decreasing quantity: $e');
     }
-    await _saveCart();
-    notifyListeners();
   }
 
   Future<void> removeItems(List<CartItem> items) async {
-    _cartItems.removeWhere((item) => items.contains(item));
-    await _saveCart();
-    notifyListeners();
+    try {
+      _cartItems.removeWhere((item) => items.contains(item));
+      await _saveCart();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error removing items: $e');
+    }
   }
 
   Future<void> clearCart() async {
-    _cartItems.clear();
-    await _saveCart();
-    notifyListeners();
+    try {
+      _cartItems.clear();
+      await _saveCart();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error clearing cart: $e');
+    }
   }
 
   int get totalItems => _cartItems.fold(0, (sum, item) => sum + item.quantity);

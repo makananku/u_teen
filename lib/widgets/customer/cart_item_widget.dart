@@ -5,6 +5,8 @@ import '../../providers/cart_provider.dart';
 import '../../utils/app_theme.dart';
 import '../../providers/theme_notifier.dart';
 import 'package:intl/intl.dart';
+import 'dart:convert';
+import 'dart:typed_data';
 
 class CartItemWidget extends StatelessWidget {
   final CartItem item;
@@ -15,6 +17,20 @@ class CartItemWidget extends StatelessWidget {
     required this.item,
     this.onRemove,
   });
+
+  Uint8List _decodeBase64(String base64String) {
+    try {
+      final String cleanedBase64 = base64String.startsWith('data:image')
+          ? base64String.split(',').last
+          : base64String;
+      return base64Decode(cleanedBase64);
+    } catch (e) {
+      debugPrint('Error decoding Base64 for ${item.name}: $e');
+      // Return a small placeholder image
+      const placeholderBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAEAwFLLYL9WAAAAABJRU5ErkJggg==';
+      return base64Decode(placeholderBase64);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,17 +102,23 @@ class CartItemWidget extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: Image.asset(
-                    item.imgbase64,
-                    width: 60,
-                    height: 60,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Icon(
-                      Icons.fastfood,
-                      size: 40,
-                      color: AppTheme.getPrimaryText(isDarkMode),
-                    ),
-                  ),
+                  child: item.imgbase64.isNotEmpty
+                      ? Image.memory(
+                          _decodeBase64(item.imgbase64),
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Icon(
+                            Icons.fastfood,
+                            size: 40,
+                            color: AppTheme.getPrimaryText(isDarkMode),
+                          ),
+                        )
+                      : Icon(
+                          Icons.fastfood,
+                          size: 40,
+                          color: AppTheme.getPrimaryText(isDarkMode),
+                        ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(

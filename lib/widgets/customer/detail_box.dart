@@ -196,16 +196,35 @@ class DetailBox extends StatelessWidget {
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: () {
-                        final price = int.tryParse(cleanPrice) ?? 0;
-                        cartProvider.addToCart(CartItem(
-                          name: selectedFoodItem,
-                          price: price,
-                          imgbase64: selectedFoodImgBase64,
-                          subtitle: selectedFoodSubtitle,
-                          sellerEmail: sellerEmail,
-                        ));
-                        debugPrint('Added to cart: ${selectedFoodItem}, imgBase64 length: ${selectedFoodImgBase64.length}');
-                        Navigator.pop(context);
+                        try {
+                          final price = int.tryParse(cleanPrice) ?? 0;
+                          if (selectedFoodImgBase64.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Cannot add item: No image data'),
+                                backgroundColor: AppTheme.getSnackBarError(isDarkMode),
+                              ),
+                            );
+                            return;
+                          }
+                          cartProvider.addToCart(CartItem(
+                            name: selectedFoodItem,
+                            price: price,
+                            imgbase64: selectedFoodImgBase64,
+                            subtitle: selectedFoodSubtitle,
+                            sellerEmail: sellerEmail,
+                          ));
+                          debugPrint('Added to cart: ${selectedFoodItem}, imgBase64 length: ${selectedFoodImgBase64.length}');
+                          Navigator.pop(context);
+                        } catch (e) {
+                          debugPrint('Error adding to cart: $e');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Failed to add item to cart'),
+                              backgroundColor: AppTheme.getSnackBarError(isDarkMode),
+                            ),
+                          );
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 56),
@@ -358,7 +377,9 @@ class DetailBox extends StatelessWidget {
       return base64Decode(cleanedBase64);
     } catch (e) {
       debugPrint('Error decoding Base64 for $selectedFoodItem: $e');
-      rethrow;
+      // Return a small placeholder image data to avoid crash
+      const placeholderBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAEAwFLLYL9WAAAAABJRU5ErkJggg==';
+      return base64Decode(placeholderBase64);
     }
-  }
+  } 
 }
