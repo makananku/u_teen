@@ -90,10 +90,6 @@ class _FoodListState extends State<FoodList> {
                       food.subtitle,
                       food.sellerEmail,
                     );
-                    // Ensure rebuild after tap
-                    if (mounted) {
-                      setState(() {});
-                    }
                   },
                 ),
               );
@@ -260,7 +256,7 @@ class FoodCard extends StatelessWidget {
       final String cleanedBase64 = base64String.startsWith('data:image')
           ? base64String.split(',').last
           : base64String;
-      debugPrint('FoodCard: Decoding Base64 for $title, length: $cleanedBase64.length}');
+      debugPrint('FoodCard: Decoding Base64 for $title, length: ${cleanedBase64.length}');
       return base64Decode(cleanedBase64);
     } catch (e) {
       debugPrint('FoodCard: Error decoding Base64 for $title: $e');
