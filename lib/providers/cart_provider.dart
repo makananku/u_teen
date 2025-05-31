@@ -29,21 +29,15 @@ class CartProvider with ChangeNotifier {
           .collection('cart')
           .doc(_userEmail)
           .get()
-          .timeout(const Duration(seconds: 5), onTimeout: () {
+          .timeout(const Duration(seconds: 3), onTimeout: () {
+        debugPrint('Firestore load timeout for $_userEmail');
         throw Exception('Firestore load timeout');
       });
       if (doc.exists) {
         final data = doc.data();
         if (data != null && data['items'] != null) {
           _cartItems = (data['items'] as List)
-              .map((item) => CartItem(
-                    name: item['name'] ?? '',
-                    price: item['price'] ?? 0,
-                    imgbase64: item['imgbase64'] ?? '',
-                    subtitle: item['subtitle'] ?? '',
-                    sellerEmail: item['sellerEmail'] ?? '',
-                    quantity: item['quantity'] ?? 1,
-                  ))
+              .map((item) => CartItem.fromMap(item))
               .toList();
           debugPrint('Loaded ${_cartItems.length} items from Firestore');
         } else {
@@ -52,7 +46,7 @@ class CartProvider with ChangeNotifier {
         }
       } else {
         _cartItems = [];
-        debugPrint('Cart document does not exist');
+        debugPrint('Cart document does not exist for $_userEmail');
       }
     } catch (e) {
       debugPrint('Error loading cart: $e');
@@ -68,25 +62,19 @@ class CartProvider with ChangeNotifier {
       throw Exception('User email not set');
     }
     try {
-      debugPrint('Saving ${_cartItems.length} items to Firestore');
+      debugPrint('Saving ${_cartItems.length} items to Firestore for $_userEmail');
       final cartData = {
-        'items': _cartItems.map((item) => {
-              'name': item.name,
-              'price': item.price,
-              'imgbase64': item.imgbase64,
-              'subtitle': item.subtitle,
-              'sellerEmail': item.sellerEmail,
-              'quantity': item.quantity,
-            }).toList(),
+        'items': _cartItems.map((item) => item.toMap()).toList(),
       };
       await FirebaseFirestore.instance
           .collection('cart')
           .doc(_userEmail)
           .set(cartData, SetOptions(merge: false))
-          .timeout(const Duration(seconds: 5), onTimeout: () {
+          .timeout(const Duration(seconds: 3), onTimeout: () {
+        debugPrint('Firestore save timeout for $_userEmail');
         throw Exception('Firestore save timeout');
       });
-      debugPrint('Cart saved successfully');
+      debugPrint('Cart saved successfully for $_userEmail');
     } catch (e) {
       debugPrint('Error saving cart: $e');
       throw Exception('Failed to save cart: $e');
@@ -95,7 +83,7 @@ class CartProvider with ChangeNotifier {
 
   Future<void> addToCart(CartItem item) async {
     try {
-      debugPrint('Adding to cart: ${item.name}, imgBase64 length: ${item.imgbase64.length}');
+      debugPrint('Adding to cart: ${item.name}, imgbase64 length: ${item.imgbase64.length}');
       if (item.name.isEmpty || item.sellerEmail.isEmpty) {
         throw Exception('Invalid cart item: name or sellerEmail is empty');
       }
@@ -113,7 +101,7 @@ class CartProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('Error adding to cart: $e');
-      rethrow;
+      throw e;
     }
   }
 

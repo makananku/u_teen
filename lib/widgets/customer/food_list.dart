@@ -21,20 +21,6 @@ class FoodList extends StatefulWidget {
 }
 
 class _FoodListState extends State<FoodList> {
-  // Helper method to assign priority for sorting
-  int _getCategoryPriority(String category) {
-    switch (category) {
-      case 'Food':
-        return 1;
-      case 'Drinks':
-        return 2;
-      case 'Snack':
-        return 3;
-      default:
-        return 4;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     debugPrint('Building FoodList with category: ${widget.selectedCategory}');
@@ -64,17 +50,14 @@ class _FoodListState extends State<FoodList> {
           );
         }
 
-        // Convert Firestore documents to Product objects
         List<Product> products = snapshot.data!.docs.map((doc) => Product.fromFirestore(doc)).toList();
 
-        // Filter products based on selected category
         List<Product> foodItems = widget.selectedCategory == 'All'
             ? products
             : products.where((food) => food.category == widget.selectedCategory).toList();
 
-        // Sort products for "All" category: Food, Drinks, Snack
         if (widget.selectedCategory == 'All') {
-          foodItems.sort((a, b) => _getCategoryPriority(a.category).compareTo(_getCategoryPriority(b.category)));
+          foodItems.sort((a, b) => a.category.compareTo(b.category));
         }
 
         debugPrint('Filtered food items for category ${widget.selectedCategory}: ${foodItems.length}');
@@ -98,6 +81,7 @@ class _FoodListState extends State<FoodList> {
                   price: food.price,
                   sellerEmail: food.sellerEmail,
                   onTap: () {
+                    debugPrint('Tapped food item: ${food.title}');
                     widget.onFoodItemTap(
                       food.title,
                       food.price,
@@ -106,8 +90,9 @@ class _FoodListState extends State<FoodList> {
                       food.sellerEmail,
                     );
                     // Force rebuild to ensure UI updates
-                    Future.microtask(() => setState(() {}));
-                    debugPrint('Tapped food item: ${food.title}');
+                    Future.microtask(() {
+                      if (mounted) setState(() {});
+                    });
                   },
                 ),
               );

@@ -215,9 +215,10 @@ class DetailBox extends StatelessWidget {
                             sellerEmail: sellerEmail,
                           ));
                           debugPrint('Added to cart: ${selectedFoodItem}, imgBase64 length: ${selectedFoodImgBase64.length}');
-                          // Small delay to stabilize UI
+                          // Small delay to allow rendering to stabilize
                           await Future.delayed(const Duration(milliseconds: 50));
                           if (context.mounted) {
+                            debugPrint('Popping DetailBox for $selectedFoodItem');
                             Navigator.pop(context);
                           }
                         } catch (e) {
