@@ -19,9 +19,9 @@ import '../../widgets/customer/detail_box.dart';
 class HomeScreen extends StatefulWidget {
   final String? initialFoodItem;
   final String? initialFoodPrice;
-  final String? initialFoodImgBase64; // Renamed from initialFoodImg64
+  final String? initialFoodImgBase64;
   final String? initialFoodSubtitle;
-  final String? initialSellerEmail; // Added
+  final String? initialSellerEmail;
 
   const HomeScreen({
     super.key,
