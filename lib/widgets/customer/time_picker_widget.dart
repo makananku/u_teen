@@ -212,7 +212,7 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
                       if (child != null) child,
                       Positioned(
                         right: 50,
-                        top: 180,
+                        top: 220, // Changed from 180 to 220 to lower the position
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
