@@ -50,28 +50,33 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     ));
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      debugPrint('LoginScreen: Initializing AuthProvider');
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       await authProvider.initialize();
 
       if (authProvider.isLoggedIn && mounted) {
+        debugPrint('LoginScreen: User is logged in, navigating to home');
         try {
           await Provider.of<FavoriteProvider>(context, listen: false).initialize(context);
           debugPrint('FavoriteProvider initialized for user: ${authProvider.user?.email}');
           await Provider.of<CartProvider>(context, listen: false).initialize(authProvider.user!.email);
           debugPrint('CartProvider initialized for user: ${authProvider.user?.email}');
         } catch (e) {
-          debugPrint('Error initializing providers: $e');
+          debugPrint('LoginScreen: Error initializing providers: $e');
         }
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) => authProvider.isSeller
-                ? const SellerHomeScreen()
-                : const HomeScreen(),
-          ),
-          (route) => false,
-        );
+        if (mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) => authProvider.isSeller
+                  ? const SellerHomeScreen()
+                  : const HomeScreen(),
+            ),
+            (route) => false,
+          );
+        }
       } else {
+        debugPrint('LoginScreen: No logged-in user, showing login UI');
         _animationController.forward();
       }
     });
@@ -99,6 +104,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
 
+      debugPrint('LoginScreen: Attempting login for $email');
       final emailValidationError = authService.validateEmail(email);
       if (emailValidationError != null) {
         _showSnackBar(emailValidationError, AppTheme.getSnackBarError(isDarkMode));
@@ -122,26 +128,33 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             debugPrint('FavoriteProvider initialized for user: ${authProvider.user?.email}');
             await Provider.of<CartProvider>(context, listen: false).initialize(email);
             debugPrint('CartProvider initialized for user: $email');
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (context) => user.userType == 'seller'
-                    ? const SellerHomeScreen()
-                    : const HomeScreen(),
-              ),
-              (route) => false,
-            );
+            await Future.delayed(const Duration(milliseconds: 500)); // Penundaan untuk memastikan state diperbarui
+            if (mounted) {
+              debugPrint('LoginScreen: Login successful, navigating to home');
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => user.userType == 'seller'
+                      ? const SellerHomeScreen()
+                      : const HomeScreen(),
+                ),
+                (route) => false,
+              );
+            }
           } catch (e) {
-            debugPrint('Error initializing providers: $e');
+            debugPrint('LoginScreen: Error initializing providers: $e');
             _showSnackBar('Error initializing app: $e', AppTheme.getSnackBarError(isDarkMode));
           }
         } else {
+          debugPrint('LoginScreen: Failed to save login session');
           _showSnackBar('Failed to save login session.', AppTheme.getSnackBarError(isDarkMode));
         }
       } else {
+        debugPrint('LoginScreen: Login failed, user is null');
         _showSnackBar('Login failed. Incorrect email or password, or user data not found.', AppTheme.getSnackBarError(isDarkMode));
       }
     } catch (e) {
+      debugPrint('LoginScreen: Login error: $e');
       if (mounted) {
         _showSnackBar('An error occurred: $e', AppTheme.getSnackBarError(isDarkMode));
       }

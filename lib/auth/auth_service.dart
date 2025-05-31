@@ -52,6 +52,7 @@ class AuthService {
 
   Future<User?> login(String email, String password) async {
     try {
+      debugPrint('AuthService: Attempting login for $email');
       // Authenticate with Firebase
       final credential = await _auth.signInWithEmailAndPassword(
         email: email,
@@ -59,9 +60,11 @@ class AuthService {
       );
 
       if (credential.user == null) {
+        debugPrint('AuthService: Login failed, no user found');
         throw Exception('Login failed: No user found');
       }
 
+      debugPrint('AuthService: Authenticated user UID: ${credential.user!.uid}');
       // Fetch user data from Firestore
       final doc = await _firestore
           .collection('users')
@@ -69,15 +72,15 @@ class AuthService {
           .get();
 
       if (!doc.exists) {
-        debugPrint('Firestore document not found for UID: ${credential.user!.uid}');
+        debugPrint('AuthService: Firestore document not found for UID: ${credential.user!.uid}');
         throw Exception('User data not found in Firestore for UID: ${credential.user!.uid}');
       }
 
       final user = User.fromFirestore(doc);
-      debugPrint('Successfully fetched user: ${user.email}, type: ${user.userType}');
+      debugPrint('AuthService: Successfully fetched user: ${user.email}, type: ${user.userType}');
       return user;
     } on fb.FirebaseAuthException catch (e) {
-      debugPrint('FirebaseAuth error: ${e.code} - ${e.message}');
+      debugPrint('AuthService: FirebaseAuth error: ${e.code} - ${e.message}');
       if (e.code == 'user-not-found') {
         throw Exception('No user found for that email.');
       } else if (e.code == 'wrong-password') {
@@ -88,7 +91,7 @@ class AuthService {
         throw Exception('Authentication error: ${e.message}');
       }
     } catch (e) {
-      debugPrint('Login error: $e');
+      debugPrint('AuthService: Login error: $e');
       throw Exception('Login failed: $e');
     }
   }

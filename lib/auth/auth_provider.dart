@@ -12,6 +12,7 @@ class AuthProvider extends ChangeNotifier {
   String? _sellerNim;
   String? _customerProdi;
   String? _customerAngkatan;
+  bool _isInitializing = false; // Flag untuk mencegah logout saat inisialisasi
   final AuthService _authService = AuthService();
   final fb.FirebaseAuth _firebaseAuth = fb.FirebaseAuth.instance;
 
@@ -27,18 +28,26 @@ class AuthProvider extends ChangeNotifier {
   String? get sellerEmail => _user?.email;
 
   AuthProvider() {
+    debugPrint('AuthProvider: Constructor called');
     initialize();
-    _firebaseAuth.authStateChanges().listen((fb.User? firebaseUser) {
+    _firebaseAuth.authStateChanges().listen((fb.User? firebaseUser) async {
+      debugPrint('AuthProvider: authStateChanges triggered, user: ${firebaseUser?.email}');
       if (firebaseUser == null) {
-        logout();
+        if (!_isInitializing) {
+          await logout();
+        }
       } else if (_user == null || _user!.email != firebaseUser.email) {
-        _loadUserData();
+        await _loadUserData();
       }
     });
   }
 
   Future<void> initialize() async {
+    debugPrint('AuthProvider: Starting initialization');
+    _isInitializing = true;
     await _loadUserData();
+    _isInitializing = false;
+    debugPrint('AuthProvider: Initialization complete');
   }
 
   Future<void> _loadUserData() async {
@@ -46,10 +55,11 @@ class AuthProvider extends ChangeNotifier {
       final firebaseUser = _firebaseAuth.currentUser;
       if (firebaseUser == null || firebaseUser.isAnonymous) {
         debugPrint('AuthProvider: No authenticated user or anonymous user');
-        await logout();
+        if (!_isInitializing) await logout();
         return;
       }
 
+      debugPrint('AuthProvider: Fetching data for UID: ${firebaseUser.uid}');
       // Fetch from Firestore
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
@@ -68,11 +78,11 @@ class AuthProvider extends ChangeNotifier {
         notifyListeners();
       } else {
         debugPrint('AuthProvider: No Firestore document for UID: ${firebaseUser.uid}');
-        await logout();
+        if (!_isInitializing) await logout();
       }
     } catch (e) {
       debugPrint('AuthProvider initialize error: $e');
-      await logout();
+      if (!_isInitializing) await logout();
     }
   }
 
@@ -81,9 +91,12 @@ class AuthProvider extends ChangeNotifier {
     required String password,
   }) async {
     try {
+      debugPrint('AuthProvider: Starting login for $email');
+      _isInitializing = true;
       final user = await _authService.login(email, password);
       if (user == null) {
         debugPrint('AuthProvider: Login failed');
+        _isInitializing = false;
         return false;
       }
       _user = user;
@@ -96,9 +109,11 @@ class AuthProvider extends ChangeNotifier {
       _customerAngkatan = !_isSeller ? user.angkatan : null;
       debugPrint('AuthProvider: Logged in user: ${user.email}, type: ${user.userType}');
       notifyListeners();
+      _isInitializing = false;
       return true;
     } catch (e) {
       debugPrint('AuthProvider login error: $e');
+      _isInitializing = false;
       return false;
     }
   }
@@ -113,10 +128,12 @@ class AuthProvider extends ChangeNotifier {
     if (user.prodi != null) await prefs.setString('prodi', user.prodi!);
     if (user.angkatan != null) await prefs.setString('angkatan', user.angkatan!);
     if (user.tenantName != null) await prefs.setString('tenantName', user.tenantName!);
+    debugPrint('AuthProvider: Saved user data to SharedPreferences');
   }
 
   Future<bool> logout() async {
     try {
+      debugPrint('AuthProvider: Attempting logout');
       await _firebaseAuth.signOut();
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
