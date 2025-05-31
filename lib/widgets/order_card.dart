@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'dart:convert';
 import '../models/order_model.dart';
 import '../providers/rating_provider.dart';
 import '../utils/order_dialog_utils.dart';
@@ -482,11 +483,10 @@ class OrderCard extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
               color: isDarkMode ? Colors.grey[800] : Colors.grey[100],
-              image: DecorationImage(
-                image: AssetImage(item.imgBase64),
-                fit: BoxFit.cover,
-                onError: (_, __) => Container(),
-              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: _buildImage(item.imgBase64),
             ),
           ),
           const SizedBox(width: 12),
@@ -528,6 +528,48 @@ class OrderCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildImage(String imgBase64) {
+    if (imgBase64.isNotEmpty) {
+      try {
+        final imageBytes = base64Decode(imgBase64);
+        return Image.memory(
+          imageBytes,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            debugPrint('Error displaying image for OrderItem: $error');
+            return Container(
+              color: Colors.grey[200],
+              child: const Icon(
+                Icons.image_not_supported,
+                color: Colors.grey,
+                size: 30,
+              ),
+            );
+          },
+        );
+      } catch (e) {
+        debugPrint('Error decoding Base64 for OrderItem: $e');
+        return Container(
+          color: Colors.grey[200],
+          child: const Icon(
+            Icons.image_not_supported,
+            color: Colors.grey,
+            size: 30,
+          ),
+        );
+      }
+    }
+    debugPrint('imgBase64 is empty for OrderItem, showing placeholder');
+    return Container(
+      color: Colors.grey[200],
+      child: const Icon(
+        Icons.image_not_supported,
+        color: Colors.grey,
+        size: 30,
       ),
     );
   }
