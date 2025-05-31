@@ -32,8 +32,12 @@ class DetailBox extends StatelessWidget {
     final favoriteProvider = Provider.of<FavoriteProvider>(context);
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
-    final isFavorite = favoriteProvider.favoriteItems.any((item) =>
-        item.name == selectedFoodItem && item.imgBase64 == selectedFoodImgBase64);
+    final isFavorite = favoriteProvider.isFavorite(FavoriteItem(
+      name: selectedFoodItem,
+      price: selectedFoodPrice,
+      imgBase64: selectedFoodImgBase64,
+      subtitle: selectedFoodSubtitle,
+    ));
 
     debugPrint('DetailBox: Rendering $selectedFoodItem, imgBase64 length: ${selectedFoodImgBase64.length}');
 
@@ -191,11 +195,11 @@ class DetailBox extends StatelessWidget {
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: () {
-                        final price = int.tryParse(selectedFoodPrice.replaceAll('Rp ', '').replaceAll('.', '')) ?? 0;
+                        final price = int.tryParse(selectedFoodPrice.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
                         cartProvider.addToCart(CartItem(
                           name: selectedFoodItem,
                           price: price,
-                          image: selectedFoodImgBase64,
+                          image: selectedFoodImgBase64, // Changed from imgBase64 to image
                           subtitle: selectedFoodSubtitle,
                           sellerEmail: sellerEmail,
                         ));
@@ -224,6 +228,12 @@ class DetailBox extends StatelessWidget {
                     Center(
                       child: InkWell(
                         onTap: () {
+                          final favoriteItem = FavoriteItem(
+                            name: selectedFoodItem,
+                            price: selectedFoodPrice,
+                            imgBase64: selectedFoodImgBase64,
+                            subtitle: selectedFoodSubtitle,
+                          );
                           if (isFavorite) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -241,12 +251,6 @@ class DetailBox extends StatelessWidget {
                               ),
                             );
                           } else {
-                            final favoriteItem = FavoriteItem(
-                              name: selectedFoodItem,
-                              price: selectedFoodPrice,
-                              imgBase64: selectedFoodImgBase64,
-                              subtitle: selectedFoodSubtitle,
-                            );
                             favoriteProvider.addToFavorites(favoriteItem);
                             debugPrint('Added to favorites from DetailBox: ${favoriteItem.name}, imgBase64 length: ${favoriteItem.imgBase64.length}');
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -327,7 +331,6 @@ class DetailBox extends StatelessWidget {
 
   Uint8List _decodeBase64(String base64String) {
     try {
-      // Remove data URI prefix if present
       final String cleanedBase64 = base64String.startsWith('data:image')
           ? base64String.split(',').last
           : base64String;
