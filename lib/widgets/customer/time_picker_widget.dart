@@ -71,9 +71,10 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
-                      color: isTimeValid
-                          ? AppTheme.getPrimaryText(isDarkMode)
-                          : AppTheme.getError(isDarkMode),
+                      color:
+                          isTimeValid
+                              ? AppTheme.getPrimaryText(isDarkMode)
+                              : AppTheme.getError(isDarkMode),
                     ),
                   ),
                 ],
@@ -121,158 +122,222 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
   Future<void> _showTimePicker() async {
     final initialTime = TimeOfDay.fromDateTime(selectedTime);
     bool tempIsPM = initialTime.hour >= 12;
-    final isDarkMode = Provider.of<ThemeNotifier>(context, listen: false).isDarkMode;
+    final isDarkMode =
+        Provider.of<ThemeNotifier>(context, listen: false).isDarkMode;
 
-    await showTimePicker(
+    await showDialog(
       context: context,
-      initialTime: initialTime,
-      builder: (BuildContext context, Widget? child) {
-        return Localizations.override(
-          context: context,
-          locale: const Locale('en', 'US'),
-          child: MediaQuery(
-            data: MediaQuery.of(context).copyWith(
-              alwaysUse24HourFormat: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(20),
+          contentPadding: EdgeInsets.zero,
+          content: Container(
+            width: MediaQuery.of(context).size.width,
+            decoration: BoxDecoration(
+              color: AppTheme.getCard(isDarkMode),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 20,
+                  spreadRadius: 2,
+                ),
+              ],
             ),
-            child: Theme(
-              data: isDarkMode
-                  ? ThemeData.dark().copyWith(
-                      colorScheme: ColorScheme.dark(
-                        primary: AppTheme.getAccentPrimaryBlue(isDarkMode),
-                        surface: AppTheme.getCard(isDarkMode),
-                        onSurface: AppTheme.getPrimaryText(isDarkMode),
-                      ),
-                      timePickerTheme: TimePickerThemeData(
-                        backgroundColor: AppTheme.getCard(isDarkMode),
-                        dialBackgroundColor: AppTheme.getDetailBackground(isDarkMode),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        hourMinuteTextStyle: TextStyle(
-                          fontSize: 40,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.getAccentPrimaryBlue(isDarkMode),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Select Time',
+                        style: TextStyle(
+                          color: AppTheme.getPrimaryText(!isDarkMode),
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.getPrimaryText(isDarkMode),
                         ),
-                        dayPeriodTextStyle: const TextStyle(
-                          fontSize: 0,
-                          color: Colors.transparent,
-                        ),
-                        dayPeriodBorderSide: const BorderSide(
-                          color: Colors.transparent,
-                        ),
-                        dialTextColor: MaterialStateColor.resolveWith(
-                          (states) => states.contains(MaterialState.selected)
-                              ? AppTheme.getPrimaryText(!isDarkMode)
-                              : AppTheme.getPrimaryText(isDarkMode),
-                        ),
-                        dialHandColor: AppTheme.getAccentPrimaryBlue(isDarkMode),
-                        hourMinuteShape: const CircleBorder(),
-                        hourMinuteTextColor: AppTheme.getPrimaryText(isDarkMode),
-                        entryModeIconColor: AppTheme.getPrimaryText(isDarkMode),
                       ),
-                    )
-                  : ThemeData.light().copyWith(
+                      IconButton(
+                        icon: Icon(
+                          Icons.close,
+                          color: AppTheme.getPrimaryText(!isDarkMode),
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Time Picker
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Theme(
+                    data: Theme.of(context).copyWith(
                       colorScheme: ColorScheme.light(
                         primary: AppTheme.getAccentPrimaryBlue(isDarkMode),
-                        surface: AppTheme.getCard(isDarkMode),
-                        onSurface: AppTheme.getPrimaryText(isDarkMode),
                       ),
                       timePickerTheme: TimePickerThemeData(
-                        backgroundColor: AppTheme.getCard(isDarkMode),
-                        dialBackgroundColor: AppTheme.getDetailBackground(isDarkMode),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                        backgroundColor: Colors.transparent,
+                        dialBackgroundColor: AppTheme.getDetailBackground(
+                          isDarkMode,
                         ),
                         hourMinuteTextStyle: TextStyle(
                           fontSize: 40,
                           fontWeight: FontWeight.bold,
                           color: AppTheme.getPrimaryText(isDarkMode),
                         ),
-                        dayPeriodTextStyle: const TextStyle(
-                          fontSize: 0,
-                          color: Colors.transparent,
-                        ),
-                        dayPeriodBorderSide: const BorderSide(
-                          color: Colors.transparent,
-                        ),
-                        dialTextColor: MaterialStateColor.resolveWith(
-                          (states) => states.contains(MaterialState.selected)
-                              ? AppTheme.getPrimaryText(!isDarkMode)
-                              : AppTheme.getPrimaryText(isDarkMode),
-                        ),
-                        dialHandColor: AppTheme.getAccentPrimaryBlue(isDarkMode),
-                        hourMinuteShape: const CircleBorder(),
-                        hourMinuteTextColor: AppTheme.getPrimaryText(isDarkMode),
+                        hourMinuteColor: AppTheme.getDivider(isDarkMode),
+                        dialTextColor: AppTheme.getPrimaryText(isDarkMode),
                         entryModeIconColor: AppTheme.getPrimaryText(isDarkMode),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
                       ),
                     ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppTheme.getCard(isDarkMode),
-                      borderRadius: BorderRadius.circular(16),
+                    child: Builder(
+                      builder: (context) {
+                        return ElevatedButton(
+                          onPressed: () async {
+                            final picked = await showTimePicker(
+                              context: context,
+                              initialTime: initialTime,
+                              builder: (context, child) {
+                                return Theme(
+                                  data: Theme.of(context).copyWith(
+                                    colorScheme: ColorScheme.light(
+                                      primary: AppTheme.getAccentPrimaryBlue(
+                                        isDarkMode,
+                                      ),
+                                    ),
+                                  ),
+                                  child: child!,
+                                );
+                              },
+                            );
+                            if (picked != null) {
+                              setState(() {
+                                selectedTime = DateTime(
+                                  DateTime.now().year,
+                                  DateTime.now().month,
+                                  DateTime.now().day,
+                                  picked.hour,
+                                  picked.minute,
+                                );
+                                isPM = picked.period == DayPeriod.pm;
+                              });
+                            }
+                          },
+                          child: Text(
+                            'Select Time',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: AppTheme.getPrimaryText(isDarkMode),
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
-                    child: child!,
                   ),
-                  const SizedBox(height: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppTheme.getCard(isDarkMode),
-                      borderRadius: BorderRadius.circular(16),
+                ),
+
+                // AM/PM Selector - Integrated beautifully
+                Container(
+                  margin: const EdgeInsets.only(bottom: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: _buildAmPmButton(
+                          'AM',
+                          !tempIsPM,
+                          () => setState(() => tempIsPM = false),
+                          isDarkMode,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildAmPmButton(
+                          'PM',
+                          tempIsPM,
+                          () => setState(() => tempIsPM = true),
+                          isDarkMode,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Confirm Button
+                Padding(
+                  padding: const EdgeInsets.only(
+                    bottom: 20,
+                    left: 20,
+                    right: 20,
+                  ),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.getAccentPrimaryBlue(
+                        isDarkMode,
+                      ),
+                      foregroundColor: AppTheme.getPrimaryText(!isDarkMode),
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _buildAmPmButton('AM', !tempIsPM, () {
-                          setState(() {
-                            tempIsPM = false;
-                          });
-                        }, isDarkMode),
-                        const SizedBox(width: 24),
-                        _buildAmPmButton('PM', tempIsPM, () {
-                          setState(() {
-                            tempIsPM = true;
-                          });
-                        }, isDarkMode),
-                      ],
+                    onPressed: () {
+                      final hour24 =
+                          tempIsPM
+                              ? (initialTime.hour == 12
+                                  ? 12
+                                  : initialTime.hour + 12)
+                              : (initialTime.hour == 12 ? 0 : initialTime.hour);
+
+                      final newTime = DateTime(
+                        DateTime.now().year,
+                        DateTime.now().month,
+                        DateTime.now().day,
+                        hour24,
+                        initialTime.minute,
+                      );
+
+                      Navigator.pop(context, newTime);
+                    },
+                    child: const Text(
+                      'CONFIRM TIME',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         );
       },
-    ).then((pickedTime) {
-      if (pickedTime != null) {
-        int hour24 = tempIsPM
-            ? (pickedTime.hour == 12 ? 12 : pickedTime.hour + 12)
-            : (pickedTime.hour == 12 ? 0 : pickedTime.hour);
-
-        final newTime = DateTime(
-          DateTime.now().year,
-          DateTime.now().month,
-          DateTime.now().day,
-          hour24,
-          pickedTime.minute,
-        );
-
+    ).then((newTime) {
+      if (newTime != null) {
         final isValid = _validateTime(newTime);
-
         setState(() {
           selectedTime = newTime;
           isTimeValid = isValid;
-          isPM = tempIsPM;
+          isPM = newTime.hour >= 12;
         });
 
         if (isValid) {
@@ -283,31 +348,55 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
     });
   }
 
-  Widget _buildAmPmButton(String label, bool isSelected, VoidCallback onTap, bool isDarkMode) {
+  Widget _buildAmPmButton(
+    String label,
+    bool isSelected,
+    VoidCallback onTap,
+    bool isDarkMode,
+  ) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppTheme.getAccentPrimaryBlue(isDarkMode)
-              : AppTheme.getDivider(isDarkMode),
-          borderRadius: BorderRadius.circular(8),
+          color:
+              isSelected
+                  ? AppTheme.getAccentPrimaryBlue(isDarkMode)
+                  : AppTheme.getDivider(isDarkMode),
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected
-                ? AppTheme.getAccentPrimaryBlue(isDarkMode)
-                : AppTheme.getDivider(isDarkMode),
-            width: 1.5,
+            color:
+                isSelected
+                    ? AppTheme.getAccentPrimaryBlue(isDarkMode)
+                    : AppTheme.getDivider(isDarkMode),
+            width: 2,
           ),
+          boxShadow:
+              isSelected
+                  ? [
+                    BoxShadow(
+                      color: AppTheme.getAccentPrimaryBlue(
+                        isDarkMode,
+                      ).withOpacity(0.3),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    ),
+                  ]
+                  : null,
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected
-                ? AppTheme.getPrimaryText(!isDarkMode)
-                : AppTheme.getPrimaryText(isDarkMode),
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              color:
+                  isSelected
+                      ? AppTheme.getPrimaryText(!isDarkMode)
+                      : AppTheme.getPrimaryText(isDarkMode),
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
           ),
         ),
       ),
