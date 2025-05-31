@@ -22,14 +22,14 @@ class FoodProvider extends ChangeNotifier {
     debugPrint('FoodProvider initialized');
   }
 
-  // Memuat data awal dengan pagination
-  Future<void> loadProducts(BuildContext context, {String category = 'All'}) async {
+  // Memuat data awal dengan pagination dan filter tenantName
+  Future<void> loadProducts(BuildContext context, {String category = 'All', String? tenantName}) async {
     if (_isLoading || !_hasMore) return;
 
     try {
       _isLoading = true;
       notifyListeners();
-      debugPrint('Loading products for category: $category, page: $_currentPage');
+      debugPrint('Loading products for category: $category, tenantName: $tenantName, page: $_currentPage');
 
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       String? sellerEmail = authProvider.sellerEmail;
@@ -43,11 +43,19 @@ class FoodProvider extends ChangeNotifier {
       final newProducts = querySnapshot.docs.map((doc) => Product.fromMap(doc.data() as Map<String, dynamic>)).toList();
       debugPrint('Fetched ${newProducts.length} products from Firestore');
 
+      // Filter berdasarkan tenantName
+      if (tenantName != null && tenantName.isNotEmpty) {
+        newProducts.removeWhere((product) => product.tenantName != tenantName);
+        debugPrint('Filtered by tenantName: $tenantName, remaining: ${newProducts.length}');
+      }
+
+      // Filter berdasarkan sellerEmail jika ada
       if (sellerEmail != null && sellerEmail.isNotEmpty) {
         newProducts.removeWhere((product) => product.sellerEmail != sellerEmail);
         debugPrint('Filtered by sellerEmail: $sellerEmail, remaining: ${newProducts.length}');
       }
 
+      // Filter berdasarkan category
       if (category != 'All') {
         newProducts.removeWhere((product) => product.category != category);
         debugPrint('Filtered by category: $category, remaining: ${newProducts.length}');
@@ -73,19 +81,19 @@ class FoodProvider extends ChangeNotifier {
     }
   }
 
-  // Muat lebih banyak produk
-  Future<void> loadMoreProducts(BuildContext context, {String category = 'All'}) async {
-    debugPrint('Loading more products for category: $category');
-    await loadProducts(context, category: category);
+  // Muat lebih banyak produk dengan filter tenantName
+  Future<void> loadMoreProducts(BuildContext context, {String category = 'All', String? tenantName}) async {
+    debugPrint('Loading more products for category: $category, tenantName: $tenantName');
+    await loadProducts(context, category: category, tenantName: tenantName);
   }
 
-  // Filter produk dengan kategori
-  Future<void> filterProducts(BuildContext context, String category) async {
-    debugPrint('Filtering products by category: $category');
+  // Filter produk dengan kategori dan tenantName
+  Future<void> filterProducts(BuildContext context, String category, String? tenantName) async {
+    debugPrint('Filtering products by category: $category, tenantName: $tenantName');
     _currentPage = 0; // Reset halaman saat filter
     _products = [];
     _hasMore = true;
-    await loadProducts(context, category: category);
+    await loadProducts(context, category: category, tenantName: tenantName);
   }
 
   // Ambil produk berdasarkan seller

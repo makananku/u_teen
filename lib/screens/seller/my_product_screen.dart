@@ -23,7 +23,9 @@ class _SellerMyProductScreenState extends State<SellerMyProductScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final foodProvider = Provider.of<FoodProvider>(context, listen: false);
       foodProvider.clearProducts(); // Bersihkan produk sebelumnya
-      foodProvider.loadProducts(context); // Ganti loadInitialData dengan loadProducts
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final tenantName = authProvider.tenantName;
+      foodProvider.loadProducts(context, tenantName: tenantName); // Muat produk dengan filter tenantName
     });
   }
 
@@ -95,8 +97,11 @@ class _SellerMyProductScreenState extends State<SellerMyProductScreen> {
   Widget _buildContent(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final foodProvider = Provider.of<FoodProvider>(context);
+    final currentTenantName = authProvider.tenantName ?? '';
     final currentSellerEmail = authProvider.user?.email ?? '';
-    final sellerProducts = foodProvider.getProductsBySeller(currentSellerEmail);
+    final sellerProducts = foodProvider.getProductsBySeller(currentSellerEmail)
+        .where((product) => product.tenantName == currentTenantName)
+        .toList();
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     if (foodProvider.isLoading) {
@@ -124,7 +129,7 @@ class _SellerMyProductScreenState extends State<SellerMyProductScreen> {
               ElevatedButton(
                 onPressed: () {
                   final foodProvider = Provider.of<FoodProvider>(context, listen: false);
-                  foodProvider.loadMoreProducts(context);
+                  foodProvider.loadMoreProducts(context, tenantName: currentTenantName);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.getPrimaryText(isDarkMode),
@@ -155,7 +160,7 @@ class _SellerMyProductScreenState extends State<SellerMyProductScreen> {
               child: ElevatedButton(
                 onPressed: () {
                   final foodProvider = Provider.of<FoodProvider>(context, listen: false);
-                  foodProvider.loadMoreProducts(context);
+                  foodProvider.loadMoreProducts(context, tenantName: currentTenantName);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.getPrimaryText(isDarkMode),
