@@ -24,7 +24,7 @@ class AuthProvider extends ChangeNotifier {
   String? get sellerNim => _sellerNim;
   String? get customerProdi => _customerProdi;
   String? get customerAngkatan => _customerAngkatan;
-  String? get tenantName => _user?.tenantName;
+  String? get tenantName => _user?.tenantName ?? _user?.name; // Gunakan name jika tenantName null
   String? get sellerEmail => _user?.email;
 
   AuthProvider() {
@@ -51,42 +51,42 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> _loadUserData() async {
-  try {
-    final firebaseUser = _firebaseAuth.currentUser;
-    if (firebaseUser == null || firebaseUser.isAnonymous) {
-      debugPrint('AuthProvider: No authenticated user or anonymous user');
-      if (!_isInitializing) await logout();
-      return;
-    }
+    try {
+      final firebaseUser = _firebaseAuth.currentUser;
+      if (firebaseUser == null || firebaseUser.isAnonymous) {
+        debugPrint('AuthProvider: No authenticated user or anonymous user');
+        if (!_isInitializing) await logout();
+        return;
+      }
 
-    debugPrint('AuthProvider: Fetching data for UID: ${firebaseUser.uid}, email: ${firebaseUser.email}');
-    // Fetch from Firestore
-    final userDoc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(firebaseUser.uid)
-        .get();
-    if (userDoc.exists) {
-      _user = User.fromFirestore(userDoc);
-      await _saveToPrefs(_user!);
-      _isLoggedIn = true;
-      _isSeller = _user!.userType == 'seller';
-      _customerNim = !_isSeller ? _user!.nim : null;
-      _sellerNim = _isSeller ? _user!.nim : null;
-      _customerProdi = !_isSeller ? _user!.prodi : null;
-      _customerAngkatan = !_isSeller ? _user!.angkatan : null;
-      debugPrint('AuthProvider: Loaded user from Firestore: ${_user!.email}, type: ${_user!.userType}');
-      notifyListeners();
-    } else {
-      debugPrint('AuthProvider: No Firestore document for UID: ${firebaseUser.uid}. Keeping user logged in.');
-      // Tidak logout, biarkan pengguna tetap login
-      _isLoggedIn = true;
-      notifyListeners();
+      debugPrint('AuthProvider: Fetching data for UID: ${firebaseUser.uid}, email: ${firebaseUser.email}');
+      // Fetch from Firestore
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(firebaseUser.uid)
+          .get();
+      if (userDoc.exists) {
+        _user = User.fromFirestore(userDoc);
+        await _saveToPrefs(_user!);
+        _isLoggedIn = true;
+        _isSeller = _user!.userType == 'seller';
+        _customerNim = !_isSeller ? _user!.nim : null;
+        _sellerNim = _isSeller ? _user!.nim : null;
+        _customerProdi = !_isSeller ? _user!.prodi : null;
+        _customerAngkatan = !_isSeller ? _user!.angkatan : null;
+        debugPrint('AuthProvider: Loaded user from Firestore: ${_user!.email}, type: ${_user!.userType}, tenantName: ${_user!.tenantName ?? _user!.name}');
+        notifyListeners();
+      } else {
+        debugPrint('AuthProvider: No Firestore document for UID: ${firebaseUser.uid}. Keeping user logged in.');
+        // Tidak logout, biarkan pengguna tetap login
+        _isLoggedIn = true;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('AuthProvider initialize error: $e');
+      if (!_isInitializing) await logout();
     }
-  } catch (e) {
-    debugPrint('AuthProvider initialize error: $e');
-    if (!_isInitializing) await logout();
   }
-}
 
   Future<bool> login({
     required String email,
