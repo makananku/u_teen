@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import '../../models/product_model.dart';
 import 'dart:convert';
 
-class FoodList extends StatelessWidget {
+class FoodList extends StatefulWidget {
   final String selectedCategory;
   final Function(String, String, String, String, String) onFoodItemTap;
 
@@ -16,6 +16,11 @@ class FoodList extends StatelessWidget {
     required this.onFoodItemTap,
   }) : super(key: key);
 
+  @override
+  _FoodListState createState() => _FoodListState();
+}
+
+class _FoodListState extends State<FoodList> {
   // Helper method to assign priority for sorting
   int _getCategoryPriority(String category) {
     switch (category) {
@@ -32,7 +37,7 @@ class FoodList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('Building FoodList with category: $selectedCategory');
+    debugPrint('Building FoodList with category: ${widget.selectedCategory}');
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('products').where('isActive', isEqualTo: true).snapshots(),
       builder: (context, snapshot) {
@@ -63,16 +68,16 @@ class FoodList extends StatelessWidget {
         List<Product> products = snapshot.data!.docs.map((doc) => Product.fromFirestore(doc)).toList();
 
         // Filter products based on selected category
-        List<Product> foodItems = selectedCategory == 'All'
+        List<Product> foodItems = widget.selectedCategory == 'All'
             ? products
-            : products.where((food) => food.category == selectedCategory).toList();
+            : products.where((food) => food.category == widget.selectedCategory).toList();
 
         // Sort products for "All" category: Food, Drinks, Snack
-        if (selectedCategory == 'All') {
+        if (widget.selectedCategory == 'All') {
           foodItems.sort((a, b) => _getCategoryPriority(a.category).compareTo(_getCategoryPriority(b.category)));
         }
 
-        debugPrint('Filtered food Ascending order food items for category $selectedCategory: ${foodItems.length}');
+        debugPrint('Filtered food items for category ${widget.selectedCategory}: ${foodItems.length}');
 
         return SizedBox(
           height: 220,
@@ -92,13 +97,18 @@ class FoodList extends StatelessWidget {
                   imgBase64: food.imgBase64,
                   price: food.price,
                   sellerEmail: food.sellerEmail,
-                  onTap: () => onFoodItemTap(
-                    food.title,
-                    food.price,
-                    food.imgBase64,
-                    food.subtitle,
-                    food.sellerEmail,
-                  ),
+                  onTap: () {
+                    widget.onFoodItemTap(
+                      food.title,
+                      food.price,
+                      food.imgBase64,
+                      food.subtitle,
+                      food.sellerEmail,
+                    );
+                    // Force rebuild to ensure UI updates
+                    Future.microtask(() => setState(() {}));
+                    debugPrint('Tapped food item: ${food.title}');
+                  },
                 ),
               );
             },

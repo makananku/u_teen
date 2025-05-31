@@ -28,7 +28,10 @@ class CartProvider with ChangeNotifier {
       final doc = await FirebaseFirestore.instance
           .collection('cart')
           .doc(_userEmail)
-          .get();
+          .get()
+          .timeout(const Duration(seconds: 5), onTimeout: () {
+        throw Exception('Firestore load timeout');
+      });
       if (doc.exists) {
         final data = doc.data();
         if (data != null && data['items'] != null) {
@@ -79,7 +82,10 @@ class CartProvider with ChangeNotifier {
       await FirebaseFirestore.instance
           .collection('cart')
           .doc(_userEmail)
-          .set(cartData, SetOptions(merge: false));
+          .set(cartData, SetOptions(merge: false))
+          .timeout(const Duration(seconds: 5), onTimeout: () {
+        throw Exception('Firestore save timeout');
+      });
       debugPrint('Cart saved successfully');
     } catch (e) {
       debugPrint('Error saving cart: $e');
@@ -89,12 +95,9 @@ class CartProvider with ChangeNotifier {
 
   Future<void> addToCart(CartItem item) async {
     try {
-      debugPrint('Adding to cart: ${item.name}, imgbase64 length: ${item.imgbase64.length}');
+      debugPrint('Adding to cart: ${item.name}, imgBase64 length: ${item.imgbase64.length}');
       if (item.name.isEmpty || item.sellerEmail.isEmpty) {
         throw Exception('Invalid cart item: name or sellerEmail is empty');
-      }
-      if (item.imgbase64.length > 50000) {
-        throw Exception('Image too large: ${item.imgbase64.length} chars');
       }
       final existingItemIndex = _cartItems.indexWhere(
         (i) => i.name == item.name && i.subtitle == item.subtitle,
