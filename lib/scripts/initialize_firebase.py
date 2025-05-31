@@ -130,20 +130,32 @@ def image_to_base64(local_path):
 
 def initialize_products(use_base64=False):
     """Initialize products in Firestore with images from Base64."""
-    if db.collection('products').limit(1).get():
-        print('Products already exist, skipping initialization.')
-        return
-
-    for product in products:
-        product_id = product['id']
-        local_image_path = product.pop('localImagePath')
-        if use_base64:
-            product['imgBase64'] = image_to_base64(local_image_path)
-            if not product['imgBase64']:
-                print(f'Skipped product {product_id} due to Base64 encoding failure')
-                continue
-        db.collection('products').document(product_id).set(product)
-        print(f'Initialized product: {product_id}')
+    products_collection = db.collection('products')
+    if products_collection.limit(1).get():
+        print('Products already exist, merging new data.')
+        # Gunakan merge=True untuk menambahkan field yang hilang
+        for product in products:
+            product_id = product['id']
+            local_image_path = product.pop('localImagePath')
+            if use_base64:
+                product['imgBase64'] = image_to_base64(local_image_path)
+                if not product['imgBase64']:
+                    print(f'Skipped product {product_id} due to Base64 encoding failure')
+                    continue
+            products_collection.document(product_id).set(product, merge=True)  # Tambahkan merge=True
+            print(f'Merged/Initialized product: {product_id}')
+    else:
+        print('No products exist, initializing new data.')
+        for product in products:
+            product_id = product['id']
+            local_image_path = product.pop('localImagePath')
+            if use_base64:
+                product['imgBase64'] = image_to_base64(local_image_path)
+                if not product['imgBase64']:
+                    print(f'Skipped product {product_id} due to Base64 encoding failure')
+                    continue
+            products_collection.document(product_id).set(product)
+            print(f'Initialized product: {product_id}')
 
 def initialize_popular_cuisines():
     """Initialize popular_cuisines collection."""

@@ -42,7 +42,17 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
     _tenantName = authProvider.tenantName ?? 'My Tenant';
 
     _isActive = widget.product?.isActive ?? true;
-    _selectedCategory = widget.product?.category ?? 'Food';
+
+    // Validasi category dari produk dengan log tambahan
+    String? productCategory = widget.product?.category;
+    debugPrint('Product category from Firestore: $productCategory');
+    if (productCategory != null && _categories.contains(productCategory)) {
+      _selectedCategory = productCategory;
+      debugPrint('Using category from product: $_selectedCategory');
+    } else {
+      _selectedCategory = 'Food'; // Default jika category tidak valid
+      debugPrint('Invalid or missing category: $productCategory, defaulting to $_selectedCategory');
+    }
 
     _nameController = TextEditingController(text: widget.product?.title ?? '');
     _priceController = TextEditingController(
@@ -151,6 +161,14 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
                       )
                     : Icon(Icons.save_rounded, size: 26, color: AppTheme.getPrimaryText(isDarkMode)),
                 onPressed: _isUploading ? null : _saveProduct,
+              ),
+            ),
+            // Tambahan: Tombol untuk menambah kategori baru
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: IconButton(
+                icon: Icon(Icons.add, size: 26, color: AppTheme.getPrimaryText(isDarkMode)),
+                onPressed: _isUploading ? null : _showAddCategoryDialog,
               ),
             ),
           ],
@@ -276,13 +294,26 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 8),
-          child: Text(
-            'Category',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.getPrimaryText(isDarkMode),
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Category',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.getPrimaryText(isDarkMode),
+                ),
+              ),
+              // Tambahan: Teks jumlah kategori
+              Text(
+                '(${_categories.length} categories)',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.getSecondaryText(isDarkMode),
+                ),
+              ),
+            ],
           ),
         ),
         Container(
@@ -317,6 +348,7 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
               if (newValue != null) {
                 setState(() {
                   _selectedCategory = newValue;
+                  debugPrint('Category changed to: $_selectedCategory');
                 });
               }
             },
@@ -333,6 +365,12 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
               color: AppTheme.getPrimaryText(isDarkMode),
               fontSize: 16,
             ),
+            validator: (value) {
+              if (value == null || !_categories.contains(value)) {
+                return 'Please select a valid category';
+              }
+              return null;
+            },
           ),
         ),
       ],
@@ -769,5 +807,58 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
     _priceController.removeListener(_formatPriceInput);
     _priceController.dispose();
     super.dispose();
+  }
+
+  // Fungsi baru untuk menampilkan dialog tambah kategori
+  Future<void> _showAddCategoryDialog() async {
+    final TextEditingController _categoryController = TextEditingController();
+    final _formKeyDialog = GlobalKey<FormState>();
+
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Add New Category'),
+          content: Form(
+            key: _formKeyDialog,
+            child: TextFormField(
+              controller: _categoryController,
+              decoration: InputDecoration(
+                hintText: 'Enter new category',
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter a category name';
+                }
+                if (_categories.contains(value)) {
+                  return 'Category already exists';
+                }
+                return null;
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (_formKeyDialog.currentState!.validate()) {
+                  setState(() {
+                    _categories.add(_categoryController.text.trim());
+                    _selectedCategory = _categoryController.text.trim();
+                    debugPrint('Added new category: $_selectedCategory');
+                  });
+                  Navigator.of(context).pop();
+                }
+              },
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

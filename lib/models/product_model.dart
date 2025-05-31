@@ -79,7 +79,7 @@ class Product {
     String? time,
     String? tenantName,
     String? sellerEmail,
-    String? category, // Added missing category parameter
+    String? category, 
     bool? isActive,
   }) {
     return Product(
