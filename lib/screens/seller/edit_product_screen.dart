@@ -23,13 +23,16 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _priceController;
-  late TextEditingController _descriptionController;
   late String _tenantName;
   File? _imageFile;
   String? _imgBase64;
   int _preparationTime = 5;
   bool _isUploading = false;
   bool _isActive = true;
+  String _selectedCategory = 'Food'; // Default category
+
+  // Available categories
+  final List<String> _categories = ['Food', 'Drink', 'Snack'];
 
   @override
   void initState() {
@@ -39,12 +42,9 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
     _tenantName = authProvider.tenantName ?? 'My Tenant';
 
     _isActive = widget.product?.isActive ?? true;
+    _selectedCategory = widget.product?.category ?? 'Food';
 
     _nameController = TextEditingController(text: widget.product?.title ?? '');
-    _descriptionController = TextEditingController(
-      text: widget.product?.subtitle ?? '',
-    );
-
     _priceController = TextEditingController(
       text: widget.product?.price != null
           ? _formatPrice(widget.product!.price.replaceAll('.', ''))
@@ -174,13 +174,7 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
                   isDarkMode: isDarkMode,
                 ),
                 const SizedBox(height: 16),
-                _buildInputSection(
-                  title: 'Description',
-                  hintText: 'Enter product description',
-                  controller: _descriptionController,
-                  maxLines: 3,
-                  isDarkMode: isDarkMode,
-                ),
+                _buildTenantNameSection(isDarkMode),
                 const SizedBox(height: 16),
                 _buildInputSection(
                   title: 'Price',
@@ -191,6 +185,8 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
                   validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
                   isDarkMode: isDarkMode,
                 ),
+                const SizedBox(height: 16),
+                _buildCategoryDropdown(isDarkMode),
                 const SizedBox(height: 16),
                 _buildTimeSection(isDarkMode),
                 const SizedBox(height: 28),
@@ -271,6 +267,117 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildCategoryDropdown(bool isDarkMode) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            'Category',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: AppTheme.getPrimaryText(isDarkMode),
+            ),
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: AppTheme.getCard(isDarkMode),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: isDarkMode
+                ? []
+                : [
+                    BoxShadow(
+                      color: AppTheme.getSecondaryText(isDarkMode).withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+          ),
+          child: DropdownButtonFormField<String>(
+            value: _selectedCategory,
+            items: _categories.map((String category) {
+              return DropdownMenuItem<String>(
+                value: category,
+                child: Text(
+                  category,
+                  style: TextStyle(
+                    color: AppTheme.getPrimaryText(isDarkMode),
+                  ),
+                ),
+              );
+            }).toList(),
+            onChanged: (String? newValue) {
+              if (newValue != null) {
+                setState(() {
+                  _selectedCategory = newValue;
+                });
+              }
+            },
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+            dropdownColor: AppTheme.getCard(isDarkMode),
+            icon: Icon(
+              Icons.arrow_drop_down,
+              color: AppTheme.getPrimaryText(isDarkMode),
+            ),
+            style: TextStyle(
+              color: AppTheme.getPrimaryText(isDarkMode),
+              fontSize: 16,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTenantNameSection(bool isDarkMode) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            'Tenant Name',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: AppTheme.getPrimaryText(isDarkMode),
+            ),
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          decoration: BoxDecoration(
+            color: AppTheme.getCard(isDarkMode),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: isDarkMode
+                ? []
+                : [
+                    BoxShadow(
+                      color: AppTheme.getSecondaryText(isDarkMode).withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+          ),
+          child: Text(
+            _tenantName,
+            style: TextStyle(
+              fontSize: 16,
+              color: AppTheme.getPrimaryText(isDarkMode),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -376,8 +483,7 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
         Icon(
           Icons.add_photo_alternate_rounded,
           size: 48,
-          color: AppTheme.getSecondaryText(isDarkMode),
-        ),
+          color: AppTheme.getSecondaryText(isDarkMode)),
         const SizedBox(height: 8),
         Text(
           'Tap to add image',
@@ -570,15 +676,14 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
       final product = Product(
         id: widget.product?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
         title: _nameController.text,
-        subtitle: _descriptionController.text,
+        subtitle: _tenantName, // Using tenant name as subtitle
         price: price,
-        //imgUrl: '', // Tidak digunakan, tapi tetap diisi kosong untuk kompatibilitas model
         time: '$_preparationTime mins',
         tenantName: _tenantName,
         sellerEmail: sellerEmail,
         isActive: _isActive,
         imgBase64: imgBase64 ?? '',
-        category: widget.product?.category ?? '',
+        category: _selectedCategory, // Using selected category
       );
       if (widget.product == null) {
         await foodProvider.addProduct(product);
@@ -663,7 +768,6 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
     _nameController.dispose();
     _priceController.removeListener(_formatPriceInput);
     _priceController.dispose();
-    _descriptionController.dispose();
     super.dispose();
   }
 }
