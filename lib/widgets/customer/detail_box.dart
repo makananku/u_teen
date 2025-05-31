@@ -231,14 +231,25 @@ class _DetailBoxState extends State<DetailBox> {
                                   sellerEmail: widget.sellerEmail,
                                 ));
                                 debugPrint('DetailBox: Added to cart: ${widget.selectedFoodItem}, imgBase64 length: ${widget.selectedFoodImgBase64.length}');
-                                
-                                // Close the detail box after successful addition
-                                if (mounted) {
-                                  widget.onClose();
+                                // Tampilkan SnackBar untuk konfirmasi
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('${widget.selectedFoodItem} added to cart!'),
+                                      backgroundColor: AppTheme.getSnackBarInfo(isDarkMode),
+                                      behavior: SnackBarBehavior.floating,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                  );
                                 }
+                                // Panggil onClose untuk menutup DetailBox
+                                await Future.delayed(const Duration(milliseconds: 200));
+                                widget.onClose();
                               } catch (e) {
                                 debugPrint('DetailBox: Error adding to cart: $e');
-                                if (mounted) {
+                                if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text('Failed to add item to cart: $e'),
