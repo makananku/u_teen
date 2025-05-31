@@ -59,40 +59,22 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
             ),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        color: AppTheme.getPrimaryText(isDarkMode),
-                      ),
-                      const SizedBox(width: 16),
-                      Text(
-                        _formatDeliveryTime(selectedTime),
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: isTimeValid
-                              ? AppTheme.getPrimaryText(isDarkMode)
-                              : AppTheme.getError(isDarkMode),
-                        ),
-                      ),
-                    ],
+                  Icon(
+                    Icons.access_time,
+                    color: AppTheme.getPrimaryText(isDarkMode),
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildAmPmButton('AM', !isPM, () {
-                        _updateAmPm(false);
-                      }, isDarkMode),
-                      const SizedBox(width: 16),
-                      _buildAmPmButton('PM', isPM, () {
-                        _updateAmPm(true);
-                      }, isDarkMode),
-                    ],
+                  const SizedBox(width: 16),
+                  Text(
+                    _formatDeliveryTime(selectedTime),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: isTimeValid
+                          ? AppTheme.getPrimaryText(isDarkMode)
+                          : AppTheme.getError(isDarkMode),
+                    ),
                   ),
                 ],
               ),
@@ -112,35 +94,6 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
           ),
       ],
     );
-  }
-
-  void _updateAmPm(bool newIsPM) {
-    if (isPM == newIsPM) return;
-
-    final newHour = newIsPM 
-        ? (selectedTime.hour < 12 ? selectedTime.hour + 12 : selectedTime.hour)
-        : (selectedTime.hour >= 12 ? selectedTime.hour - 12 : selectedTime.hour);
-
-    final newTime = DateTime(
-      selectedTime.year,
-      selectedTime.month,
-      selectedTime.day,
-      newHour,
-      selectedTime.minute,
-    );
-
-    final isValid = _validateTime(newTime);
-
-    setState(() {
-      isPM = newIsPM;
-      selectedTime = newTime;
-      isTimeValid = isValid;
-    });
-
-    if (isValid) {
-      widget.onTimeSelected(newTime);
-    }
-    widget.onValidationChanged(isTimeValid, errorMessage);
   }
 
   String _formatDeliveryTime(DateTime time) {
@@ -167,6 +120,7 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
 
   Future<void> _showTimePicker() async {
     final initialTime = TimeOfDay.fromDateTime(selectedTime);
+    bool tempIsPM = initialTime.hour >= 12;
     final isDarkMode = Provider.of<ThemeNotifier>(context, listen: false).isDarkMode;
 
     await showTimePicker(
@@ -252,18 +206,64 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
                         entryModeIconColor: AppTheme.getPrimaryText(isDarkMode),
                       ),
                     ),
-              child: child!,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppTheme.getCard(isDarkMode),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
+                    child: child!,
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppTheme.getCard(isDarkMode),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildAmPmButton('AM', !tempIsPM, () {
+                          setState(() {
+                            tempIsPM = false;
+                          });
+                        }, isDarkMode),
+                        const SizedBox(width: 24),
+                        _buildAmPmButton('PM', tempIsPM, () {
+                          setState(() {
+                            tempIsPM = true;
+                          });
+                        }, isDarkMode),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
       },
     ).then((pickedTime) {
       if (pickedTime != null) {
+        int hour24 = tempIsPM
+            ? (pickedTime.hour == 12 ? 12 : pickedTime.hour + 12)
+            : (pickedTime.hour == 12 ? 0 : pickedTime.hour);
+
         final newTime = DateTime(
           DateTime.now().year,
           DateTime.now().month,
           DateTime.now().day,
-          pickedTime.hour,
+          hour24,
           pickedTime.minute,
         );
 
@@ -272,7 +272,7 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
         setState(() {
           selectedTime = newTime;
           isTimeValid = isValid;
-          isPM = pickedTime.hour >= 12;
+          isPM = tempIsPM;
         });
 
         if (isValid) {
@@ -287,9 +287,9 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected 
+          color: isSelected
               ? AppTheme.getAccentPrimaryBlue(isDarkMode)
               : AppTheme.getDivider(isDarkMode),
           borderRadius: BorderRadius.circular(8),
