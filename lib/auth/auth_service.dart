@@ -25,10 +25,18 @@ class User {
 
   factory User.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+    final email = data['email'] ?? '';
+    final name = data['name'] ?? '';
+    final userType = data['userType'] ?? 'customer';
+
+    if (email.isEmpty || name.isEmpty || userType.isEmpty) {
+      throw Exception('Invalid user data: email, name, or userType is missing');
+    }
+
     return User(
-      email: data['email'] ?? '',
-      name: data['name'] ?? '',
-      userType: data['userType'] ?? 'customer',
+      email: email,
+      name: name,
+      userType: userType,
       nim: data['nim'],
       phoneNumber: data['phoneNumber'],
       prodi: data['prodi'],
@@ -61,13 +69,27 @@ class AuthService {
           .get();
 
       if (!doc.exists) {
-        throw Exception('User data not found in Firestore');
+        debugPrint('Firestore document not found for UID: ${credential.user!.uid}');
+        throw Exception('User data not found in Firestore for UID: ${credential.user!.uid}');
       }
 
-      return User.fromFirestore(doc);
+      final user = User.fromFirestore(doc);
+      debugPrint('Successfully fetched user: ${user.email}, type: ${user.userType}');
+      return user;
+    } on fb.FirebaseAuthException catch (e) {
+      debugPrint('FirebaseAuth error: ${e.code} - ${e.message}');
+      if (e.code == 'user-not-found') {
+        throw Exception('No user found for that email.');
+      } else if (e.code == 'wrong-password') {
+        throw Exception('Wrong password provided.');
+      } else if (e.code == 'invalid-email') {
+        throw Exception('Invalid email format.');
+      } else {
+        throw Exception('Authentication error: ${e.message}');
+      }
     } catch (e) {
       debugPrint('Login error: $e');
-      return null;
+      throw Exception('Login failed: $e');
     }
   }
 

@@ -98,10 +98,16 @@ class AuthWrapper extends StatelessWidget {
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
 
     return FutureBuilder(
-      future: auth.initialize(),
+      future: Future.wait([
+        auth.initialize().timeout(
+          const Duration(seconds: 10),
+          onTimeout: () => throw Exception('Initialization timed out'),
+        ),
+      ]),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasError) {
+            debugPrint('AuthWrapper error: ${snapshot.error}');
             return Scaffold(
               body: Center(
                 child: Column(
@@ -114,14 +120,12 @@ class AuthWrapper extends StatelessWidget {
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () {
-                        auth.initialize().then((_) {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const AuthWrapper(),
-                            ),
-                          );
-                        });
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AuthWrapper(),
+                          ),
+                        );
                       },
                       child: const Text('Retry'),
                     ),
@@ -156,6 +160,7 @@ class AuthWrapper extends StatelessWidget {
     );
   }
 }
+
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

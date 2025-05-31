@@ -122,23 +122,24 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             debugPrint('FavoriteProvider initialized for user: ${authProvider.user?.email}');
             await Provider.of<CartProvider>(context, listen: false).initialize(email);
             debugPrint('CartProvider initialized for user: $email');
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) => user.userType == 'seller'
+                    ? const SellerHomeScreen()
+                    : const HomeScreen(),
+              ),
+              (route) => false,
+            );
           } catch (e) {
             debugPrint('Error initializing providers: $e');
+            _showSnackBar('Error initializing app: $e', AppTheme.getSnackBarError(isDarkMode));
           }
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (context) => user.userType == 'seller'
-                  ? const SellerHomeScreen()
-                  : const HomeScreen(),
-            ),
-            (route) => false,
-          );
         } else {
           _showSnackBar('Failed to save login session.', AppTheme.getSnackBarError(isDarkMode));
         }
       } else {
-        _showSnackBar('Login failed. Incorrect email or password.', AppTheme.getSnackBarError(isDarkMode));
+        _showSnackBar('Login failed. Incorrect email or password, or user data not found.', AppTheme.getSnackBarError(isDarkMode));
       }
     } catch (e) {
       if (mounted) {
