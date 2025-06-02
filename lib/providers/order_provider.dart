@@ -1,15 +1,13 @@
-
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:u_teen/models/order_model.dart' as models;
+import 'package:u_teen/models/order_model.dart' as order;
 import '../models/notification_model.dart';
 import './notification_provider.dart';
 
 class OrderProvider with ChangeNotifier {
-  final List<models.Order> _orders = [];
+  final List<order.Order> _orders = [];
   final NotificationProvider _notificationProvider;
   bool _isLoading = false;
   final Map<String, Timer> _readyTimers = {};
@@ -29,42 +27,39 @@ class OrderProvider with ChangeNotifier {
     try {
       final snapshot = await FirebaseFirestore.instance.collection('orders').get();
       _orders.clear();
-      _orders.addAll(snapshot.docs.map((doc) => models.Order.fromMap(doc.data())).toList());
-      debugPrint('OrderProvider: Loaded ${_orders.length} orders');
+      _orders.addAll(snapshot.docs.map((doc) => order.Order.fromMap(doc.data())).toList());
     } catch (e) {
-      debugPrint('OrderProvider: Error loading orders: $e');
+      debugPrint('Error loading orders: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> _saveOrder(models.Order order) async {
+  Future<void> _saveOrder(order.Order order) async {
     try {
       await FirebaseFirestore.instance
           .collection('orders')
           .doc(order.id)
           .set(order.toMap());
-      debugPrint('OrderProvider: Saved order ${order.id} for customer ${order.customerName}');
     } catch (e) {
-      debugPrint('OrderProvider: Error saving order ${order.id}: $e');
-      rethrow; // Propagate error for debugging
+      debugPrint('Error saving order: $e');
     }
   }
 
-  List<models.Order> get orders => List.unmodifiable(_orders);
+  List<order.Order> get orders => List.unmodifiable(_orders);
 
-  List<models.Order> get pendingOrders => _orders.where((o) => o.status == 'pending').toList();
-  List<models.Order> get processingOrders => _orders.where((o) => o.status == 'processing').toList();
-  List<models.Order> get readyOrders => _orders.where((o) => o.status == 'ready').toList();
-  List<models.Order> get completedOrders => _orders.where((o) => o.status == 'completed').toList();
-  List<models.Order> get cancelledOrders => _orders.where((o) => o.status == 'cancelled').toList();
+  List<order.Order> get pendingOrders => _orders.where((o) => o.status == 'pending').toList();
+  List<order.Order> get processingOrders => _orders.where((o) => o.status == 'processing').toList();
+  List<order.Order> get readyOrders => _orders.where((o) => o.status == 'ready').toList();
+  List<order.Order> get completedOrders => _orders.where((o) => o.status == 'completed').toList();
+  List<order.Order> get cancelledOrders => _orders.where((o) => o.status == 'cancelled').toList();
 
-  List<models.Order> getOrdersForMerchant(String merchantEmail) {
+  List<order.Order> getOrdersForMerchant(String merchantEmail) {
     return _orders.where((o) => o.merchantEmail == merchantEmail).toList();
   }
 
-  List<models.Order> getProcessingOrdersForMerchant(String merchantEmail) {
+  List<order.Order> getProcessingOrdersForMerchant(String merchantEmail) {
     return _orders
         .where((o) =>
             o.merchantEmail == merchantEmail &&
@@ -72,19 +67,19 @@ class OrderProvider with ChangeNotifier {
         .toList();
   }
 
-  List<models.Order> getReadyOrdersForMerchant(String merchantEmail) {
+  List<order.Order> getReadyOrdersForMerchant(String merchantEmail) {
     return _orders
         .where((o) => o.merchantEmail == merchantEmail && o.status == 'ready')
         .toList();
   }
 
-  List<models.Order> getCompletedOrdersForMerchant(String merchantEmail) {
+  List<order.Order> getCompletedOrdersForMerchant(String merchantEmail) {
     return _orders
         .where((o) => o.merchantEmail == merchantEmail && o.status == 'completed')
         .toList();
   }
 
-  List<models.Order> getCancelledOrdersForMerchant(String merchantEmail) {
+  List<order.Order> getCancelledOrdersForMerchant(String merchantEmail) {
     return _orders
         .where((o) => o.merchantEmail == merchantEmail && o.status == 'cancelled')
         .toList();
@@ -125,7 +120,7 @@ class OrderProvider with ChangeNotifier {
     }).toList();
   }
 
-  List<models.Order> getOngoingOrdersForCustomer(String customerEmail) {
+  List<order.Order> getOngoingOrdersForCustomer(String customerEmail) {
     final orders = _orders
         .where(
           (o) => o.status != 'completed' && o.customerName == customerEmail,
@@ -142,13 +137,13 @@ class OrderProvider with ChangeNotifier {
     return orders;
   }
 
-  List<models.Order> getCompletedOrdersForCustomer(String customerEmail) {
+  List<order.Order> getCompletedOrdersForCustomer(String customerEmail) {
     return _orders
         .where((o) => o.status == 'completed' && o.customerName == customerEmail)
         .toList();
   }
 
-  Future<void> addOrder(models.Order order) async {
+  Future<void> addOrder(order.Order order) async {
     _orders.insert(0, order);
     await _saveOrder(order);
     notifyListeners();
@@ -187,7 +182,7 @@ class OrderProvider with ChangeNotifier {
 
   Future<void> updateOrderWithRatings({
     required String orderId,
-    required models.Order updatedOrder,
+    required order.Order updatedOrder,
   }) async {
     final index = _orders.indexWhere((o) => o.id == orderId);
     if (index == -1) {
@@ -233,59 +228,56 @@ class OrderProvider with ChangeNotifier {
     }
   }
 
-  Future<models.Order> createOrderFromCart({
-    required String customerUid,
-    required List<models.OrderItem> items,
-    required DateTime pickupTime,
-    required String paymentMethod,
-    required String merchantName,
-    required String merchantEmail,
-    String? notes,
-  }) async {
-    try {
-      // Fetch customer email from users/{customerUid}
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(customerUid)
-          .get();
-      if (!userDoc.exists) {
-        throw Exception('User with UID $customerUid not found');
-      }
-      final customerEmail = userDoc.data()?['email'] as String?;
-      if (customerEmail == null) {
-        throw Exception('Email not found for user $customerUid');
-      }
-
-      debugPrint('OrderProvider: Creating order for customer UID: $customerUid, email: $customerEmail');
-
-      final order = models.Order(
-        id: _generateOrderId(),
-        orderTime: DateTime.now(),
-        pickupTime: pickupTime,
-        items: items,
-        paymentMethod: paymentMethod,
-        merchantName: merchantName,
-        merchantEmail: merchantEmail,
-        customerName: customerEmail,
-        status: 'pending',
-        notes: notes,
+  Future<void> _autoCompleteOrder(String orderId) async {
+    final index = _orders.indexWhere((o) => o.id == orderId);
+    if (index != -1 && _orders[index].status == 'ready') {
+      final now = DateTime.now();
+      _orders[index] = _orders[index].copyWith(
+        status: 'completed',
+        completedTime: now,
+        completedAt: now,
         foodRating: null,
         appRating: null,
         foodNotes: null,
         appNotes: null,
-        readyAt: null,
-        completedAt: null,
-        cancelledAt: null,
-        createdAt: DateTime.now(),
       );
-
-      debugPrint('OrderProvider: Order created with ID: ${order.id}, customer: $customerEmail, merchant: $merchantEmail');
-
-      return order;
-    } catch (e) {
-      debugPrint('OrderProvider: Error creating order: $e');
-      rethrow;
+      _readyTimers.remove(orderId);
+      await _notificationProvider.addNotification(
+          NotificationModel.fromOrder(_orders[index]));
+      await _saveOrder(_orders[index]);
+      notifyListeners();
     }
+  }
+
+  order.Order createOrderFromCart({
+    required List<order.OrderItem> items,
+    required DateTime pickupTime,
+    required String paymentMethod,
+    required String merchantName,
+    required String merchantEmail,
+    required String customerName,
+    String? notes,
+  }) {
+    return order.Order(
+      id: _generateOrderId(),
+      orderTime: DateTime.now(),
+      pickupTime: pickupTime,
+      items: items,
+      paymentMethod: paymentMethod,
+      merchantName: merchantName,
+      merchantEmail: merchantEmail,
+      customerName: customerName,
+      status: 'pending',
+      notes: notes,
+      foodRating: null,
+      appRating: null,
+      foodNotes: null,
+      appNotes: null,
+      readyAt: null,
+      completedAt: null,
+      cancelledAt: null,
+      createdAt: DateTime.now(),
+    );
   }
 
   Future<void> addWithdrawal({
@@ -293,12 +285,12 @@ class OrderProvider with ChangeNotifier {
     required double amount,
     required String method,
   }) async {
-    final withdrawal = models.Order(
+    final withdrawal = order.Order(
       id: _generateOrderId(),
       orderTime: DateTime.now(),
       pickupTime: DateTime.now(),
       items: [
-        models.OrderItem(
+        order.OrderItem(
           name: 'Withdrawal',
           imgBase64: 'assets/withdrawal.png',
           subtitle: 'Withdrawal to $method',
@@ -324,7 +316,7 @@ class OrderProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  List<models.Order> getTransactionsForMerchant(String merchantEmail) {
+  List<order.Order> getTransactionsForMerchant(String merchantEmail) {
     return _orders
         .where((order) =>
             order.merchantEmail == merchantEmail &&
@@ -360,23 +352,6 @@ class OrderProvider with ChangeNotifier {
         .where((order) =>
             order.merchantEmail == merchantEmail && order.status == 'completed')
         .fold(0, (int sum, order) => sum + order.totalPrice.round());
-  }
-
-  Future<void> _autoCompleteOrder(String orderId) async {
-    final index = _orders.indexWhere((o) => o.id == orderId);
-    if (index != -1 && _orders[index].status == 'ready') {
-      final now = DateTime.now();
-      _orders[index] = _orders[index].copyWith(
-        status: 'completed',
-        completedTime: now,
-        completedAt: now,
-      );
-      await _notificationProvider.addNotification(
-        NotificationModel.fromOrder(_orders[index]),
-      );
-      await _saveOrder(_orders[index]);
-      notifyListeners();
-    }
   }
 
   @override

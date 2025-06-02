@@ -1,41 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart' as fb;
 import '../models/cart_item.dart';
 
 class CartProvider with ChangeNotifier {
   List<CartItem> _cartItems = [];
   bool _isLoading = false;
-  String? _userId;
+  String? _userEmail;
 
   List<CartItem> get cartItems => List.unmodifiable(_cartItems);
   bool get isLoading => _isLoading;
 
-  Future<void> initialize(String userId) async {
-    debugPrint('CartProvider: Initializing for user ID: $userId');
-    _userId = userId;
+  Future<void> initialize(String userEmail) async {
+    debugPrint('CartProvider: Initializing for user: $userEmail');
+    _userEmail = userEmail;
     await _loadCart();
   }
 
   Future<void> _loadCart() async {
-    if (_userId == null) {
-      debugPrint('CartProvider: Cannot load cart: userId is null');
+    if (_userEmail == null) {
+      debugPrint('CartProvider: Cannot load cart: userEmail is null');
       return;
     }
     _isLoading = true;
     notifyListeners();
 
     try {
-      final authUser = fb.FirebaseAuth.instance.currentUser;
-      debugPrint('CartProvider: Loading cart for $_userId, auth user: ${authUser?.email}, uid: ${authUser?.uid}');
       final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(_userId)
           .collection('cart')
-          .doc('cart')
+          .doc(_userEmail)
           .get()
           .timeout(const Duration(seconds: 3), onTimeout: () {
-        debugPrint('CartProvider: Firestore load timeout for $_userId');
+        debugPrint('CartProvider: Firestore load timeout for $_userEmail');
         throw Exception('Firestore load timeout');
       });
       if (doc.exists) {
@@ -51,13 +46,10 @@ class CartProvider with ChangeNotifier {
         }
       } else {
         _cartItems = [];
-        debugPrint('CartProvider: Cart document does not exist for $_userId');
+        debugPrint('CartProvider: Cart document does not exist for $_userEmail');
       }
     } catch (e) {
       debugPrint('CartProvider: Error loading cart: $e');
-      if (e.toString().contains('permission-denied')) {
-        debugPrint('CartProvider: Permission denied when loading cart for $_userId. Check Firestore rules.');
-      }
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -65,32 +57,26 @@ class CartProvider with ChangeNotifier {
   }
 
   Future<void> _saveCart() async {
-    if (_userId == null) {
-      debugPrint('CartProvider: Cannot save cart: userId is null');
-      throw Exception('User ID not set');
+    if (_userEmail == null) {
+      debugPrint('CartProvider: Cannot save cart: userEmail is null');
+      throw Exception('User email not set');
     }
     try {
-      final authUser = fb.FirebaseAuth.instance.currentUser;
-      debugPrint('CartProvider: Saving ${_cartItems.length} items to Firestore for $_userId, auth user: ${authUser?.email}, uid: ${authUser?.uid}');
+      debugPrint('CartProvider: Saving ${_cartItems.length} items to Firestore for $_userEmail');
       final cartData = {
         'items': _cartItems.map((item) => item.toMap()).toList(),
       };
       await FirebaseFirestore.instance
-          .collection('users')
-          .doc(_userId)
           .collection('cart')
-          .doc('cart')
+          .doc(_userEmail)
           .set(cartData, SetOptions(merge: false))
           .timeout(const Duration(seconds: 3), onTimeout: () {
-        debugPrint('CartProvider: Firestore save timeout for $_userId');
+        debugPrint('CartProvider: Firestore save timeout for $_userEmail');
         throw Exception('Firestore save timeout');
       });
-      debugPrint('CartProvider: Cart saved successfully for $_userId');
+      debugPrint('CartProvider: Cart saved successfully for $_userEmail');
     } catch (e) {
       debugPrint('CartProvider: Error saving cart: $e');
-      if (e.toString().contains('permission-denied')) {
-        debugPrint('CartProvider: Permission denied when saving cart for $_userId. Check Firestore rules.');
-      }
       throw Exception('Failed to save cart: $e');
     }
   }

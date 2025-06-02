@@ -20,9 +20,9 @@ class FavoritesScreen extends StatelessWidget {
         builder: (context) => HomeScreen(
           initialFoodItem: item.name,
           initialFoodPrice: item.price,
-          initialFoodImgBase64: item.imgBase64, // Updated from initialFoodImg64
+          initialFoodImgBase64: item.imgBase64, 
           initialFoodSubtitle: item.subtitle ?? '',
-          initialSellerEmail: null, // Added, as FavoriteItem lacks sellerEmail
+          initialSellerEmail: null, 
         ),
       ),
     );

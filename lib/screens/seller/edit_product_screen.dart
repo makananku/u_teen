@@ -699,11 +699,6 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
       final foodProvider = Provider.of<FoodProvider>(context, listen: false);
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final sellerEmail = authProvider.sellerEmail ?? '';
-      
-      // Validate seller email
-      if (sellerEmail.isEmpty) {
-        throw Exception('Seller email is not available');
-      }
 
       final price = _priceController.text.replaceAll('.', '');
 
@@ -712,10 +707,6 @@ class _SellerEditProductScreenState extends State<SellerEditProductScreen> {
         final bytes = await _imageFile!.readAsBytes();
         imgBase64 = base64Encode(bytes);
         debugPrint('New image encoded to Base64');
-        // Validate Base64 size (less than 1 MB for Firestore)
-        if (imgBase64.length > 1000000) {
-          throw Exception('Image size exceeds 1 MB limit');
-        }
       } else if (widget.product?.imgBase64 != null) {
         imgBase64 = widget.product!.imgBase64;
         debugPrint('Using existing imgBase64 from product');
