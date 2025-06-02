@@ -218,7 +218,7 @@ class _DetailBoxState extends State<DetailBox> {
                               try {
                                 final authUser = fb.FirebaseAuth.instance.currentUser;
                                 debugPrint('DetailBox: Auth user: ${authUser?.email}, uid: ${authUser?.uid}');
-                                if (authProvider.user == null) {
+                                if (authProvider.user == null || authUser == null) {
                                   debugPrint('DetailBox: User not logged in');
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
@@ -228,10 +228,10 @@ class _DetailBoxState extends State<DetailBox> {
                                   );
                                   return;
                                 }
-                                // Normalize email to lowercase
-                                final normalizedEmail = authProvider.user!.email.toLowerCase();
-                                await cartProvider.initialize(normalizedEmail);
-                                debugPrint('DetailBox: CartProvider initialized for $normalizedEmail');
+                                // Use UID instead of email
+                                final userId = authUser.uid;
+                                await cartProvider.initialize(userId);
+                                debugPrint('DetailBox: CartProvider initialized for UID: $userId');
 
                                 final price = int.tryParse(cleanPrice) ?? 0;
                                 if (widget.selectedFoodImgBase64.isEmpty) {
