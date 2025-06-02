@@ -24,7 +24,7 @@ class CategorySelector extends StatelessWidget {
         children: [
           _buildCategory("All", selectedCategory == 'All', isDarkMode),
           _buildCategory("Food", selectedCategory == 'Food', isDarkMode),
-          _buildCategory("Drinks", selectedCategory == 'Drinks', isDarkMode),
+          _buildCategory("Drink", selectedCategory == 'Drink', isDarkMode),
           _buildCategory("Snack", selectedCategory == 'Snack', isDarkMode),
         ],
       ),

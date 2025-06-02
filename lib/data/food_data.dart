@@ -23,7 +23,7 @@ class FoodData {
         price: '20000',
         sellerEmail: 'seller@example.com',
         tenantName: 'Masakan Minang',
-        category: 'Food', // Tambahkan kategori
+        category: 'Food', 
         isActive: true,
       ),
       Product(
@@ -35,7 +35,7 @@ class FoodData {
         price: '15000',
         sellerEmail: 'seller@example.com',
         tenantName: 'Masakan Minang',
-        category: 'Food', // Tambahkan kategori
+        category: 'Food', 
         isActive: true,
       ),
       Product(
@@ -47,7 +47,7 @@ class FoodData {
         price: '20000',
         sellerEmail: 'seller@example.com',
         tenantName: 'Bakso 88',
-        category: 'Food', // Tambahkan kategori
+        category: 'Food',
         isActive: true,
       ),
       Product(
@@ -59,7 +59,7 @@ class FoodData {
         price: '20000',
         sellerEmail: 'seller@example.com',
         tenantName: 'Mie Ayam Enak',
-        category: 'Food', // Tambahkan kategori
+        category: 'Food',
         isActive: true,
       ),
       Product(
@@ -71,7 +71,7 @@ class FoodData {
         price: '25000',
         sellerEmail: 'seller@example.com',
         tenantName: 'KopiKu',
-        category: 'Drinks', // Tambahkan kategori
+        category: 'Drink', 
         isActive: true,
       ),
       Product(
@@ -83,7 +83,7 @@ class FoodData {
         price: '8000',
         sellerEmail: 'seller@example.com',
         tenantName: 'KopiKu',
-        category: 'Drinks', // Tambahkan kategori
+        category: 'Drink', 
         isActive: true,
       ),
       Product(
@@ -95,7 +95,7 @@ class FoodData {
         price: '30000',
         sellerEmail: 'seller@example.com',
         tenantName: 'Aneka Makanan',
-        category: 'Snack', // Tambahkan kategori
+        category: 'Snack', 
         isActive: true,
       ),
       Product(
@@ -107,7 +107,7 @@ class FoodData {
         price: '12000',
         sellerEmail: 'seller@example.com',
         tenantName: 'Fast Food Restaurant',
-        category: 'Snack', // Tambahkan kategori
+        category: 'Snack', 
         isActive: true,
       ),
     ];
