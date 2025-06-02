@@ -321,42 +321,49 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 
   Future<void> _startAnimations() async {
-    debugPrint('SplashScreen: Starting animations');
-    await Future.delayed(const Duration(milliseconds: 500));
-    _logoController.forward();
+  debugPrint('SplashScreen: Starting animations');
+  await Future.delayed(const Duration(milliseconds: 500));
+  _logoController.forward();
 
-    await Future.delayed(const Duration(milliseconds: 900));
-    _textController.forward();
+  await Future.delayed(const Duration(milliseconds: 900));
+  _textController.forward();
 
-    await Future.delayed(const Duration(milliseconds: 800));
+  await Future.delayed(const Duration(milliseconds: 800));
+  if (!mounted) return;
+
+  _bgController.forward().then((_) async {
     if (!mounted) return;
+    _logoController.reverse();
+    _textShiftController.forward();
 
-    _bgController.forward().then((_) async {
-      if (!mounted) return;
-      _logoController.reverse();
-      _textShiftController.forward();
-
-      debugPrint('SplashScreen: Checking authentication status');
-      final auth = Provider.of<AuthProvider>(context, listen: false);
-      if (auth.isLoggedIn && auth.user != null) {
-        debugPrint('SplashScreen: User is logged in, email: ${auth.user!.email}');
-        // Defer provider initialization to home screen
-        if (mounted) {
-          debugPrint('SplashScreen: Navigating to home screen');
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  auth.isSeller ? const SellerHomeScreen() : const HomeScreen(),
-            ),
-          );
-        }
-      } else {
-        debugPrint('SplashScreen: No logged-in user, showing login button');
-        _buttonController.forward();
+    debugPrint('SplashScreen: Checking authentication status');
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    if (auth.isLoggedIn && auth.user != null) {
+      debugPrint('SplashScreen: User is logged in, email: ${auth.user!.email}');
+      try {
+        await Provider.of<FavoriteProvider>(context, listen: false).initialize(context);
+        debugPrint('FavoriteProvider initialized for user: ${auth.user!.email}');
+        await Provider.of<CartProvider>(context, listen: false).initialize(auth.user!.email);
+        debugPrint('CartProvider initialized for user: ${auth.user!.email}');
+      } catch (e) {
+        debugPrint('SplashScreen: Error initializing providers: $e');
       }
-    });
-  }
+      if (mounted) {
+        debugPrint('SplashScreen: Navigating to home screen');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                auth.isSeller ? const SellerHomeScreen() : const HomeScreen(),
+          ),
+        );
+      }
+    } else {
+      debugPrint('SplashScreen: No logged-in user, showing login button');
+      _buttonController.forward();
+    }
+  });
+}
 
   @override
   void dispose() {
@@ -448,8 +455,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 'UMN Canteen',
                 style: TextStyle(
                   fontSize: 16,
-                  color: _bgController.value < 0.5
-                      ? AppTheme.getAppBarText(isDarkMode).withOpacity(0.7)
+                  color: _bgController.value < 0.5 
+                      ? AppTheme.getAppBarText(isDarkMode).withOpacity(0.7) 
                       : AppTheme.getGrey600(isDarkMode),
                 ),
               ),
@@ -523,11 +530,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       pageBuilder: (context, animation, secondaryAnimation) =>
                           const LoginScreen(),
                       transitionsBuilder: (
-                        context,
-                        animation,
-                        secondaryAnimation,
-                        child,
-                      ) {
+                          context,
+                          animation,
+                          secondaryAnimation,
+                          child,
+                          ) {
                         return FadeTransition(opacity: animation, child: child);
                       },
                       transitionDuration: const Duration(milliseconds: 800),

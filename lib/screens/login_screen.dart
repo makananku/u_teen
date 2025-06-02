@@ -30,87 +30,96 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   DateTime? _lastBackPressTime;
 
   @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    );
+void initState() {
+  super.initState();
+  _animationController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1000),
+  );
+  
+  _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    CurvedAnimation(parent: _animationController, curve: Curves.easeInOutCubic),
+  );
+  
+  _slideAnimation = Tween<Offset>(
+    begin: const Offset(0, 0.2),
+    end: Offset.zero,
+  ).animate(CurvedAnimation(
+    parent: _animationController,
+    curve: Curves.easeOutQuart,
+  ));
 
-    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOutCubic),
-    );
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    debugPrint('LoginScreen: Initializing AuthProvider');
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    await authProvider.initialize();
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.2),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutQuart,
-    ));
-
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      debugPrint('LoginScreen: Initializing AuthProvider');
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      await authProvider.initialize();
-
-      if (authProvider.isLoggedIn && authProvider.user != null && mounted) {
-        debugPrint('LoginScreen: User is logged in, email: ${authProvider.user!.email}');
-        // Defer provider initialization to home screen
-        if (mounted) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (context) => authProvider.isSeller
-                  ? const SellerHomeScreen()
-                  : const HomeScreen(),
-            ),
-            (route) => false,
-          );
-        }
-      } else {
-        debugPrint('LoginScreen: No logged-in user, showing login UI');
-        _animationController.forward();
+    if (authProvider.isLoggedIn && authProvider.user != null && mounted) {
+      debugPrint('LoginScreen: User is logged in, email: ${authProvider.user!.email}');
+      try {
+        await Provider.of<FavoriteProvider>(context, listen: false).initialize(context);
+        debugPrint('FavoriteProvider initialized for user: ${authProvider.user?.email}');
+        await Provider.of<CartProvider>(context, listen: false).initialize(authProvider.user!.email);
+        debugPrint('CartProvider initialized for user: ${authProvider.user?.email}');
+      } catch (e) {
+        debugPrint('LoginScreen: Error initializing providers: $e');
       }
-    });
-  }
-
-  Future<void> _handleLogin() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isLoading = true);
-
-    final isDarkMode = Provider.of<ThemeNotifier>(context, listen: false).isDarkMode;
-
-    try {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final authService = AuthService();
-
-      final email = _emailController.text.trim();
-      final password = _passwordController.text.trim();
-
-      debugPrint('LoginScreen: Attempting login for $email');
-      final emailValidationError = authService.validateEmail(email);
-      if (emailValidationError != null) {
-        _showSnackBar(emailValidationError, AppTheme.getSnackBarError(isDarkMode));
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      // Authenticate and get user data once
-      final user = await authService.login(email, password);
-
-      if (!mounted) return;
-
-      if (user != null) {
-        // Update AuthProvider with the authenticated user
-        final success = await authProvider.login(
-          email: email,
-          password: password,
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => authProvider.isSeller
+                ? const SellerHomeScreen()
+                : const HomeScreen(),
+          ),
+          (route) => false,
         );
+      }
+    } else {
+      debugPrint('LoginScreen: No logged-in user, showing login UI');
+      _animationController.forward();
+    }
+  });
+}
 
-        if (success && authProvider.user != null && mounted) {
-          // Defer provider initialization to home screen
+Future<void> _handleLogin() async {
+  if (!_formKey.currentState!.validate()) return;
+
+  setState(() => _isLoading = true);
+
+  final isDarkMode = Provider.of<ThemeNotifier>(context, listen: false).isDarkMode;
+
+  try {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final authService = AuthService();
+
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    debugPrint('LoginScreen: Attempting login for $email');
+    final emailValidationError = authService.validateEmail(email);
+    if (emailValidationError != null) {
+      _showSnackBar(emailValidationError, AppTheme.getSnackBarError(isDarkMode));
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    final user = await authService.login(email, password);
+
+    if (!mounted) return;
+
+    if (user != null) {
+      final success = await authProvider.login(
+        email: email,
+        password: password,
+      );
+
+      if (success && authProvider.user != null && mounted) {
+        try {
+          await Provider.of<FavoriteProvider>(context, listen: false).initialize(context);
+          debugPrint('FavoriteProvider initialized for user: ${authProvider.user!.email}');
+          await Provider.of<CartProvider>(context, listen: false).initialize(authProvider.user!.email);
+          debugPrint('CartProvider initialized for user: ${authProvider.user!.email}');
           await Future.delayed(const Duration(milliseconds: 500));
           if (mounted) {
             debugPrint('LoginScreen: Login successful, navigating to home');
@@ -124,25 +133,29 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               (route) => false,
             );
           }
-        } else {
-          debugPrint('LoginScreen: Failed to save login session');
-          _showSnackBar('Failed to save login session.', AppTheme.getSnackBarError(isDarkMode));
+        } catch (e) {
+          debugPrint('LoginScreen: Error initializing providers: $e');
+          _showSnackBar('Error initializing app: $e', AppTheme.getSnackBarError(isDarkMode));
         }
       } else {
-        debugPrint('LoginScreen: Login failed, user is null');
-        _showSnackBar('Login failed. Incorrect email or password, or user data not found.', AppTheme.getSnackBarError(isDarkMode));
+        debugPrint('LoginScreen: Failed to save login session');
+        _showSnackBar('Failed to save login session.', AppTheme.getSnackBarError(isDarkMode));
       }
-    } catch (e) {
-      debugPrint('LoginScreen: Login error: $e');
-      if (mounted) {
-        _showSnackBar('An error occurred: $e', AppTheme.getSnackBarError(isDarkMode));
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+    } else {
+      debugPrint('LoginScreen: Login failed, user is null');
+      _showSnackBar('Login failed. Incorrect email or password, or user data not found.', AppTheme.getSnackBarError(isDarkMode));
+    }
+  } catch (e) {
+    debugPrint('LoginScreen: Login error: $e');
+    if (mounted) {
+      _showSnackBar('An error occurred: $e', AppTheme.getSnackBarError(isDarkMode));
+    }
+  } finally {
+    if (mounted) {
+      setState(() => _isLoading = false);
     }
   }
+}
 
   void _showSnackBar(String message, Color backgroundColor) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -386,13 +399,5 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    _animationController.dispose();
-    super.dispose();
   }
 }

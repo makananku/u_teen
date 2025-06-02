@@ -10,7 +10,7 @@ class User {
   final String? phoneNumber;
   final String? prodi;
   final String? angkatan;
-  final String? tenantName;
+  final String? tenantName; 
 
   User({
     required this.email,
@@ -48,9 +48,7 @@ class AuthService {
       final credential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
-      ).timeout(const Duration(seconds: 10), onTimeout: () {
-        throw Exception('Firebase Authentication timed out');
-      });
+      );
 
       if (credential.user == null) {
         throw Exception('Login failed: No user found');
@@ -60,10 +58,7 @@ class AuthService {
       final doc = await _firestore
           .collection('users')
           .doc(credential.user!.uid)
-          .get()
-          .timeout(const Duration(seconds: 10), onTimeout: () {
-        throw Exception('Firestore query timed out');
-      });
+          .get();
 
       if (!doc.exists) {
         throw Exception('User data not found in Firestore');
