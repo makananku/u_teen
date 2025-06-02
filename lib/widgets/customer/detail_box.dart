@@ -4,10 +4,12 @@ import '../../providers/favorite_provider.dart';
 import '../../utils/app_theme.dart';
 import '../../providers/theme_notifier.dart';
 import '../../providers/cart_provider.dart';
+import '../../auth/auth_provider.dart';
 import '../../models/cart_item.dart';
 import '../../models/favorite_item.dart';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:firebase_auth/firebase_auth.dart' as fb;
 
 class DetailBox extends StatefulWidget {
   final String selectedFoodItem;
@@ -38,6 +40,7 @@ class _DetailBoxState extends State<DetailBox> {
   Widget build(BuildContext context) {
     final favoriteProvider = Provider.of<FavoriteProvider>(context);
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     final cleanPrice = widget.selectedFoodPrice.replaceAll(RegExp(r'[^0-9]'), '');
     final isFavorite = favoriteProvider.isFavorite(FavoriteItem(
@@ -115,7 +118,7 @@ class _DetailBoxState extends State<DetailBox> {
                             borderRadius: BorderRadius.circular(20),
                             child: widget.selectedFoodImgBase64.isNotEmpty
                                 ? Image.memory(
-                                    _decodeBase64(widget.selectedFoodImgBase64),
+                                    _decodeBase64String(widget.selectedFoodImgBase64),
                                     height: 220,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
@@ -213,11 +216,28 @@ class _DetailBoxState extends State<DetailBox> {
                                 _isAddingToCart = true;
                               });
                               try {
+                                final authUser = fb.FirebaseAuth.instance.currentUser;
+                                debugPrint('DetailBox: Auth user: ${authUser?.email}, uid: ${authUser?.uid}');
+                                if (authProvider.user == null) {
+                                  debugPrint('DetailBox: User not logged in');
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: const Text('Please log in to add items to cart'),
+                                      backgroundColor: AppTheme.getSnackBarError(isDarkMode),
+                                    ),
+                                  );
+                                  return;
+                                }
+                                // Normalize email to lowercase
+                                final normalizedEmail = authProvider.user!.email.toLowerCase();
+                                await cartProvider.initialize(normalizedEmail);
+                                debugPrint('DetailBox: CartProvider initialized for $normalizedEmail');
+
                                 final price = int.tryParse(cleanPrice) ?? 0;
                                 if (widget.selectedFoodImgBase64.isEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text('Cannot add item: No image data'),
+                                      content: const Text('Cannot add item: No image data'),
                                       backgroundColor: AppTheme.getSnackBarError(isDarkMode),
                                     ),
                                   );
@@ -231,7 +251,7 @@ class _DetailBoxState extends State<DetailBox> {
                                   sellerEmail: widget.sellerEmail,
                                 ));
                                 debugPrint('DetailBox: Added to cart: ${widget.selectedFoodItem}, imgBase64 length: ${widget.selectedFoodImgBase64.length}');
-                                // Tampilkan SnackBar untuk konfirmasi
+                                // Show confirmation SnackBar
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
@@ -244,7 +264,7 @@ class _DetailBoxState extends State<DetailBox> {
                                     ),
                                   );
                                 }
-                                // Panggil onClose untuk menutup DetailBox
+                                // Close DetailBox
                                 await Future.delayed(const Duration(milliseconds: 200));
                                 widget.onClose();
                               } catch (e) {
@@ -417,7 +437,7 @@ class _DetailBoxState extends State<DetailBox> {
     );
   }
 
-  Uint8List _decodeBase64(String base64String) {
+  Uint8List _decodeBase64String(String base64String) {
     try {
       final String cleanedBase64 = base64String.startsWith('data:image')
           ? base64String.split(',').last
