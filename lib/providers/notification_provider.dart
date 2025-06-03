@@ -104,10 +104,6 @@ class NotificationProvider with ChangeNotifier {
   }
 
   Future<void> addNotification(NotificationModel notification) async {
-    if (_customerEmail == null || notification.payload?['customerName'] != _customerEmail) {
-      debugPrint('NotificationProvider: Skipping notification for different customer');
-      return;
-    }
     _notifications.insert(0, notification);
     await _saveNotification(notification);
     notifyListeners();

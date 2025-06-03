@@ -106,6 +106,7 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+    final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
 
     return FutureBuilder(
@@ -115,6 +116,7 @@ class AuthWrapper extends StatelessWidget {
             throw Exception('AuthProvider not initialized');
           }
           if (auth.isLoggedIn && auth.user != null) {
+            await notificationProvider.initialize(auth.user!.email!);
             await orderProvider.initialize(auth.user!.email!);
           }
         }).timeout(
