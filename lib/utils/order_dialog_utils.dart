@@ -225,39 +225,59 @@ class OrderDialogUtils {
   }) async {
     debugPrint('OrderDialogUtils: Starting status update for order ${order.id} to $newStatus');
 
-    // Show loading dialog
+    // Show loading dialog with Provider listener
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => PopScope(
         canPop: false,
-        child: Dialog(
-          backgroundColor: AppTheme.getCard(isDarkMode),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  height: 50,
-                  width: 50,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 6,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      AppTheme.getSnackBarSuccess(isDarkMode),
+        child: Consumer<OrderProvider>(
+          builder: (context, orderProvider, child) {
+            // Close dialog when operation completes or fails
+            if (!orderProvider.isLoading && orderProvider.lastError != null) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (dialogContext.mounted) {
+                  Navigator.pop(dialogContext);
+                  _showErrorDialog(context, 'Gagal memperbarui pesanan: ${orderProvider.lastError}', isDarkMode);
+                }
+              });
+            } else if (!orderProvider.isLoading) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (dialogContext.mounted) {
+                  Navigator.pop(dialogContext);
+                  _showSuccessDialog(context, newStatus, successMessage, isDarkMode);
+                }
+              });
+            }
+            return Dialog(
+              backgroundColor: AppTheme.getCard(isDarkMode),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      height: 50,
+                      width: 50,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 6,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppTheme.getSnackBarSuccess(isDarkMode),
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 20),
+                    Text(
+                      newStatus == 'ready' ? 'Menandai pesanan sebagai siap...' : 'Membatalkan pesanan...',
+                      style: TextStyle(
+                        color: AppTheme.getPrimaryText(isDarkMode),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 20),
-                Text(
-                  newStatus == 'ready' ? 'Marking order as ready...' : 'Cancelling order...',
-                  style: TextStyle(
-                    color: AppTheme.getPrimaryText(isDarkMode),
-                  ),
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -268,31 +288,28 @@ class OrderDialogUtils {
       if (context.mounted) {
         debugPrint('OrderDialogUtils: Fallback timer triggered for order ${order.id}');
         Navigator.pop(context);
-        _showErrorDialog(context, 'Operation took too long. Please try again.', isDarkMode);
+        _showErrorDialog(context, 'Operasi terlalu lama. Silakan coba lagi.', isDarkMode);
       }
     });
 
     try {
       debugPrint('OrderDialogUtils: Calling updateOrderStatus for order ${order.id}');
-      await Provider.of<OrderProvider>(context, listen: false)
+      final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+      orderProvider.clearLastError(); // Reset lastError before operation
+      await orderProvider
           .updateOrderStatus(order.id, newStatus, reason: reason)
           .timeout(const Duration(seconds: 10), onTimeout: () {
         debugPrint('OrderDialogUtils: updateOrderStatus timed out for order ${order.id}');
-        throw Exception('Operation timed out');
+        throw Exception('Operasi timeout');
       });
-
-      if (context.mounted) {
-        debugPrint('OrderDialogUtils: Status update successful for order ${order.id}');
-        Navigator.pop(context); // Close loading dialog
-        fallbackTimer.cancel();
-        await _showSuccessDialog(context, newStatus, successMessage, isDarkMode);
-      }
+      fallbackTimer.cancel();
+      debugPrint('OrderDialogUtils: Status update completed for order ${order.id}');
     } catch (e) {
       debugPrint('OrderDialogUtils: Error updating order ${order.id}: $e');
       if (context.mounted) {
-        Navigator.pop(context); // Close loading dialog
         fallbackTimer.cancel();
-        await _showErrorDialog(context, 'Failed to update order: $e', isDarkMode);
+        Navigator.pop(context); // Ensure loading dialog closes
+        await _showErrorDialog(context, 'Gagal memperbarui pesanan: $e', isDarkMode);
       }
     }
   }
@@ -318,7 +335,7 @@ class OrderDialogUtils {
               ),
               const SizedBox(height: 16),
               Text(
-                status == 'ready' ? 'Success!' : 'Order Cancelled',
+                status == 'ready' ? 'Berhasil!' : 'Pesanan Dibatalkan',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
