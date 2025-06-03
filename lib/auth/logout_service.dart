@@ -118,9 +118,6 @@ class LogoutService {
 
   static Future<bool> logout(BuildContext context) async {
     try {
-      // Close all dialogs
-      Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
-
       // Clear auth state
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final logoutSuccess = await authProvider.logout();
@@ -134,29 +131,37 @@ class LogoutService {
       foodProvider.clearProducts();
 
       // Navigate to login screen
-      if (!context.mounted) {
-        debugPrint('LogoutService: Context is not mounted, skipping navigation');
-        return false;
-      }
-
-      await Navigator.pushAndRemoveUntil(
-        context, 
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-        (Route<dynamic> route) => false,
-      );
-
-      return true;
-    } catch (error) {
-      debugPrint('LogoutService error: $error');
       if (context.mounted) {
-        // Fallback navigation
+        // Close all dialogs and routes
+        Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
+        // Perform navigation to LoginScreen
         await Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const LoginScreen()),
           (Route<dynamic> route) => false,
         );
-        return true; // Consider navigation as success to avoid UI error
+      } else {
+        debugPrint('LogoutService: Context is not mounted, attempting navigation with new context');
+        // Fallback: Use a new context from the navigator key if available
+        final navigator = Navigator.of(context, rootNavigator: true);
+        navigator.popUntil((route) => route.isFirst);
+        await navigator.pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          (Route<dynamic> route) => false,
+        );
       }
-      return false;
+
+      return true;
+    } catch (error) {
+      debugPrint('LogoutService error: $error');
+      // Attempt navigation even on error to ensure user is redirected
+      if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
+        await Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          (Route<dynamic> route) => false,
+        );
+      }
+      return false; // Return false to trigger error message
     }
   }
 }
