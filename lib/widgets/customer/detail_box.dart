@@ -37,16 +37,18 @@ class _DetailBoxState extends State<DetailBox> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
     final favoriteProvider = Provider.of<FavoriteProvider>(context);
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     final cleanPrice = widget.selectedFoodPrice.replaceAll(RegExp(r'[^0-9]'), '');
-    final isFavorite = favoriteProvider.isFavorite(FavoriteItem(
+    final favoriteItem = FavoriteItem(
       name: widget.selectedFoodItem,
       price: cleanPrice,
       imgBase64: widget.selectedFoodImgBase64,
       subtitle: widget.selectedFoodSubtitle,
-    ));
+    );
+    final isFavorite = favoriteProvider.isFavorite(favoriteItem);
 
     debugPrint('DetailBox: Rendering ${widget.selectedFoodItem}, imgBase64 length: ${widget.selectedFoodImgBase64.length}');
 
@@ -209,9 +211,6 @@ class _DetailBoxState extends State<DetailBox> {
                       onPressed: _isAddingToCart
                           ? null
                           : () async {
-                              final authProvider = Provider.of<AuthProvider>(
-                                  context,
-                                  listen: false);
                               if (!authProvider.isLoggedIn ||
                                   authProvider.user == null) {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -322,6 +321,19 @@ class _DetailBoxState extends State<DetailBox> {
                     Center(
                       child: InkWell(
                         onTap: () async {
+                          if (!authProvider.isLoggedIn ||
+                              authProvider.user == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content:
+                                    Text('Please log in to add items to favorites'),
+                                backgroundColor:
+                                    AppTheme.getSnackBarError(isDarkMode),
+                              ),
+                            );
+                            Navigator.pushNamed(context, '/login');
+                            return;
+                          }
                           if (!favoriteProvider.isInitialized) {
                             debugPrint('DetailBox: FavoriteProvider not initialized');
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -332,12 +344,6 @@ class _DetailBoxState extends State<DetailBox> {
                             );
                             return;
                           }
-                          final favoriteItem = FavoriteItem(
-                            name: widget.selectedFoodItem,
-                            price: cleanPrice,
-                            imgBase64: widget.selectedFoodImgBase64,
-                            subtitle: widget.selectedFoodSubtitle,
-                          );
                           if (isFavorite) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(

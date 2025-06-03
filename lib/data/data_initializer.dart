@@ -51,14 +51,8 @@ class DataInitializer {
 
     try {
       await _initializePopularCuisines();
-
-      final productsSnapshot = await _firestore.collection('products').get();
-      if (productsSnapshot.docs.isNotEmpty) {
-        print('Products already exist, skipping product initialization.');
-      } else {
-        print('No products found. Please run the Python initialization script.');
-      }
-
+      // Skip product initialization; rely on Python script
+      print('Skipping product initialization; assuming Python script has run.');
       await _firestore.collection('metadata').doc('initialized').set({'status': true});
       print('Database initialization completed successfully.');
     } catch (e) {

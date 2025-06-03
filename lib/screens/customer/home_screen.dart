@@ -44,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   String selectedFoodPrice = '';
   String selectedFoodImgBase64 = '';
   String selectedFoodSubtitle = '';
-  String selectedSellerEmail = ''; // Added
+  String selectedSellerEmail = '';
   late AnimationController _boxController;
   late AnimationController _navController;
   final TextEditingController _searchController = TextEditingController();
@@ -76,6 +76,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      if (authProvider.isLoggedIn && authProvider.user != null) {
+        Provider.of<FavoriteProvider>(context, listen: false)
+            .initialize(context)
+            .then((_) {
+          debugPrint('HomeScreen: FavoriteProvider initialized');
+        }).catchError((e) {
+          debugPrint('HomeScreen: Error initializing FavoriteProvider: $e');
+        });
+      }
       if (widget.initialFoodItem != null &&
           widget.initialFoodPrice != null &&
           widget.initialFoodImgBase64 != null) {
@@ -298,7 +308,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     onTap: () => _handleFoodItemTap(
                       food["title"]!,
                       food["price"]!,
-                      food["imgBase64"]!, // Fixed typo from imgbase64
+                      food["imgBase64"]!,
                       food["subtitle"]!,
                       food["sellerEmail"] ?? '',
                     ),

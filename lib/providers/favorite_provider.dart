@@ -23,10 +23,12 @@ class FavoriteProvider with ChangeNotifier {
     }
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     if (authProvider.user == null || authProvider.user!.email.isEmpty) {
-      debugPrint('FavoriteProvider: No user logged in or email is empty, skipping initialization');
+      debugPrint('FavoriteProvider: No user logged in or email is empty, using demo mode');
+      _userEmail = 'demo@umn.ac.id';
       _favoriteItems = [];
       _isInitialized = true;
       notifyListeners();
+      await _loadFavorites();
       return;
     }
     _userEmail = authProvider.user!.email;
@@ -94,11 +96,6 @@ class FavoriteProvider with ChangeNotifier {
       debugPrint('FavoriteProvider: Cannot save favorites, no user email');
       throw Exception('User email not set');
     }
-    final firebaseUser = fb.FirebaseAuth.instance.currentUser;
-    if (firebaseUser == null) {
-      debugPrint('FavoriteProvider: No authenticated user');
-      throw Exception('No authenticated user');
-    }
     _isLoading = true;
     notifyListeners();
     try {
@@ -130,8 +127,8 @@ class FavoriteProvider with ChangeNotifier {
 
   Future<void> addToFavorites(FavoriteItem item) async {
     if (_userEmail == null || _userEmail!.isEmpty) {
-      debugPrint('FavoriteProvider: Cannot add favorite, no user logged in');
-      throw Exception('No user logged in');
+      debugPrint('FavoriteProvider: Cannot add favorite, no user email');
+      throw Exception('No user email');
     }
     if (item.name.isEmpty || item.imgBase64.isEmpty || !isValidBase64(item.imgBase64)) {
       debugPrint('FavoriteProvider: Invalid favorite item: name, imgBase64, or invalid Base64');
@@ -150,7 +147,7 @@ class FavoriteProvider with ChangeNotifier {
 
   Future<void> removeFromFavorites(FavoriteItem item) async {
     if (_userEmail == null || _userEmail!.isEmpty) {
-      debugPrint('FavoriteProvider: Cannot remove favorite, no user logged in');
+      debugPrint('FavoriteProvider: Cannot remove favorite, no user email');
       return;
     }
     _favoriteItems.removeWhere((existingItem) =>
@@ -167,7 +164,7 @@ class FavoriteProvider with ChangeNotifier {
 
   Future<void> clearFavorites() async {
     if (_userEmail == null || _userEmail!.isEmpty) {
-      debugPrint('FavoriteProvider: Cannot clear favorites, no user logged in');
+      debugPrint('FavoriteProvider: Cannot clear favorites, no user email');
       return;
     }
     _favoriteItems.clear();
