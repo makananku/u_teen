@@ -159,8 +159,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Future<void> _loadRecentSearches() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final customerName = authProvider.user?.name ?? '';
-    await SearchData.loadRecentSearches(customerName);
+    final customerEmail = authProvider.user?.email ?? '';
+    await SearchData.loadRecentSearches(customerEmail);
     setState(() {});
   }
 
@@ -172,8 +172,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   void _removeRecentSearch(String query) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final customerName = authProvider.user?.name ?? '';
-    SearchData.removeRecentSearch(customerName, query);
+    final customerEmail = authProvider.user?.email ?? '';
+    SearchData.removeRecentSearch(customerEmail, query);
     setState(() {});
   }
 
@@ -224,8 +224,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget _buildMainContent(ThemeData theme, bool isDarkMode) {
     final orderProvider = Provider.of<OrderProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
-    final customerName = authProvider.user?.name ?? '';
-    final orderAgainItems = orderProvider.getOrderAgainItemsForCustomer(customerName);
+    final customerEmail = authProvider.user?.email ?? '';
+    final orderAgainItems = orderProvider.getOrderAgainItemsForCustomer(customerEmail);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -328,12 +328,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final favoriteProvider = Provider.of<FavoriteProvider>(context);
     final notificationProvider = Provider.of<NotificationProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
-    final customerName = authProvider.user?.name ?? '';
+    final customerEmail = authProvider.user?.email ?? '';
     final unreadNotificationCount =
-        notificationProvider.getUnreadCountForCustomer(customerName);
+        notificationProvider.getUnreadCountForCustomer(customerEmail);
     final theme = Theme.of(context);
     final orderProvider = Provider.of<OrderProvider>(context);
-    final orderAgainItems = orderProvider.getOrderAgainItemsForCustomer(customerName);
+    final orderAgainItems = orderProvider.getOrderAgainItemsForCustomer(customerEmail);
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
 
     return WillPopScope(
