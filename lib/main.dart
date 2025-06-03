@@ -109,7 +109,12 @@ class AuthWrapper extends StatelessWidget {
 
     return FutureBuilder(
       future: Future.wait([
-        auth.initialize().timeout(
+        Future(() async {
+          // Rely on AuthProvider's constructor initialization
+          if (!auth.isInitialized) {
+            throw Exception('AuthProvider not initialized');
+          }
+        }).timeout(
           const Duration(seconds: 10),
           onTimeout: () => throw Exception('Initialization timed out'),
         ),
@@ -338,13 +343,14 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
       debugPrint('SplashScreen: Checking authentication status');
       final auth = Provider.of<AuthProvider>(context, listen: false);
-      if (auth.isLoggedIn && auth.user != null) {
-        debugPrint('SplashScreen: User is logged in, email: ${auth.user!.email}');
-        // Initialize CartProvider for logged-in user
+      // Use FirebaseAuth.instance directly to get the current user
+      final firebaseUser = auth.user;
+      if (auth.isLoggedIn && firebaseUser != null) {
+        debugPrint('SplashScreen: User is logged in, email: ${firebaseUser.email}');
         final cartProvider = Provider.of<CartProvider>(context, listen: false);
         try {
-          await cartProvider.initialize(auth.user!.email);
-          debugPrint('SplashScreen: CartProvider initialized for ${auth.user!.email}');
+          await cartProvider.initialize(firebaseUser.email);
+          debugPrint('SplashScreen: CartProvider initialized for ${firebaseUser.email}');
         } catch (e) {
           debugPrint('SplashScreen: Error initializing CartProvider: $e');
         }
@@ -359,7 +365,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           );
         }
       } else {
-        debugPrint('SplashScreen: No logged-in user, showing login button');
+        debugPrint('SplashScreen: No logged-in user or invalid session, showing login button');
         _buttonController.forward();
       }
     });

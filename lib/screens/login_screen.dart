@@ -6,8 +6,6 @@ import 'package:u_teen/screens/customer/home_screen.dart';
 import 'package:u_teen/screens/seller/home_screen.dart';
 import 'package:u_teen/utils/app_theme.dart';
 import 'package:u_teen/providers/theme_notifier.dart';
-import 'package:u_teen/providers/favorite_provider.dart';
-import 'package:u_teen/providers/cart_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -50,13 +48,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     ));
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      debugPrint('LoginScreen: Initializing AuthProvider');
+      debugPrint('LoginScreen: Checking AuthProvider');
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      await authProvider.initialize();
-
+      // Rely on AuthProvider's constructor initialization
       if (authProvider.isLoggedIn && authProvider.user != null && mounted) {
         debugPrint('LoginScreen: User is logged in, email: ${authProvider.user!.email}');
-        // Defer provider initialization to home screen
         if (mounted) {
           Navigator.pushAndRemoveUntil(
             context,
@@ -70,6 +66,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         }
       } else {
         debugPrint('LoginScreen: No logged-in user, showing login UI');
+        _emailController.clear();
+        _passwordController.clear();
         _animationController.forward();
       }
     });
@@ -97,41 +95,39 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         return;
       }
 
-      // Authenticate and get user data once
-      final user = await authService.login(email, password);
+      // Use AuthProvider.login directly
+      final success = await authProvider.login(
+        email: email,
+        password: password,
+        context: context,
+      );
 
       if (!mounted) return;
 
-      if (user != null) {
-        // Update AuthProvider with the authenticated user
-        final success = await authProvider.login(
-          email: email,
-          password: password,
-          context: context,
-        );
-
-        if (success && authProvider.user != null && mounted) {
-          // Defer provider initialization to home screen
-          await Future.delayed(const Duration(milliseconds: 500));
-          if (mounted) {
-            debugPrint('LoginScreen: Login successful, navigating to home');
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (context) => user.userType == 'seller'
-                    ? const SellerHomeScreen()
-                    : const HomeScreen(),
-              ),
-              (route) => false,
-            );
-          }
-        } else {
-          debugPrint('LoginScreen: Failed to save login session');
-          _showSnackBar('Failed to save login session.', AppTheme.getSnackBarError(isDarkMode));
+      if (success && authProvider.user != null) {
+        debugPrint('LoginScreen: Login successful, navigating to home');
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) => authProvider.isSeller
+                  ? const SellerHomeScreen()
+                  : const HomeScreen(),
+            ),
+            (route) => false,
+          );
         }
       } else {
-        debugPrint('LoginScreen: Login failed, user is null');
-        _showSnackBar('Login failed. Incorrect email or password, or user data not found.', AppTheme.getSnackBarError(isDarkMode));
+        debugPrint('LoginScreen: Login failed');
+        String errorMessage = 'Login failed. Incorrect email or password, or user data not found.';
+        // Use specific error from AuthService
+        try {
+          await authService.login(email, password); // For error details
+        } catch (e) {
+          errorMessage = e.toString().replaceFirst('Exception: ', '');
+        }
+        _showSnackBar(errorMessage, AppTheme.getSnackBarError(isDarkMode));
       }
     } catch (e) {
       debugPrint('LoginScreen: Login error: $e');

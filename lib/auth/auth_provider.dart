@@ -16,7 +16,8 @@ class AuthProvider extends ChangeNotifier {
   String? _customerProdi;
   String? _customerAngkatan;
   bool _isInitializing = false;
-  bool _isLoggingOut = false; // New flag to prevent re-entrant logout
+  bool _isLoggingOut = false;
+  bool _isInitialized = false; // New flag
   final AuthService _authService = AuthService();
   final fb.FirebaseAuth _firebaseAuth = fb.FirebaseAuth.instance;
 
@@ -30,10 +31,25 @@ class AuthProvider extends ChangeNotifier {
   String? get customerAngkatan => _customerAngkatan;
   String? get tenantName => _user?.tenantName ?? _user?.name;
   String? get sellerEmail => _user?.email;
+  bool get isInitialized => _isInitialized;
+  fb.FirebaseAuth get firebaseAuth => _firebaseAuth; // Expose for SplashScreen
 
   AuthProvider() {
     debugPrint('AuthProvider: Constructor called');
     initialize();
+  }
+
+  Future<void> initialize() async {
+    if (_isInitialized) {
+      debugPrint('AuthProvider: Already initialized, skipping');
+      return;
+    }
+    debugPrint('AuthProvider: Starting initialization');
+    _isInitializing = true;
+    await _loadUserData();
+    _isInitializing = false;
+    _isInitialized = true;
+    debugPrint('AuthProvider: Initialization complete');
     _firebaseAuth.authStateChanges().listen((fb.User? firebaseUser) async {
       debugPrint('AuthProvider: authStateChanges triggered, user: ${firebaseUser?.email}');
       if (firebaseUser == null) {
@@ -44,14 +60,6 @@ class AuthProvider extends ChangeNotifier {
         await _loadUserData();
       }
     });
-  }
-
-  Future<void> initialize() async {
-    debugPrint('AuthProvider: Starting initialization');
-    _isInitializing = true;
-    await _loadUserData();
-    _isInitializing = false;
-    debugPrint('AuthProvider: Initialization complete');
   }
 
   Future<void> _loadUserData() async {
@@ -146,7 +154,6 @@ class AuthProvider extends ChangeNotifier {
     try {
       debugPrint('AuthProvider: Attempting logout');
       await _firebaseAuth.signOut();
-      // Clear Firebase Auth persistence to ensure clean session
       await _firebaseAuth.setPersistence(fb.Persistence.NONE);
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
