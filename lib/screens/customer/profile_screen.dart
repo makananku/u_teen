@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:u_teen/auth/auth_provider.dart';
+import 'package:u_teen/auth/logout_service.dart'; // Added
 import 'package:u_teen/screens/login_screen.dart';
 import 'package:u_teen/widgets/customer/custom_bottom_navigation.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
@@ -464,122 +465,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
             padding: const EdgeInsets.symmetric(vertical: 18),
             shadowColor: AppTheme.getSnackBarError(isDarkMode).withOpacity(0.1),
           ),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (context) => Dialog(
-                backgroundColor: AppTheme.getCard(isDarkMode),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
+          onPressed: () async {
+            final success = await LogoutService.showLogoutConfirmation(context);
+            if (!success && context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('Failed to logout. Please try again.'),
+                  backgroundColor: AppTheme.getSnackBarError(isDarkMode),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: AppTheme.getAccentRedLight(isDarkMode),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.logout,
-                          size: 40,
-                          color: AppTheme.getSnackBarError(isDarkMode),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        "Ready to Leave?",
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.getPrimaryText(isDarkMode),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        "You'll be signed out of your account",
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: AppTheme.getSecondaryText(isDarkMode),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 28),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () => Navigator.pop(context),
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                side: BorderSide(
-                                  color: AppTheme.getSwitchInactive(isDarkMode),
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                backgroundColor: AppTheme.getDetailBackground(isDarkMode),
-                              ),
-                              child: Text(
-                                "Cancel",
-                                style: TextStyle(
-                                  color: AppTheme.getTextMedium(isDarkMode),
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 15,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                final authProvider = Provider.of<AuthProvider>(context, listen: false);
-                                bool success = await authProvider.logout();
-                                if (success) {
-                                  Navigator.pushAndRemoveUntil(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => const LoginScreen()),
-                                    (route) => false,
-                                  );
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: const Text('Failed to logout. Please try again.'),
-                                      backgroundColor: AppTheme.getSnackBarError(isDarkMode),
-                                    ),
-                                  );
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppTheme.getSnackBarError(isDarkMode),
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                elevation: 0,
-                              ),
-                              child: Text(
-                                "Logout",
-                                style: TextStyle(
-                                  color: AppTheme.getPrimaryText(!isDarkMode),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
+              );
+            }
           },
         ),
       ),
