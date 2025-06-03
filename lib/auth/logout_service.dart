@@ -7,26 +7,32 @@ import 'package:u_teen/providers/food_provider.dart';
 class LogoutService {
   static Future<void> logout(BuildContext context) async {
     try {
-      // Tutup semua dialog yang mungkin terbuka
+      // Close all open dialogs
       Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
       
       // Clear auth state
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      await authProvider.logout();
+      final logoutSuccess = await authProvider.logout();
+      if (!logoutSuccess) {
+        throw Exception('Failed to logout');
+      }
       
-      // Clear food products jika diperlukan
+      // Clear food products
       final foodProvider = Provider.of<FoodProvider>(context, listen: false);
       foodProvider.clearProducts();
       
-      // Navigasi ke login screen dengan menghapus semua route sebelumnya
+      // Delay navigation slightly to ensure Firebase Auth state is cleared
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      // Navigate to login screen, removing all previous routes
       await Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const LoginScreen()),
         (Route<dynamic> route) => false,
       );
     } catch (e) {
       debugPrint('Logout error: $e');
-      // Fallback navigasi jika terjadi error
-      Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+      // Fallback navigation on error
+      await Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const LoginScreen()),
         (Route<dynamic> route) => false,
       );
@@ -65,8 +71,8 @@ class LogoutService {
                 style: TextStyle(color: Colors.red),
               ),
               onPressed: () async {
-                Navigator.of(context).pop(); // Tutup dialog
-                await logout(context); // Proses logout
+                Navigator.of(context).pop(); // Close dialog
+                await logout(context); // Process logout
               },
             ),
           ],

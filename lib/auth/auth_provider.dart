@@ -16,6 +16,7 @@ class AuthProvider extends ChangeNotifier {
   String? _customerProdi;
   String? _customerAngkatan;
   bool _isInitializing = false;
+  bool _isLoggingOut = false; // New flag to prevent re-entrant logout
   final AuthService _authService = AuthService();
   final fb.FirebaseAuth _firebaseAuth = fb.FirebaseAuth.instance;
 
@@ -34,10 +35,9 @@ class AuthProvider extends ChangeNotifier {
     debugPrint('AuthProvider: Constructor called');
     initialize();
     _firebaseAuth.authStateChanges().listen((fb.User? firebaseUser) async {
-      debugPrint(
-          'AuthProvider: authStateChanges triggered, user: ${firebaseUser?.email}');
+      debugPrint('AuthProvider: authStateChanges triggered, user: ${firebaseUser?.email}');
       if (firebaseUser == null) {
-        if (!_isInitializing) {
+        if (_isLoggedIn && !_isLoggingOut && !_isInitializing) {
           await logout();
         }
       } else if (_user == null || _user!.email != firebaseUser.email) {
@@ -59,35 +59,20 @@ class AuthProvider extends ChangeNotifier {
       final firebaseUser = _firebaseAuth.currentUser;
       if (firebaseUser == null || firebaseUser.isAnonymous) {
         debugPrint('AuthProvider: No authenticated user or anonymous user');
-        if (!_isInitializing) await logout();
+        if (!_isInitializing && !_isLoggingOut) await logout();
         return;
       }
 
-      debugPrint(
-          'AuthProvider: Fetching data for UID: ${firebaseUser.uid}, email: ${firebaseUser.email}');
+      debugPrint('AuthProvider: Fetching data for UID: ${firebaseUser.uid}, email: ${firebaseUser.email}');
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(firebaseUser.uid)
-      .get();
+          .get();
       if (userDoc.exists) {
         _user = User.fromFirestore(userDoc);
       } else {
-        debugPrint(
-            'AuthProvider: No Firestore document for UID: ${firebaseUser.uid}. Creating default user for demo.');
-        _user = User(
-          email: firebaseUser.email!,
-          name: 'Demo User',
-          userType: 'customer',
-        );
-        // Optionally create a user document
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(firebaseUser.uid)
-            .set({
-          'email': firebaseUser.email,
-          'name': 'Demo User',
-          'userType': 'customer',
-        });
+        debugPrint('AuthProvider: No Firestore document for UID: ${firebaseUser.uid}');
+        throw Exception('User document not found for UID: ${firebaseUser.uid}');
       }
       await _saveToPrefs(_user!);
       _isLoggedIn = true;
@@ -96,12 +81,11 @@ class AuthProvider extends ChangeNotifier {
       _sellerNim = _isSeller ? _user!.nim : null;
       _customerProdi = !_isSeller ? _user!.prodi : null;
       _customerAngkatan = !_isSeller ? _user!.angkatan : null;
-      debugPrint(
-          'AuthProvider: Loaded user: ${_user!.email}, type: ${_user!.userType}, tenantName: ${_user!.tenantName ?? _user!.name}');
+      debugPrint('AuthProvider: Loaded user: ${_user!.email}, type: ${_user!.userType}, tenantName: ${_user!.tenantName ?? _user!.name}');
       notifyListeners();
     } catch (e) {
-      debugPrint('AuthProvider initialize error: $e');
-      if (!_isInitializing) await logout();
+      debugPrint('AuthProvider loadUserData error: $e');
+      if (!_isInitializing && !_isLoggingOut) await logout();
     }
   }
 
@@ -115,7 +99,7 @@ class AuthProvider extends ChangeNotifier {
       _isInitializing = true;
       final user = await _authService.login(email, password);
       if (user == null) {
-        debugPrint('AuthProvider: Login failed');
+        debugPrint('AuthProvider: Login failed, no user returned');
         _isInitializing = false;
         return false;
       }
@@ -129,8 +113,7 @@ class AuthProvider extends ChangeNotifier {
       _customerAngkatan = !_isSeller ? user.angkatan : null;
       final cartProvider = Provider.of<CartProvider>(context, listen: false);
       await cartProvider.initialize(user.email);
-      debugPrint(
-          'AuthProvider: Logged in user: ${user.email}, type: ${user.userType}');
+      debugPrint('AuthProvider: Logged in user: ${user.email}, type: ${user.userType}');
       notifyListeners();
       _isInitializing = false;
       return true;
@@ -155,9 +138,16 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<bool> logout() async {
+    if (_isLoggingOut) {
+      debugPrint('AuthProvider: Logout already in progress, skipping');
+      return false;
+    }
+    _isLoggingOut = true;
     try {
       debugPrint('AuthProvider: Attempting logout');
       await _firebaseAuth.signOut();
+      // Clear Firebase Auth persistence to ensure clean session
+      await _firebaseAuth.setPersistence(fb.Persistence.NONE);
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
       _user = null;
@@ -167,12 +157,14 @@ class AuthProvider extends ChangeNotifier {
       _sellerNim = null;
       _customerProdi = null;
       _customerAngkatan = null;
-      debugPrint('AuthProvider: Logged out');
+      debugPrint('AuthProvider: Logged out successfully');
       notifyListeners();
       return true;
     } catch (e) {
       debugPrint('AuthProvider logout error: $e');
       return false;
+    } finally {
+      _isLoggingOut = false;
     }
   }
 }

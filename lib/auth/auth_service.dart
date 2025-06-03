@@ -10,7 +10,7 @@ class User {
   final String? phoneNumber;
   final String? prodi;
   final String? angkatan;
-  final String? tenantName; 
+  final String? tenantName;
 
   User({
     required this.email,
@@ -48,7 +48,27 @@ class AuthService {
       final credential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
-      );
+      ).catchError((error) {
+        String errorMessage;
+        switch (error.code) {
+          case 'user-not-found':
+            errorMessage = 'No user found for this email';
+            break;
+          case 'wrong-password':
+            errorMessage = 'Incorrect password';
+            break;
+          case 'invalid-email':
+            errorMessage = 'Invalid email format';
+            break;
+          case 'user-disabled':
+            errorMessage = 'This account has been disabled';
+            break;
+          default:
+            errorMessage = 'Login failed: $error';
+        }
+        debugPrint('AuthService login error: $errorMessage');
+        throw Exception(errorMessage);
+      });
 
       if (credential.user == null) {
         throw Exception('Login failed: No user found');
@@ -61,13 +81,13 @@ class AuthService {
           .get();
 
       if (!doc.exists) {
-        throw Exception('User data not found in Firestore');
+        throw Exception('User data not found in Firestore for UID: ${credential.user!.uid}');
       }
 
       return User.fromFirestore(doc);
     } catch (e) {
-      debugPrint('Login error: $e');
-      return null;
+      debugPrint('AuthService login error: $e');
+      throw e; // Rethrow for AuthProvider to handle
     }
   }
 
