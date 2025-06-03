@@ -48,7 +48,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
     if (selectedPaymentMethod == null) return AppTheme.getTextGrey(isDarkMode);
     final method = paymentMethods.firstWhere(
       (m) => m.id == selectedPaymentMethod,
-      orElse: () => PaymentMethod(id: '', name: '', iconPath: '', description: ''),
+      orElse: () => PaymentMethod(
+          id: '', name: '', iconPath: '', description: ''),
     );
     return method.primaryColor ?? AppTheme.getButton(isDarkMode);
   }
@@ -81,7 +82,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final merchantName = widget.items.isNotEmpty ? widget.items.first.subtitle : 'Unknown Merchant';
+    final merchantName =
+        widget.items.isNotEmpty ? widget.items.first.subtitle : 'Unknown Merchant';
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
 
     return Scaffold(
@@ -159,7 +161,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
             const SizedBox(height: 12),
             Row(
               children: [
-                Icon(Icons.access_time, size: 16, color: AppTheme.getTextGrey(isDarkMode)),
+                Icon(Icons.access_time,
+                    size: 16, color: AppTheme.getTextGrey(isDarkMode)),
                 const SizedBox(width: 8),
                 Text(
                   'Order for',
@@ -187,12 +190,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         '${item.name} (${item.quantity}x)',
                         overflow: TextOverflow.ellipsis,
                         maxLines: 2,
-                        style: TextStyle(color: AppTheme.getPrimaryText(isDarkMode)),
+                        style:
+                            TextStyle(color: AppTheme.getPrimaryText(isDarkMode)),
                       ),
                     ),
                     Text(
                       '${currencyFormat.format(item.price)} x ${item.quantity}',
-                      style: TextStyle(color: AppTheme.getPrimaryText(isDarkMode)),
+                      style:
+                          TextStyle(color: AppTheme.getPrimaryText(isDarkMode)),
                     ),
                   ],
                 ),
@@ -306,11 +311,27 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _processPayment(BuildContext context) async {
+    final isDarkMode = Provider.of<ThemeNotifier>(context, listen: false).isDarkMode;
     if (!_formKey.currentState!.validate()) return;
     if (selectedPaymentMethod == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select a payment method')),
+        SnackBar(
+          content: Text('Please select a payment method'),
+          backgroundColor: AppTheme.getSnackBarError(isDarkMode),
+        ),
       );
+      return;
+    }
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    if (!authProvider.isLoggedIn || authProvider.user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please log in to place an order'),
+          backgroundColor: AppTheme.getSnackBarError(isDarkMode),
+        ),
+      );
+      Navigator.pushNamed(context, '/login');
       return;
     }
 
@@ -319,7 +340,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
     try {
       final orderProvider = Provider.of<OrderProvider>(context, listen: false);
       final cartProvider = Provider.of<CartProvider>(context, listen: false);
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      // Pastikan CartProvider sudah diinisialisasi
+      await cartProvider.initialize(authProvider.user!.email);
 
       final sellerEmail = widget.items.isNotEmpty ? widget.items.first.sellerEmail : null;
 
@@ -327,8 +350,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
         throw Exception('Seller information not available');
       }
 
-      final merchantName = widget.items.isNotEmpty ? widget.items.first.subtitle : 'Unknown Merchant';
-      final customerName = authProvider.user?.name ?? 'Customer';
+      final merchantName =
+          widget.items.isNotEmpty ? widget.items.first.subtitle : 'Unknown Merchant';
+      final customerName = authProvider.user!.email; // Gunakan email sebagai customerName
 
       final newOrder = Order(
         id: _generateOrderId(),
@@ -346,11 +370,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 price: item.price,
                 quantity: item.quantity,
                 sellerEmail: item.sellerEmail,
-                imgBase64: item.imgBase64
+                imgBase64: item.imgBase64,
               ),
             )
             .toList(),
-        paymentMethod: paymentMethods.firstWhere((m) => m.id == selectedPaymentMethod).name,
+        paymentMethod:
+            paymentMethods.firstWhere((m) => m.id == selectedPaymentMethod).name,
         merchantName: merchantName,
         merchantEmail: sellerEmail,
         customerName: customerName,
@@ -358,9 +383,22 @@ class _PaymentScreenState extends State<PaymentScreen> {
       );
 
       await orderProvider.addOrder(newOrder);
-      cartProvider.clearCart();
+
+      // Hapus item dari keranjang satu per satu
+      for (var item in widget.items) {
+        cartProvider.removeFromCart(item);
+      }
 
       debugPrint('Order sent to seller: $sellerEmail');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Order placed successfully!'),
+            backgroundColor: AppTheme.getSnackBarInfo(isDarkMode),
+          ),
+        );
+      }
 
       Navigator.pushReplacement(
         context,
@@ -369,9 +407,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
         ),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: AppTheme.getSnackBarError(isDarkMode),
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => isProcessing = false);
     }

@@ -28,8 +28,9 @@ class OrderProvider with ChangeNotifier {
       final snapshot = await FirebaseFirestore.instance.collection('orders').get();
       _orders.clear();
       _orders.addAll(snapshot.docs.map((doc) => order.Order.fromMap(doc.data())).toList());
+      debugPrint('OrderProvider: Loaded ${_orders.length} orders');
     } catch (e) {
-      debugPrint('Error loading orders: $e');
+      debugPrint('OrderProvider: Error loading orders: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -42,8 +43,10 @@ class OrderProvider with ChangeNotifier {
           .collection('orders')
           .doc(order.id)
           .set(order.toMap());
+      debugPrint('OrderProvider: Saved order ${order.id}');
     } catch (e) {
-      debugPrint('Error saving order: $e');
+      debugPrint('OrderProvider: Error saving order: $e');
+      throw Exception('Failed to save order: $e');
     }
   }
 
@@ -144,9 +147,18 @@ class OrderProvider with ChangeNotifier {
   }
 
   Future<void> addOrder(order.Order order) async {
-    _orders.insert(0, order);
-    await _saveOrder(order);
-    notifyListeners();
+    try {
+      _orders.insert(0, order);
+      await _saveOrder(order);
+      // Tambahkan notifikasi untuk pesanan baru
+      final notification = NotificationModel.fromOrder(order);
+      await _notificationProvider.addNotification(notification);
+      debugPrint('OrderProvider: Added order ${order.id} with notification');
+      notifyListeners();
+    } catch (e) {
+      debugPrint('OrderProvider: Error adding order: $e');
+      throw Exception('Failed to add order: $e');
+    }
   }
 
   Future<void> updateOrderStatus(String orderId, String newStatus, {String? reason}) async {
@@ -156,6 +168,7 @@ class OrderProvider with ChangeNotifier {
       if (_orders[index].status == 'ready' && newStatus != 'ready') {
         _readyTimers[orderId]?.cancel();
         _readyTimers.remove(orderId);
+        debugPrint('OrderProvider: Cancelled timer for order $orderId');
       }
       _orders[index] = _orders[index].copyWith(
         status: newStatus,
@@ -170,10 +183,12 @@ class OrderProvider with ChangeNotifier {
         _readyTimers[orderId] = Timer(const Duration(minutes: 2), () {
           _autoCompleteOrder(orderId);
         });
+        debugPrint('OrderProvider: Started timer for order $orderId');
       }
       if (['ready', 'completed', 'cancelled'].contains(newStatus)) {
         await _notificationProvider.addNotification(
             NotificationModel.fromOrder(_orders[index]));
+        debugPrint('OrderProvider: Sent notification for order $orderId status $newStatus');
       }
       await _saveOrder(_orders[index]);
       notifyListeners();
@@ -191,6 +206,7 @@ class OrderProvider with ChangeNotifier {
     if (_orders[index].status == 'ready') {
       _readyTimers[orderId]?.cancel();
       _readyTimers.remove(orderId);
+      debugPrint('OrderProvider: Cancelled timer for order $orderId');
     }
     _orders[index] = updatedOrder;
     await _notificationProvider.addNotification(
@@ -212,6 +228,7 @@ class OrderProvider with ChangeNotifier {
       final now = DateTime.now();
       _readyTimers[orderId]?.cancel();
       _readyTimers.remove(orderId);
+      debugPrint('OrderProvider: Cancelled timer for order $orderId');
       _orders[index] = _orders[index].copyWith(
         status: 'completed',
         completedTime: now,
@@ -245,6 +262,7 @@ class OrderProvider with ChangeNotifier {
       await _notificationProvider.addNotification(
           NotificationModel.fromOrder(_orders[index]));
       await _saveOrder(_orders[index]);
+      debugPrint('OrderProvider: Auto-completed order $orderId');
       notifyListeners();
     }
   }
@@ -313,6 +331,7 @@ class OrderProvider with ChangeNotifier {
 
     _orders.insert(0, withdrawal);
     await _saveOrder(withdrawal);
+    debugPrint('OrderProvider: Added withdrawal for $merchantEmail');
     notifyListeners();
   }
 
@@ -354,10 +373,29 @@ class OrderProvider with ChangeNotifier {
         .fold(0, (int sum, order) => sum + order.totalPrice.round());
   }
 
+  Future<void> clearOrders() async {
+    try {
+      // Batalkan semua timer yang aktif
+      _readyTimers.forEach((orderId, timer) {
+        timer.cancel();
+        debugPrint('OrderProvider: Cancelled timer for order $orderId');
+      });
+      _readyTimers.clear();
+      // Kosongkan daftar pesanan lokal
+      _orders.clear();
+      debugPrint('OrderProvider: Cleared all local orders');
+      notifyListeners();
+    } catch (e) {
+      debugPrint('OrderProvider: Error clearing orders: $e');
+      throw Exception('Failed to clear orders: $e');
+    }
+  }
+
   @override
   void dispose() {
     _readyTimers.forEach((_, timer) => timer.cancel());
     _readyTimers.clear();
+    debugPrint('OrderProvider: Disposed');
     super.dispose();
   }
 }
