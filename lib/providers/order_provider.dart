@@ -13,7 +13,7 @@ class OrderProvider with ChangeNotifier {
   String? _lastError;
   final Map<String, Timer> _readyTimers = {};
   StreamSubscription? _subscription;
-  String? _customerEmail;
+  String? _customerName;
 
   OrderProvider(this._notificationProvider);
 
@@ -26,10 +26,10 @@ class OrderProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> initialize(String customerEmail) async {
-    if (_customerEmail == customerEmail) return;
-    _customerEmail = customerEmail;
-    debugPrint('OrderProvider: Initializing for customer $customerEmail');
+  Future<void> initialize(String customerName) async {
+    if (_customerName == customerName) return;
+    _customerName = customerName;
+    debugPrint('OrderProvider: Initializing for customer $customerName');
     await _initialize();
   }
 
@@ -39,64 +39,49 @@ class OrderProvider with ChangeNotifier {
   }
 
   Future<void> initializeOrders() async {
-    if (_customerEmail == null) {
-      debugPrint('OrderProvider: No customer email set, skipping initialization');
+    if (_customerName == null) {
+      debugPrint('OrderProvider: No customer name set, skipping initialization');
       return;
     }
     _isLoading = true;
     notifyListeners();
-    const maxRetries = 2;
-    int attempt = 0;
-
-    while (attempt < maxRetries) {
-      try {
-        debugPrint('OrderProvider: Fetching orders for $_customerEmail (attempt ${attempt + 1})');
-        final snapshot = await FirebaseFirestore.instance
-            .collection('orders')
-            .where('customerName', isEqualTo: _customerEmail)
-            .orderBy('createdAt', descending: true)
-            .get()
-            .timeout(const Duration(seconds: 5));
-        _orders.clear();
-        _orders.addAll(snapshot.docs.map((doc) => order.Order.fromMap(doc.data())).toList());
-        _lastError = null;
-        debugPrint('OrderProvider: Loaded ${_orders.length} orders for $_customerEmail');
-        break; // Success, exit loop
-      } catch (e) {
-        attempt++;
-        if (e.toString().contains('failed-precondition') && attempt < maxRetries) {
-          debugPrint('OrderProvider: Index error, retrying after delay (attempt $attempt): $e');
-          await Future.delayed(const Duration(seconds: 2)); // Wait before retry
-          continue;
-        }
-        _lastError = 'Gagal memuat pesanan: $e';
-        debugPrint('OrderProvider: Error loading orders: $e');
-        throw Exception('Gagal memuat pesanan: $e');
-      } finally {
-        if (attempt >= maxRetries || _lastError == null) {
-          _isLoading = false;
-          notifyListeners();
-        }
-      }
+    try {
+      debugPrint('OrderProvider: Fetching orders for $_customerName');
+      final snapshot = await FirebaseFirestore.instance
+          .collection('orders')
+          .where('customerName', isEqualTo: _customerName)
+          .orderBy('createdAt', descending: true)
+          .get();
+      _orders.clear();
+      _orders.addAll(snapshot.docs.map((doc) => order.Order.fromMap(doc.data())).toList());
+      _lastError = null;
+      debugPrint('OrderProvider: Loaded ${_orders.length} orders for $_customerName');
+    } catch (e) {
+      _lastError = 'Gagal memuat pesanan: $e';
+      debugPrint('OrderProvider: Error loading orders: $e');
+      throw e;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
   void _setupRealTimeListener() {
-    if (_customerEmail == null) {
-      debugPrint('OrderProvider: No customer email set, skipping real-time listener');
+    if (_customerName == null) {
+      debugPrint('OrderProvider: No customer name set, skipping real-time listener');
       return;
     }
     _subscription?.cancel();
     _subscription = FirebaseFirestore.instance
         .collection('orders')
-        .where('customerName', isEqualTo: _customerEmail)
+        .where('customerName', isEqualTo: _customerName)
         .orderBy('createdAt', descending: true)
         .snapshots()
         .listen((snapshot) {
           _orders.clear();
           _orders.addAll(snapshot.docs.map((doc) => order.Order.fromMap(doc.data())).toList());
           _lastError = null;
-          debugPrint('OrderProvider: Real-time update: Loaded ${_orders.length} orders for $_customerEmail');
+          debugPrint('OrderProvider: Real-time update: Loaded ${_orders.length} orders for $_customerName');
           notifyListeners();
         }, onError: (error) {
           _lastError = 'Error listener real-time: $error';
@@ -164,8 +149,8 @@ class OrderProvider with ChangeNotifier {
         .toList();
   }
 
-  List<Map<String, String>> getOrderAgainItemsForCustomer(String customerEmail) {
-    final completedOrders = getCompletedOrdersForCustomer(customerEmail);
+  List<Map<String, String>> getOrderAgainItemsForCustomer(String customerName) {
+    final completedOrders = getCompletedOrdersForCustomer(customerName);
     final Map<String, Map<String, String>> uniqueItems = {};
 
     for (var order in completedOrders) {
@@ -199,10 +184,10 @@ class OrderProvider with ChangeNotifier {
     }).toList();
   }
 
-  List<order.Order> getOngoingOrdersForCustomer(String customerEmail) {
+  List<order.Order> getOngoingOrdersForCustomer(String customerName) {
     final orders = _orders
         .where(
-          (o) => o.status != 'completed' && o.customerName == customerEmail,
+          (o) => o.status != 'completed' && o.customerName == customerName,
         )
         .toList();
     orders.sort((a, b) {
@@ -216,9 +201,9 @@ class OrderProvider with ChangeNotifier {
     return orders;
   }
 
-  List<order.Order> getCompletedOrdersForCustomer(String customerEmail) {
+  List<order.Order> getCompletedOrdersForCustomer(String customerName) {
     return _orders
-        .where((o) => o.status == 'completed' && o.customerName == customerEmail)
+        .where((o) => o.status == 'completed' && o.customerName == customerName)
         .toList();
   }
 
@@ -287,10 +272,10 @@ class OrderProvider with ChangeNotifier {
         _notificationProvider
             .addNotification(NotificationModel.fromOrder(_orders[index]))
             .catchError((e) {
-          debugPrint('OrderProvider: Gagal mengirim notifikasi untuk pesanan $orderId: $e');
-        });
+              debugPrint('OrderProvider: Gagal mengirim notifikasi untuk pesanan $orderId: $e');
+            });
       }
-      debugPrint('OrderProvider: Successfully updated order $orderId to $newStatus');
+      debugPrint('OrderProvider: Updated order $orderId to $newStatus');
     } catch (e) {
       debugPrint('OrderProvider: Error updating order $orderId to $newStatus: $e');
       _lastError = 'Gagal memperbarui status pesanan: $e';
@@ -308,30 +293,30 @@ class OrderProvider with ChangeNotifier {
   }) async {
     final index = _orders.indexWhere((o) => o.id == orderId);
     if (index == -1) {
-      debugPrint('Order: Pesanan $orderId tidak ditemukan');
+      debugPrint('OrderProvider: Pesanan $orderId tidak ditemukan');
       _lastError = 'Pesanan tidak ditemukan';
       throw Exception('Pesanan dengan ID $orderId tidak ditemukan');
     }
     _isLoading = true;
     notifyListeners();
     try {
-      debugPrint('Order: Updating order $orderId with ratings');
+      debugPrint('OrderProvider: Updating order $orderId with ratings');
       if (_orders[index].status == 'ready') {
         _readyTimers[orderId]?.cancel();
         _readyTimers.remove(orderId);
-        debugPrint('Order: Cancelled timer untuk order $orderId');
+        debugPrint('OrderProvider: Cancelled timer for order $orderId');
       }
       _orders[index] = updatedOrder;
       await _saveOrder(updatedOrder);
-      // Send notification async tanpa menunggu
+      // Send notification async without awaiting
       _notificationProvider
           .addNotification(NotificationModel.fromOrder(updatedOrder))
           .catchError((e) {
-        debugPrint('Order: Gagal mengirim notifikasi untuk pesanan $orderId: $e');
-      });
-      debugPrint('Order: Successfully updated order $orderId dengan ratings');
+            debugPrint('OrderProvider: Gagal mengirim notifikasi untuk pesanan $orderId: $e');
+          });
+      debugPrint('OrderProvider: Successfully updated order $orderId with ratings');
     } catch (e) {
-      debugPrint('Order: Error updating order dengan ratings: $e');
+      debugPrint('OrderProvider: Error updating order with ratings: $e');
       _lastError = 'Gagal memperbarui pesanan dengan rating: $e';
       throw Exception('Gagal memperbarui pesanan dengan rating: $e');
     } finally {
@@ -349,18 +334,18 @@ class OrderProvider with ChangeNotifier {
   }) async {
     final index = _orders.indexWhere((o) => o.id == orderId);
     if (index == -1) {
-      debugPrint('Order: Pesanan $orderId tidak ditemukan');
+      debugPrint('OrderProvider: Pesanan $orderId tidak ditemukan');
       _lastError = 'Pesanan tidak ditemukan';
       throw Exception('Pesanan tidak ditemukan');
     }
     _isLoading = true;
     notifyListeners();
     try {
-      debugPrint('Order: Submitting rating untuk order $orderId');
+      debugPrint('OrderProvider: Submitting rating for order $orderId');
       final now = DateTime.now();
       _readyTimers[orderId]?.cancel();
       _readyTimers.remove(orderId);
-      debugPrint('Order: Cancelled timer untuk order $orderId');
+      debugPrint('OrderProvider: Cancelled timer for order $orderId');
       _orders[index] = _orders[index].copyWith(
         status: 'completed',
         completedTime: now,
@@ -371,15 +356,15 @@ class OrderProvider with ChangeNotifier {
         appNotes: appNotes,
       );
       await _saveOrder(_orders[index]);
-      // Send notification async tanpa mengetahui
+      // Send notification async without awaiting
       _notificationProvider
           .addNotification(NotificationModel.fromOrder(_orders[index]))
           .catchError((e) {
-        debugPrint('Order: Gagal menghasilkan notifikasi untuk pesanan $orderId: $e');
-      });
-      debugPrint('Order: Successfully submitted rating untuk order $orderId');
+            debugPrint('OrderProvider: Gagal mengirim notifikasi untuk pesanan $orderId: $e');
+          });
+      debugPrint('OrderProvider: Successfully submitted rating for $orderId');
     } catch (e) {
-      debugPrint('Order: Error submitting rating untuk order $orderId: $e');
+      debugPrint('OrderProvider: Error submitting rating for order $orderId: $e');
       _lastError = 'Gagal mengirim rating: $e';
       throw Exception('Gagal mengirim rating: $e');
     } finally {
@@ -391,13 +376,13 @@ class OrderProvider with ChangeNotifier {
   Future<void> _autoCompleteOrder(String orderId) async {
     final index = _orders.indexWhere((o) => o.id == orderId);
     if (index == -1 || _orders[index].status != 'ready') {
-      debugPrint('Order: Tidak valid untuk auto-complete order $orderId');
+      debugPrint('OrderProvider: Invalid orderId $orderId or status not ready');
       return;
     }
     _isLoading = true;
     notifyListeners();
     try {
-      debugPrint('Order: Auto-completing order $orderId');
+      debugPrint('OrderProvider: Auto-completing order $orderId');
       final now = DateTime.now();
       _orders[index] = _orders[index].copyWith(
         status: 'completed',
@@ -406,18 +391,19 @@ class OrderProvider with ChangeNotifier {
         foodRating: null,
         appRating: null,
         foodNotes: null,
+        appNotes: null,
       );
       _readyTimers.remove(orderId);
       await _saveOrder(_orders[index]);
-      // Send notification async tanpa mengetahui
+      // Send notification async without awaiting
       _notificationProvider
           .addNotification(NotificationModel.fromOrder(_orders[index]))
           .catchError((e) {
-        debugPrint('Order: Gagal mengirim notifikasi untuk pesanan $orderId: $e');
-      });
-      debugPrint('Order: Successfully auto-completed order $orderId');
+            debugPrint('OrderProvider: Gagal mengirim notifikasi untuk pesanan $orderId: $e');
+          });
+      debugPrint('OrderProvider: Successfully auto-completed order $orderId');
     } catch (e) {
-      debugPrint('Order: Error auto-completing order $orderId: $e');
+      debugPrint('OrderProvider: Error auto-completing order $orderId: $e');
       _lastError = 'Error auto-completing order: $e';
     } finally {
       _isLoading = false;
@@ -437,7 +423,7 @@ class OrderProvider with ChangeNotifier {
     if (items.isEmpty || merchantEmail.isEmpty || customerName.isEmpty) {
       throw Exception('Data pesanan tidak valid: items, merchantEmail, atau customerName kosong');
     }
-    debugPrint('Order: Creating order dari cart untuk $customerName');
+    debugPrint('OrderProvider: Creating order from cart for $customerName');
     return order.Order(
       id: _generateOrderId(),
       orderTime: DateTime.now(),
@@ -468,7 +454,7 @@ class OrderProvider with ChangeNotifier {
     try {
       _isLoading = true;
       notifyListeners();
-      debugPrint('Trying: Adding withdrawal untuk $merchantEmail');
+      debugPrint('OrderProvider: Adding withdrawal for $merchantEmail');
       final withdrawal = order.Order(
         id: _generateOrderId(),
         orderTime: DateTime.now(),
@@ -477,7 +463,7 @@ class OrderProvider with ChangeNotifier {
           order.OrderItem(
             name: 'Withdrawal',
             imgBase64: 'assets/withdrawal.png',
-            subtitle: 'Withdrawal ke $method',
+            subtitle: 'Withdrawal to $method',
             price: amount.round(),
             quantity: 1,
             sellerEmail: merchantEmail,
@@ -488,7 +474,7 @@ class OrderProvider with ChangeNotifier {
         merchantEmail: merchantEmail,
         customerName: 'Withdrawal',
         status: 'processed',
-        notes: 'Withdrawal ke $method',
+        notes: 'Withdrawal to $method',
         readyAt: null,
         completedAt: null,
         cancelledAt: null,
@@ -496,9 +482,9 @@ class OrderProvider with ChangeNotifier {
       );
       _orders.insert(0, withdrawal);
       await _saveOrder(withdrawal);
-      debugPrint('Order: Successfully added withdrawal untuk $merchantEmail');
+      debugPrint('OrderProvider: Successfully added withdrawal for $merchantEmail');
     } catch (e) {
-      debugPrint('Order: Error adding withdrawal: $e');
+      debugPrint('OrderProvider: Error adding withdrawal: $e');
       _lastError = 'Gagal menambah penarikan: $e';
       throw Exception('Gagal menambah penarikan: $e');
     } finally {
@@ -507,7 +493,7 @@ class OrderProvider with ChangeNotifier {
     }
   }
 
-  List<order.Order> getTransactionListForMerchant(String merchantEmail) {
+  List<order.Order> getTransactionsForMerchant(String merchantEmail) {
     return _orders
         .where((order) =>
             order.merchantEmail == merchantEmail &&
@@ -534,8 +520,8 @@ class OrderProvider with ChangeNotifier {
 
   String _generateOrderId() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    final random = new Random();
-    return List.generate(6, (_) => chars[random.nextInt(chars.length)]).join('');
+    final random = Random();
+    return List.generate(6, (_) => chars[random.nextInt(chars.length)]).join();
   }
 
   int getTotalEarningsForMerchant(String merchantEmail) {
@@ -551,13 +537,13 @@ class OrderProvider with ChangeNotifier {
       notifyListeners();
       _readyTimers.forEach((orderId, timer) {
         timer.cancel();
-        debugPrint('Order: Cancelled timer untuk order $orderId');
+        debugPrint('OrderProvider: Cancelled timer for order $orderId');
       });
       _readyTimers.clear();
       _orders.clear();
-      debugPrint('Order: Cleared semua pesanan lokal');
+      debugPrint('OrderProvider: Cleared all local orders');
     } catch (e) {
-      debugPrint('Order: Error clearing orders: $e');
+      debugPrint('OrderProvider: Error clearing orders: $e');
       _lastError = 'Gagal menghapus pesanan: $e';
       throw Exception('Gagal menghapus pesanan: $e');
     } finally {
@@ -571,7 +557,7 @@ class OrderProvider with ChangeNotifier {
     _readyTimers.forEach((_, timer) => timer.cancel());
     _readyTimers.clear();
     _subscription?.cancel();
-    debugPrint('Order: Disposed');
+    debugPrint('OrderProvider: Disposed');
     super.dispose();
   }
 }
