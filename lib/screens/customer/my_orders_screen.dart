@@ -90,7 +90,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
       }
 
       debugPrint('MyOrdersScreen: User email: ${authProvider.user!.email}, name: ${authProvider.user!.name}');
-      final customerName = authProvider.user!.name!;
+      final customerName = authProvider.user!.email!;
       final ongoingOrders = orderProvider.orders
           .where((order) =>
               (order.status == 'pending' ||
