@@ -23,6 +23,7 @@ class OrderProvider with ChangeNotifier {
   Future<void> initialize(String customerEmail) async {
     if (_customerEmail == customerEmail) return;
     _customerEmail = customerEmail;
+    debugPrint('OrderProvider: Initializing for customer $customerEmail');
     await _initialize();
   }
 
@@ -39,6 +40,7 @@ class OrderProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
+      debugPrint('OrderProvider: Fetching orders for $_customerEmail');
       final snapshot = await FirebaseFirestore.instance
           .collection('orders')
           .where('customerName', isEqualTo: _customerEmail)
@@ -51,6 +53,7 @@ class OrderProvider with ChangeNotifier {
     } catch (e) {
       _lastError = 'Failed to load orders: $e';
       debugPrint('OrderProvider: Error loading orders: $e');
+      throw e; // Propagate error for better debugging
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -86,6 +89,7 @@ class OrderProvider with ChangeNotifier {
       if (order.id.isEmpty || order.merchantEmail.isEmpty || order.customerName.isEmpty) {
         throw Exception('Invalid order data: id, merchantEmail, or customerName is empty');
       }
+      debugPrint('OrderProvider: Saving order ${order.id} to Firestore');
       await FirebaseFirestore.instance
           .collection('orders')
           .doc(order.id)
@@ -204,13 +208,18 @@ class OrderProvider with ChangeNotifier {
       if (order.id.isEmpty || order.merchantEmail.isEmpty || order.customerName.isEmpty) {
         throw Exception('Invalid order data: id, merchantEmail, or customerName is empty');
       }
+      debugPrint('OrderProvider: Adding order ${order.id}');
       _orders.insert(0, order);
       await _saveOrder(order);
       final notification = NotificationModel.fromOrder(order);
-      await _notificationProvider.addNotification(notification);
-      debugPrint('OrderProvider: Added order ${order.id} with notification');
+      try {
+        await _notificationProvider.addNotification(notification);
+        debugPrint('OrderProvider: Notification sent for order ${order.id}');
+      } catch (e) {
+        debugPrint('OrderProvider: Failed to send notification for order ${order.id}: $e');
+      }
     } catch (e) {
-      debugPrint('OrderProvider: Error adding order: $e');
+      debugPrint('OrderProvider: Error adding order ${order.id}: $e');
       _orders.removeWhere((o) => o.id == order.id);
       throw Exception('Failed to add order: $e');
     } finally {
@@ -228,6 +237,7 @@ class OrderProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
+      debugPrint('OrderProvider: Updating order $orderId to status $newStatus');
       final now = DateTime.now();
       if (_orders[index].status == 'ready' && newStatus != 'ready') {
         _readyTimers[orderId]?.cancel();
@@ -259,12 +269,14 @@ class OrderProvider with ChangeNotifier {
         }
       }
       await _saveOrder(_orders[index]);
+      debugPrint('OrderProvider: Successfully updated order $orderId to $newStatus');
     } catch (e) {
-      debugPrint('OrderProvider: Error updating order $orderId status to $newStatus: $e');
+      debugPrint('OrderProvider: Error updating order $orderId to $newStatus: $e');
       throw Exception('Failed to update order status: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
+      debugPrint('OrderProvider: Finished updateOrderStatus for order $orderId');
     }
   }
 
@@ -279,16 +291,23 @@ class OrderProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
+      debugPrint('OrderProvider: Updating order $orderId with ratings');
       if (_orders[index].status == 'ready') {
         _readyTimers[orderId]?.cancel();
         _readyTimers.remove(orderId);
         debugPrint('OrderProvider: Cancelled timer for order $orderId');
       }
       _orders[index] = updatedOrder;
-      await _notificationProvider.addNotification(
-        NotificationModel.fromOrder(updatedOrder),
-      );
+      try {
+        await _notificationProvider.addNotification(
+          NotificationModel.fromOrder(updatedOrder),
+        );
+        debugPrint('OrderProvider: Sent notification for order $orderId with ratings');
+      } catch (e) {
+        debugPrint('OrderProvider: Failed to send notification for order $orderId: $e');
+      }
       await _saveOrder(updatedOrder);
+      debugPrint('OrderProvider: Successfully updated order $orderId with ratings');
     } catch (e) {
       debugPrint('OrderProvider: Error updating order with ratings: $e');
       throw Exception('Failed to update order with ratings: $e');
@@ -310,6 +329,7 @@ class OrderProvider with ChangeNotifier {
       _isLoading = true;
       notifyListeners();
       try {
+        debugPrint('OrderProvider: Submitting rating for order $orderId');
         final now = DateTime.now();
         _readyTimers[orderId]?.cancel();
         _readyTimers.remove(orderId);
@@ -323,11 +343,17 @@ class OrderProvider with ChangeNotifier {
           foodNotes: foodNotes,
           appNotes: appNotes,
         );
-        await _notificationProvider.addNotification(
-            NotificationModel.fromOrder(_orders[index]));
+        try {
+          await _notificationProvider.addNotification(
+              NotificationModel.fromOrder(_orders[index]));
+          debugPrint('OrderProvider: Sent notification for order $orderId with rating');
+        } catch (e) {
+          debugPrint('OrderProvider: Failed to send notification for order $orderId: $e');
+        }
         await _saveOrder(_orders[index]);
+        debugPrint('OrderProvider: Successfully submitted rating for order $orderId');
       } catch (e) {
-        debugPrint('OrderProvider: Error submitting rating: $e');
+        debugPrint('OrderProvider: Error submitting rating for order $orderId: $e');
         throw Exception('Failed to submit rating: $e');
       } finally {
         _isLoading = false;
@@ -342,6 +368,7 @@ class OrderProvider with ChangeNotifier {
       _isLoading = true;
       notifyListeners();
       try {
+        debugPrint('OrderProvider: Auto-completing order $orderId');
         final now = DateTime.now();
         _orders[index] = _orders[index].copyWith(
           status: 'completed',
@@ -353,12 +380,17 @@ class OrderProvider with ChangeNotifier {
           appNotes: null,
         );
         _readyTimers.remove(orderId);
-        await _notificationProvider.addNotification(
-            NotificationModel.fromOrder(_orders[index]));
+        try {
+          await _notificationProvider.addNotification(
+              NotificationModel.fromOrder(_orders[index]));
+          debugPrint('OrderProvider: Sent notification for auto-completed order $orderId');
+        } catch (e) {
+          debugPrint('OrderProvider: Failed to send notification for order $orderId: $e');
+        }
         await _saveOrder(_orders[index]);
-        debugPrint('OrderProvider: Auto-completed order $orderId');
+        debugPrint('OrderProvider: Successfully auto-completed order $orderId');
       } catch (e) {
-        debugPrint('OrderProvider: Error auto-completing order: $e');
+        debugPrint('OrderProvider: Error auto-completing order $orderId: $e');
       } finally {
         _isLoading = false;
         notifyListeners();
@@ -378,6 +410,7 @@ class OrderProvider with ChangeNotifier {
     if (items.isEmpty || merchantEmail.isEmpty || customerName.isEmpty) {
       throw Exception('Invalid order data: items, merchantEmail, or customerName is empty');
     }
+    debugPrint('OrderProvider: Creating order from cart for $customerName');
     return order.Order(
       id: _generateOrderId(),
       orderTime: DateTime.now(),
@@ -408,6 +441,7 @@ class OrderProvider with ChangeNotifier {
     try {
       _isLoading = true;
       notifyListeners();
+      debugPrint('OrderProvider: Adding withdrawal for $merchantEmail');
       final withdrawal = order.Order(
         id: _generateOrderId(),
         orderTime: DateTime.now(),
@@ -435,7 +469,7 @@ class OrderProvider with ChangeNotifier {
       );
       _orders.insert(0, withdrawal);
       await _saveOrder(withdrawal);
-      debugPrint('OrderProvider: Added withdrawal for $merchantEmail');
+      debugPrint('OrderProvider: Successfully added withdrawal for $merchantEmail');
     } catch (e) {
       debugPrint('OrderProvider: Error adding withdrawal: $e');
       throw Exception('Failed to add withdrawal: $e');

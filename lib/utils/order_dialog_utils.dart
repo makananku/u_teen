@@ -4,10 +4,12 @@ import 'package:u_teen/models/order_model.dart';
 import 'package:u_teen/providers/order_provider.dart';
 import 'package:u_teen/providers/theme_notifier.dart';
 import 'package:u_teen/utils/app_theme.dart';
+import 'dart:async';
 
 class OrderDialogUtils {
   static void showMarkAsReadyDialog(BuildContext context, Order order) {
     final isDarkMode = Provider.of<ThemeNotifier>(context, listen: false).isDarkMode;
+    debugPrint('OrderDialogUtils: Showing Mark as Ready dialog for order ${order.id}');
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -43,7 +45,10 @@ class OrderDialogUtils {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   TextButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      debugPrint('OrderDialogUtils: Mark as Ready cancelled for order ${order.id}');
+                      Navigator.pop(context);
+                    },
                     child: Text(
                       'CANCEL',
                       style: TextStyle(
@@ -61,6 +66,7 @@ class OrderDialogUtils {
                       elevation: isDarkMode ? 0 : 2,
                     ),
                     onPressed: () async {
+                      debugPrint('OrderDialogUtils: Confirming Mark as Ready for order ${order.id}');
                       Navigator.pop(context); // Close confirmation dialog
                       await _processOrderStatusUpdate(
                         context: context,
@@ -88,6 +94,7 @@ class OrderDialogUtils {
     final isDarkMode = Provider.of<ThemeNotifier>(context, listen: false).isDarkMode;
     final reasonController = TextEditingController();
     final formKey = GlobalKey<FormState>();
+    debugPrint('OrderDialogUtils: Showing Cancel Order dialog for order ${order.id}');
 
     showDialog(
       context: context,
@@ -160,7 +167,10 @@ class OrderDialogUtils {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     TextButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () {
+                        debugPrint('OrderDialogUtils: Cancel Order discarded for order ${order.id}');
+                        Navigator.pop(context);
+                      },
                       child: Text(
                         'DISCARD',
                         style: TextStyle(
@@ -179,7 +189,7 @@ class OrderDialogUtils {
                       ),
                       onPressed: () async {
                         if (!formKey.currentState!.validate()) return;
-
+                        debugPrint('OrderDialogUtils: Confirming Cancel Order for order ${order.id}');
                         Navigator.pop(context); // Close confirmation dialog
                         await _processOrderStatusUpdate(
                           context: context,
@@ -213,11 +223,13 @@ class OrderDialogUtils {
     required String successMessage,
     required bool isDarkMode,
   }) async {
+    debugPrint('OrderDialogUtils: Starting status update for order ${order.id} to $newStatus');
+
     // Show loading dialog
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => PopScope(
+      builder: (dialogContext) => PopScope(
         canPop: false,
         child: Dialog(
           backgroundColor: AppTheme.getCard(isDarkMode),
@@ -238,9 +250,7 @@ class OrderDialogUtils {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  newStatus == 'ready' 
-                    ? 'Marking order as ready...' 
-                    : 'Cancelling order...',
+                  newStatus == 'ready' ? 'Marking order as ready...' : 'Cancelling order...',
                   style: TextStyle(
                     color: AppTheme.getPrimaryText(isDarkMode),
                   ),
@@ -252,37 +262,45 @@ class OrderDialogUtils {
       ),
     );
 
+    // Fallback timer to close loading dialog if it hangs
+    Timer? fallbackTimer;
+    fallbackTimer = Timer(const Duration(seconds: 15), () {
+      if (context.mounted) {
+        debugPrint('OrderDialogUtils: Fallback timer triggered for order ${order.id}');
+        Navigator.pop(context);
+        _showErrorDialog(context, 'Operation took too long. Please try again.', isDarkMode);
+      }
+    });
+
     try {
-      // Gunakan then dan catchError untuk memastikan dialog ditutup
+      debugPrint('OrderDialogUtils: Calling updateOrderStatus for order ${order.id}');
       await Provider.of<OrderProvider>(context, listen: false)
           .updateOrderStatus(order.id, newStatus, reason: reason)
-          .then((_) {
-        // Tutup loading dialog terlebih dahulu
-        if (context.mounted) Navigator.pop(context);
-        // Tampilkan dialog sukses
-        if (context.mounted) {
-          _showSuccessDialog(context, newStatus, successMessage, isDarkMode);
-        }
-      }).catchError((e) {
-        // Tutup loading dialog terlebih dahulu
-        if (context.mounted) Navigator.pop(context);
-        // Tampilkan dialog error
-        if (context.mounted) {
-          _showErrorDialog(context, 'Failed to update order: ${e.toString()}', isDarkMode);
-        }
+          .timeout(const Duration(seconds: 10), onTimeout: () {
+        debugPrint('OrderDialogUtils: updateOrderStatus timed out for order ${order.id}');
+        throw Exception('Operation timed out');
       });
-    } catch (e) {
-      // Backup error handling
-      if (context.mounted) Navigator.pop(context);
+
       if (context.mounted) {
-        _showErrorDialog(context, 'Failed to update order: ${e.toString()}', isDarkMode);
+        debugPrint('OrderDialogUtils: Status update successful for order ${order.id}');
+        Navigator.pop(context); // Close loading dialog
+        fallbackTimer.cancel();
+        await _showSuccessDialog(context, newStatus, successMessage, isDarkMode);
+      }
+    } catch (e) {
+      debugPrint('OrderDialogUtils: Error updating order ${order.id}: $e');
+      if (context.mounted) {
+        Navigator.pop(context); // Close loading dialog
+        fallbackTimer.cancel();
+        await _showErrorDialog(context, 'Failed to update order: $e', isDarkMode);
       }
     }
   }
 
   static Future<void> _showSuccessDialog(
-      BuildContext context, String status, String message, bool isDarkMode) {
-    return showDialog(
+      BuildContext context, String status, String message, bool isDarkMode) async {
+    debugPrint('OrderDialogUtils: Showing success dialog for status $status');
+    await showDialog(
       context: context,
       builder: (context) => Dialog(
         backgroundColor: AppTheme.getCard(isDarkMode),
@@ -316,7 +334,10 @@ class OrderDialogUtils {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () {
+                  debugPrint('OrderDialogUtils: Closing success dialog');
+                  Navigator.pop(context);
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: status == 'ready'
                       ? AppTheme.getSnackBarSuccess(isDarkMode)
@@ -334,9 +355,9 @@ class OrderDialogUtils {
     );
   }
 
-  static Future<void> _showErrorDialog(
-      BuildContext context, String message, bool isDarkMode) {
-    return showDialog(
+  static Future<void> _showErrorDialog(BuildContext context, String message, bool isDarkMode) async {
+    debugPrint('OrderDialogUtils: Showing error dialog: $message');
+    await showDialog(
       context: context,
       builder: (context) => Dialog(
         backgroundColor: AppTheme.getCard(isDarkMode),
@@ -365,7 +386,10 @@ class OrderDialogUtils {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () {
+                  debugPrint('OrderDialogUtils: Closing error dialog');
+                  Navigator.pop(context);
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.getSnackBarError(isDarkMode),
                   foregroundColor: AppTheme.getPrimaryText(!isDarkMode),
