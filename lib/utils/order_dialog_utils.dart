@@ -218,7 +218,7 @@ class OrderDialogUtils {
       context: context,
       barrierDismissible: false,
       builder: (context) => PopScope(
-        canPop: false, // Prevent back button during loading
+        canPop: false,
         child: Dialog(
           backgroundColor: AppTheme.getCard(isDarkMode),
           child: Padding(
@@ -238,7 +238,9 @@ class OrderDialogUtils {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  newStatus == 'ready' ? 'Marking order as ready...' : 'Cancelling order...',
+                  newStatus == 'ready' 
+                    ? 'Marking order as ready...' 
+                    : 'Cancelling order...',
                   style: TextStyle(
                     color: AppTheme.getPrimaryText(isDarkMode),
                   ),
@@ -250,30 +252,37 @@ class OrderDialogUtils {
       ),
     );
 
-    // Process the update with a timeout
     try {
+      // Gunakan then dan catchError untuk memastikan dialog ditutup
       await Provider.of<OrderProvider>(context, listen: false)
           .updateOrderStatus(order.id, newStatus, reason: reason)
-          .timeout(const Duration(seconds: 10), onTimeout: () {
-        throw Exception('Operation timed out');
+          .then((_) {
+        // Tutup loading dialog terlebih dahulu
+        if (context.mounted) Navigator.pop(context);
+        // Tampilkan dialog sukses
+        if (context.mounted) {
+          _showSuccessDialog(context, newStatus, successMessage, isDarkMode);
+        }
+      }).catchError((e) {
+        // Tutup loading dialog terlebih dahulu
+        if (context.mounted) Navigator.pop(context);
+        // Tampilkan dialog error
+        if (context.mounted) {
+          _showErrorDialog(context, 'Failed to update order: ${e.toString()}', isDarkMode);
+        }
       });
-
-      if (context.mounted) {
-        Navigator.pop(context); // Close loading dialog
-        await _showSuccessDialog(context, newStatus, successMessage, isDarkMode);
-      }
     } catch (e) {
-      debugPrint('OrderDialogUtils: Error updating order status: $e');
+      // Backup error handling
+      if (context.mounted) Navigator.pop(context);
       if (context.mounted) {
-        Navigator.pop(context); // Close loading dialog
-        await _showErrorDialog(context, 'Failed to update order: $e', isDarkMode);
+        _showErrorDialog(context, 'Failed to update order: ${e.toString()}', isDarkMode);
       }
     }
   }
 
   static Future<void> _showSuccessDialog(
-      BuildContext context, String status, String message, bool isDarkMode) async {
-    await showDialog(
+      BuildContext context, String status, String message, bool isDarkMode) {
+    return showDialog(
       context: context,
       builder: (context) => Dialog(
         backgroundColor: AppTheme.getCard(isDarkMode),
@@ -325,8 +334,9 @@ class OrderDialogUtils {
     );
   }
 
-  static Future<void> _showErrorDialog(BuildContext context, String message, bool isDarkMode) async {
-    await showDialog(
+  static Future<void> _showErrorDialog(
+      BuildContext context, String message, bool isDarkMode) {
+    return showDialog(
       context: context,
       builder: (context) => Dialog(
         backgroundColor: AppTheme.getCard(isDarkMode),
