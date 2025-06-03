@@ -111,18 +111,42 @@ class LogoutService {
     );
 
     if (result == true) {
-      return await logout(context);
+      try {
+        final success = await logout(context);
+        if (!success && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Failed to logout. Please try again.'),
+              backgroundColor: AppTheme.getSnackBarError(isDarkMode),
+            ),
+          );
+        }
+        return success;
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('An error occurred during logout'),
+              backgroundColor: AppTheme.getSnackBarError(isDarkMode),
+            ),
+          );
+        }
+        return false;
+      }
     }
     return false;
   }
 
   static Future<bool> logout(BuildContext context) async {
     try {
-      // Close all dialogs
+      // Close all dialogs first
       Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
 
-      // Clear auth state
+      // Get providers before async operations
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final foodProvider = Provider.of<FoodProvider>(context, listen: false);
+
+      // Perform logout
       final logoutSuccess = await authProvider.logout();
       if (!logoutSuccess) {
         debugPrint('LogoutService: AuthProvider.logout returned false');
@@ -130,31 +154,27 @@ class LogoutService {
       }
 
       // Clear food products
-      final foodProvider = Provider.of<FoodProvider>(context, listen: false);
       foodProvider.clearProducts();
 
-      // Navigate to login screen
-      if (!context.mounted) {
-        debugPrint('LogoutService: Context is not mounted, skipping navigation');
-        return false;
-      }
-
-      await Navigator.pushAndRemoveUntil(
-        context, 
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-        (Route<dynamic> route) => false,
-      );
-
-      return true;
-    } catch (error) {
-      debugPrint('LogoutService error: $error');
+      // Ensure context is still mounted before navigation
       if (context.mounted) {
-        // Fallback navigation
+        // Navigate to login screen with replacement
         await Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const LoginScreen()),
           (Route<dynamic> route) => false,
         );
-        return true; // Consider navigation as success to avoid UI error
+      }
+
+      return true;
+    } catch (error) {
+      debugPrint('LogoutService error: $error');
+
+      // Attempt navigation even on error to ensure user is redirected
+      if (context.mounted) {
+        await Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          (Route<dynamic> route) => false,
+        );
       }
       return false;
     }
