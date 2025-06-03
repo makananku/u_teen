@@ -51,14 +51,14 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
       });
     } catch (e) {
       debugPrint('MyOrdersScreen: Error initializing OrderProvider: $e');
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to load orders: $e'),
-            backgroundColor: AppTheme.getSnackBarError(false),
-          ),
-        );
-      }
+      // if (context.mounted) {
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     SnackBar(
+      //       content: Text('Failed to load orders: $e'),
+      //       backgroundColor: AppTheme.getSnackBarError(false),
+      //     ),
+      //   );
+      // }
       setState(() {
         _isInitialized = true; // Allow UI to render error state
       });
