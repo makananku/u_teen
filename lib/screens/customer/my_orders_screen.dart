@@ -42,7 +42,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
     }
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
     try {
-      await orderProvider.initialize(authProvider.user!.email!);
+      await orderProvider.initialize(authProvider.user!.email);
       if (orderProvider.lastError != null) {
         throw Exception(orderProvider.lastError);
       }
@@ -90,7 +90,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
       }
 
       debugPrint('MyOrdersScreen: User email: ${authProvider.user!.email}, name: ${authProvider.user!.name}');
-      final customerName = authProvider.user!.email!;
+      final customerName = authProvider.user!.name;
       final ongoingOrders = orderProvider.orders
           .where((order) =>
               (order.status == 'pending' ||
@@ -186,7 +186,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
       onRefresh: () async {
         try {
           final authProvider = Provider.of<AuthProvider>(context, listen: false);
-          await orderProvider.initialize(authProvider.user!.email!);
+          await orderProvider.initialize(authProvider.user!.email);
           if (orderProvider.lastError != null) {
             throw Exception(orderProvider.lastError);
           }
