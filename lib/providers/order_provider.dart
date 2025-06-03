@@ -1,44 +1,47 @@
-
+ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
-import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:u_teen/models/order_model.dart' as order;
 import '../models/notification_model.dart';
 import './notification_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class OrderProvider with ChangeNotifier {
   final List<order.Order> _orders = [];
   final NotificationProvider _notificationProvider;
   bool _isLoading = false;
+  String? _lastError; // Added to track last error
   final Map<String, Timer> _readyTimers = {};
   StreamSubscription? _subscription;
 
   OrderProvider(this._notificationProvider) {
-    initialize();
+    _initialize();
   }
 
-  bool get isLoading => _isLoading; // Added getter for _isLoading
+  bool get isLoading => _isLoading;
+  String? get lastError => _lastError; // Getter for last error
 
-  Future<void> initialize() async {
-    await _loadOrders();
+  Future<void> _initialize() async {
+    await initializeOrders();
     _setupRealTimeListener();
   }
 
-  Future<void> _loadOrders() async {
+  Future<void> initializeOrders() async {
     _isLoading = true;
     notifyListeners();
-
     try {
       final snapshot = await FirebaseFirestore.instance
           .collection('orders')
-          .orderBy('createdAt', descending: true)
+            .orderBy('createdAt', descending: true)
           .get();
       _orders.clear();
       _orders.addAll(snapshot.docs.map((doc) => order.Order.fromMap(doc.data())).toList());
+      _lastError = null; // Clear error on success
       debugPrint('OrderProvider: Loaded ${_orders.length} orders');
     } catch (e) {
-      debugPrint('OrderProvider: Error loading orders: $e');
+      _lastError = e.toString(); // Store error
+      debugPrint('ErrorProvider: Error loading: $e');
+      throw e; // Rethrow for MyOrdersScreen
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -54,9 +57,11 @@ class OrderProvider with ChangeNotifier {
         .listen((snapshot) {
       _orders.clear();
       _orders.addAll(snapshot.docs.map((doc) => order.Order.fromMap(doc.data())).toList());
+      _lastError = null; // Clear error on success
       debugPrint('OrderProvider: Real-time update: Loaded ${_orders.length} orders');
       notifyListeners();
     }, onError: (error) {
+      _lastError = error.toString(); // Store error
       debugPrint('OrderProvider: Error in real-time listener: $error');
     });
   }

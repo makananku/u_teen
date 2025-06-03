@@ -40,7 +40,11 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
     }
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
     try {
-      await orderProvider.initialize();
+      // Wait for OrderProvider to load orders (handled in constructor)
+      await Future.delayed(Duration.zero); // Allow constructor to run
+      if (orderProvider.lastError != null) {
+        throw Exception(orderProvider.lastError);
+      }
       setState(() {
         _isInitialized = true;
       });
@@ -78,7 +82,8 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
       );
     }
 
-    final customerName = authProvider.user!.name ?? '';
+    debugPrint('MyOrdersScreen: User email: ${authProvider.user!.email}, name: ${authProvider.user!.name}');
+    final customerName = authProvider.user!.email!; // Use email to match Firestore
     final ongoingOrders = orderProvider.orders
         .where((order) =>
             (order.status == 'pending' ||
@@ -161,7 +166,12 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
     return RefreshIndicator(
       onRefresh: () async {
         try {
-          await orderProvider.initialize();
+          // Since initialize isn't available, rely on orders being updated
+          // OrderProvider's real-time listener should handle updates
+          await Future.delayed(Duration.zero); // Allow listener to refresh
+          if (orderProvider.lastError != null) {
+            throw Exception(orderProvider.lastError);
+          }
         } catch (e) {
           debugPrint('MyOrdersScreen: Refresh error: $e');
           ScaffoldMessenger.of(context).showSnackBar(

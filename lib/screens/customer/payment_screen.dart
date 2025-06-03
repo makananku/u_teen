@@ -399,7 +399,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
       final merchantName =
           widget.items.isNotEmpty ? widget.items.first.subtitle : 'Unknown Merchant';
-      final customerName = authProvider.user!.email!;
+      final customerName = authProvider.user!.email;
 
       final newOrder = Order(
         id: _generateOrderId(context),
