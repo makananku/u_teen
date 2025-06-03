@@ -1,4 +1,4 @@
- import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
 import 'package:u_teen/models/order_model.dart' as order;
@@ -10,7 +10,7 @@ class OrderProvider with ChangeNotifier {
   final List<order.Order> _orders = [];
   final NotificationProvider _notificationProvider;
   bool _isLoading = false;
-  String? _lastError; // Added to track last error
+  String? _lastError;
   final Map<String, Timer> _readyTimers = {};
   StreamSubscription? _subscription;
 
@@ -19,7 +19,7 @@ class OrderProvider with ChangeNotifier {
   }
 
   bool get isLoading => _isLoading;
-  String? get lastError => _lastError; // Getter for last error
+  String? get lastError => _lastError;
 
   Future<void> _initialize() async {
     await initializeOrders();
@@ -29,22 +29,33 @@ class OrderProvider with ChangeNotifier {
   Future<void> initializeOrders() async {
     _isLoading = true;
     notifyListeners();
-    try {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('orders')
+    int retryCount = 0;
+    const maxRetries = 3;
+    while (retryCount < maxRetries) {
+      try {
+        final snapshot = await FirebaseFirestore.instance
+            .collection('orders')
             .orderBy('createdAt', descending: true)
-          .get();
-      _orders.clear();
-      _orders.addAll(snapshot.docs.map((doc) => order.Order.fromMap(doc.data())).toList());
-      _lastError = null; // Clear error on success
-      debugPrint('OrderProvider: Loaded ${_orders.length} orders');
-    } catch (e) {
-      _lastError = e.toString(); // Store error
-      debugPrint('ErrorProvider: Error loading: $e');
-      throw e; // Rethrow for MyOrdersScreen
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+            .get();
+        _orders.clear();
+        _orders.addAll(snapshot.docs.map((doc) => order.Order.fromMap(doc.data())).toList());
+        _lastError = null;
+        debugPrint('OrderProvider: Loaded ${_orders.length} orders');
+        break;
+      } catch (e) {
+        _lastError = e.toString();
+        debugPrint('OrderProvider: Error loading: $e');
+        if (e.toString().contains('permission-denied') && retryCount < maxRetries - 1) {
+          retryCount++;
+          debugPrint('OrderProvider: Permission denied, retrying ($retryCount/$maxRetries)...');
+          await Future.delayed(const Duration(milliseconds: 500));
+          continue;
+        }
+        throw e;
+      } finally {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -57,11 +68,11 @@ class OrderProvider with ChangeNotifier {
         .listen((snapshot) {
       _orders.clear();
       _orders.addAll(snapshot.docs.map((doc) => order.Order.fromMap(doc.data())).toList());
-      _lastError = null; // Clear error on success
+      _lastError = null;
       debugPrint('OrderProvider: Real-time update: Loaded ${_orders.length} orders');
       notifyListeners();
     }, onError: (error) {
-      _lastError = error.toString(); // Store error
+      _lastError = error.toString();
       debugPrint('OrderProvider: Error in real-time listener: $error');
     });
   }
@@ -196,7 +207,7 @@ class OrderProvider with ChangeNotifier {
       debugPrint('OrderProvider: Added order ${order.id} with notification');
     } catch (e) {
       debugPrint('OrderProvider: Error adding order: $e');
-      _orders.removeWhere((o) => o.id == order.id); // Rollback local addition
+      _orders.removeWhere((o) => o.id == order.id);
       throw Exception('Failed to add order: $e');
     } finally {
       _isLoading = false;

@@ -111,6 +111,8 @@ class AuthProvider extends ChangeNotifier {
         _isInitializing = false;
         return false;
       }
+      // Force token refresh
+      await _firebaseAuth.currentUser?.getIdToken(true);
       _user = user;
       await _saveToPrefs(user);
       _isLoggedIn = true;
@@ -173,7 +175,6 @@ class AuthProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       debugPrint('AuthProvider logout error: $e');
-      // Force state reset even on error
       _user = null;
       _isLoggedIn = false;
       _isSeller = false;
