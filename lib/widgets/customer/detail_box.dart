@@ -8,6 +8,7 @@ import '../../models/cart_item.dart';
 import '../../models/favorite_item.dart';
 import 'dart:convert';
 import 'dart:typed_data';
+import '../../auth/auth_provider.dart'; // Tambahkan import untuk AuthProvider
 
 class DetailBox extends StatefulWidget {
   final String selectedFoodItem;
@@ -208,17 +209,38 @@ class _DetailBoxState extends State<DetailBox> {
                       onPressed: _isAddingToCart
                           ? null
                           : () async {
-                              debugPrint('DetailBox: Add to Cart button pressed for ${widget.selectedFoodItem}');
+                              final authProvider = Provider.of<AuthProvider>(
+                                  context,
+                                  listen: false);
+                              if (!authProvider.isLoggedIn ||
+                                  authProvider.user == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content:
+                                        Text('Please log in to add items to cart'),
+                                    backgroundColor:
+                                        AppTheme.getSnackBarError(isDarkMode),
+                                  ),
+                                );
+                                Navigator.pushNamed(context, '/login');
+                                return;
+                              }
+                              debugPrint(
+                                  'DetailBox: Add to Cart button pressed for ${widget.selectedFoodItem}');
                               setState(() {
                                 _isAddingToCart = true;
                               });
                               try {
+                                // Inisialisasi CartProvider dengan email pengguna
+                                await cartProvider
+                                    .initialize(authProvider.user!.email);
                                 final price = int.tryParse(cleanPrice) ?? 0;
                                 if (widget.selectedFoodImgBase64.isEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text('Cannot add item: No image data'),
-                                      backgroundColor: AppTheme.getSnackBarError(isDarkMode),
+                                      backgroundColor:
+                                          AppTheme.getSnackBarError(isDarkMode),
                                     ),
                                   );
                                   return;
@@ -230,13 +252,16 @@ class _DetailBoxState extends State<DetailBox> {
                                   subtitle: widget.selectedFoodSubtitle,
                                   sellerEmail: widget.sellerEmail,
                                 ));
-                                debugPrint('DetailBox: Added to cart: ${widget.selectedFoodItem}, imgBase64 length: ${widget.selectedFoodImgBase64.length}');
+                                debugPrint(
+                                    'DetailBox: Added to cart: ${widget.selectedFoodItem}, imgBase64 length: ${widget.selectedFoodImgBase64.length}');
                                 // Tampilkan SnackBar untuk konfirmasi
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text('${widget.selectedFoodItem} added to cart!'),
-                                      backgroundColor: AppTheme.getSnackBarInfo(isDarkMode),
+                                      content: Text(
+                                          '${widget.selectedFoodItem} added to cart!'),
+                                      backgroundColor:
+                                          AppTheme.getSnackBarInfo(isDarkMode),
                                       behavior: SnackBarBehavior.floating,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(10),
@@ -245,15 +270,18 @@ class _DetailBoxState extends State<DetailBox> {
                                   );
                                 }
                                 // Panggil onClose untuk menutup DetailBox
-                                await Future.delayed(const Duration(milliseconds: 200));
+                                await Future.delayed(
+                                    const Duration(milliseconds: 200));
                                 widget.onClose();
                               } catch (e) {
                                 debugPrint('DetailBox: Error adding to cart: $e');
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text('Failed to add item to cart: $e'),
-                                      backgroundColor: AppTheme.getSnackBarError(isDarkMode),
+                                      content:
+                                          Text('Failed to add item to cart: $e'),
+                                      backgroundColor:
+                                          AppTheme.getSnackBarError(isDarkMode),
                                     ),
                                   );
                                 }
@@ -312,7 +340,8 @@ class _DetailBoxState extends State<DetailBox> {
                                     color: AppTheme.getPrimaryText(!isDarkMode),
                                   ),
                                 ),
-                                backgroundColor: AppTheme.getSnackBarInfo(isDarkMode),
+                                backgroundColor:
+                                    AppTheme.getSnackBarInfo(isDarkMode),
                                 behavior: SnackBarBehavior.floating,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
@@ -322,7 +351,8 @@ class _DetailBoxState extends State<DetailBox> {
                           } else {
                             try {
                               await favoriteProvider.addToFavorites(favoriteItem);
-                              debugPrint('DetailBox: Added to favorites: ${favoriteItem.name}, imgBase64 length: ${favoriteItem.imgBase64.length}');
+                              debugPrint(
+                                  'DetailBox: Added to favorites: ${favoriteItem.name}, imgBase64 length: ${favoriteItem.imgBase64.length}');
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
@@ -331,7 +361,8 @@ class _DetailBoxState extends State<DetailBox> {
                                       color: AppTheme.getPrimaryText(!isDarkMode),
                                     ),
                                   ),
-                                  backgroundColor: AppTheme.getSnackBarInfo(isDarkMode),
+                                  backgroundColor:
+                                      AppTheme.getSnackBarInfo(isDarkMode),
                                   behavior: SnackBarBehavior.floating,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
@@ -339,7 +370,8 @@ class _DetailBoxState extends State<DetailBox> {
                                 ),
                               );
                             } catch (e) {
-                              debugPrint('DetailBox: Error adding to favorites: $e');
+                              debugPrint(
+                                  'DetailBox: Error adding to favorites: $e');
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
@@ -348,7 +380,8 @@ class _DetailBoxState extends State<DetailBox> {
                                       color: AppTheme.getPrimaryText(!isDarkMode),
                                     ),
                                   ),
-                                  backgroundColor: AppTheme.getSnackBarError(isDarkMode),
+                                  backgroundColor:
+                                      AppTheme.getSnackBarError(isDarkMode),
                                   behavior: SnackBarBehavior.floating,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
@@ -422,7 +455,8 @@ class _DetailBoxState extends State<DetailBox> {
       final String cleanedBase64 = base64String.startsWith('data:image')
           ? base64String.split(',').last
           : base64String;
-      debugPrint('DetailBox: Decoding Base64 for ${widget.selectedFoodItem}, length: ${cleanedBase64.length}');
+      debugPrint(
+          'DetailBox: Decoding Base64 for ${widget.selectedFoodItem}, length: ${cleanedBase64.length}');
       return base64Decode(cleanedBase64);
     } catch (e) {
       debugPrint('DetailBox: Error decoding Base64 for ${widget.selectedFoodItem}: $e');

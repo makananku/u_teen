@@ -107,6 +107,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         final success = await authProvider.login(
           email: email,
           password: password,
+          context: context,
         );
 
         if (success && authProvider.user != null && mounted) {

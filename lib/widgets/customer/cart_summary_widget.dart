@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../providers/order_provider.dart';
 import '../../models/cart_item.dart';
 import '../../models/order_model.dart';
+import '../../auth/auth_provider.dart'; // Tambahkan import untuk AuthProvider
 
 class CartSummaryWidget extends StatelessWidget {
   const CartSummaryWidget({Key? key}) : super(key: key);
@@ -13,13 +14,13 @@ class CartSummaryWidget extends StatelessWidget {
   // Convert CartItem to OrderItem
   List<OrderItem> _convertToOrderItems(List<CartItem> cartItems) {
     return cartItems.map((cartItem) => OrderItem(
-      name: cartItem.name,
-      price: cartItem.price,
-      imgBase64: cartItem.imgBase64,
-      subtitle: cartItem.subtitle,
-      sellerEmail: cartItem.sellerEmail,
-      quantity: cartItem.quantity,
-    )).toList();
+          name: cartItem.name,
+          price: cartItem.price,
+          imgBase64: cartItem.imgBase64,
+          subtitle: cartItem.subtitle,
+          sellerEmail: cartItem.sellerEmail,
+          quantity: cartItem.quantity,
+        )).toList();
   }
 
   @override
@@ -61,18 +62,51 @@ class CartSummaryWidget extends StatelessWidget {
             child: ElevatedButton(
               onPressed: cartProvider.cartItems.isNotEmpty
                   ? () async {
-                      final orderItems = _convertToOrderItems(cartProvider.cartItems);
-                      await orderProvider.createOrderFromCart(
-                        items: orderItems, // Now passing List<OrderItem>
-                        pickupTime: DateTime.now().add(const Duration(hours: 1)),
-                        paymentMethod: 'cash',
-                        merchantName: 'Masakan Minang',
-                        merchantEmail: cartProvider.cartItems.first.sellerEmail,
-                        customerName: 'currentUser',
-                        notes: null,
-                      );
-                      await cartProvider.clearCart();
-                      Navigator.pushNamed(context, '/order-confirmation');
+                      try {
+                        final authProvider = Provider.of<AuthProvider>(context,
+                            listen: false);
+                        if (!authProvider.isLoggedIn ||
+                            authProvider.user == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Please log in to place an order'),
+                              backgroundColor:
+                                  AppTheme.getSnackBarError(isDarkMode),
+                            ),
+                          );
+                          Navigator.pushNamed(context, '/login');
+                          return;
+                        }
+                        final orderItems =
+                            _convertToOrderItems(cartProvider.cartItems);
+                        final order = orderProvider.createOrderFromCart(
+                          items: orderItems,
+                          pickupTime:
+                              DateTime.now().add(const Duration(hours: 1)),
+                          paymentMethod: 'cash',
+                          merchantName: cartProvider.cartItems.first.subtitle,
+                          merchantEmail: cartProvider.cartItems.first.sellerEmail,
+                          customerName: authProvider.user!.email,
+                          notes: null,
+                        );
+                        await orderProvider.addOrder(order);
+                        await cartProvider.clearCart();
+                        Navigator.pushNamed(context, '/order-confirmation');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Order placed successfully!'),
+                            backgroundColor: AppTheme.getSnackBarInfo(isDarkMode),
+                          ),
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Failed to place order: $e'),
+                            backgroundColor:
+                                AppTheme.getSnackBarError(isDarkMode),
+                          ),
+                        );
+                      }
                     }
                   : null,
               style: ElevatedButton.styleFrom(

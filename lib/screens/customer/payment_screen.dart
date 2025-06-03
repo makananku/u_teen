@@ -358,7 +358,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       );
 
       await orderProvider.addOrder(newOrder);
-      cartProvider.removeItems(widget.items);
+      cartProvider.clearCart();
 
       debugPrint('Order sent to seller: $sellerEmail');
 

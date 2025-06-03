@@ -3,6 +3,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../providers/cart_provider.dart'; // Tambahkan import untuk CartProvider
+import 'package:flutter/material.dart'; // Tambahkan import untuk BuildContext
+import 'package:provider/provider.dart'; // Import Provider for CartProvider access
 
 class AuthProvider extends ChangeNotifier {
   User? _user;
@@ -31,7 +34,8 @@ class AuthProvider extends ChangeNotifier {
     debugPrint('AuthProvider: Constructor called');
     initialize();
     _firebaseAuth.authStateChanges().listen((fb.User? firebaseUser) async {
-      debugPrint('AuthProvider: authStateChanges triggered, user: ${firebaseUser?.email}');
+      debugPrint(
+          'AuthProvider: authStateChanges triggered, user: ${firebaseUser?.email}');
       if (firebaseUser == null) {
         if (!_isInitializing) {
           await logout();
@@ -59,7 +63,8 @@ class AuthProvider extends ChangeNotifier {
         return;
       }
 
-      debugPrint('AuthProvider: Fetching data for UID: ${firebaseUser.uid}, email: ${firebaseUser.email}');
+      debugPrint(
+          'AuthProvider: Fetching data for UID: ${firebaseUser.uid}, email: ${firebaseUser.email}');
       // Fetch from Firestore
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
@@ -74,10 +79,12 @@ class AuthProvider extends ChangeNotifier {
         _sellerNim = _isSeller ? _user!.nim : null;
         _customerProdi = !_isSeller ? _user!.prodi : null;
         _customerAngkatan = !_isSeller ? _user!.angkatan : null;
-        debugPrint('AuthProvider: Loaded user from Firestore: ${_user!.email}, type: ${_user!.userType}, tenantName: ${_user!.tenantName ?? _user!.name}');
+        debugPrint(
+            'AuthProvider: Loaded user from Firestore: ${_user!.email}, type: ${_user!.userType}, tenantName: ${_user!.tenantName ?? _user!.name}');
         notifyListeners();
       } else {
-        debugPrint('AuthProvider: No Firestore document for UID: ${firebaseUser.uid}. Keeping user logged in.');
+        debugPrint(
+            'AuthProvider: No Firestore document for UID: ${firebaseUser.uid}. Keeping user logged in.');
         // Tidak logout, biarkan pengguna tetap login
         _isLoggedIn = true;
         notifyListeners();
@@ -91,6 +98,7 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> login({
     required String email,
     required String password,
+    required BuildContext context, // Tambahkan parameter context
   }) async {
     try {
       debugPrint('AuthProvider: Starting login for $email');
@@ -109,7 +117,11 @@ class AuthProvider extends ChangeNotifier {
       _sellerNim = _isSeller ? user.nim : null;
       _customerProdi = !_isSeller ? user.prodi : null;
       _customerAngkatan = !_isSeller ? user.angkatan : null;
-      debugPrint('AuthProvider: Logged in user: ${user.email}, type: ${user.userType}');
+      // Inisialisasi CartProvider setelah login
+      final cartProvider = Provider.of<CartProvider>(context, listen: false);
+      await cartProvider.initialize(user.email);
+      debugPrint(
+          'AuthProvider: Logged in user: ${user.email}, type: ${user.userType}');
       notifyListeners();
       _isInitializing = false;
       return true;
