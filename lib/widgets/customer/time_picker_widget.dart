@@ -106,7 +106,7 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
       return false;
     }
 
-    if (hour < 8 || hour >= 17) { // Ubah batas menjadi 17:00 (5 PM)
+    if (hour < 8 || hour >= 23) { // Ubah batas menjadi 17:00 (5 PM)
       errorMessage = 'Pickup available only between 08:00 AM - 05:00 PM';
       return false;
     }
