@@ -4,46 +4,57 @@ import 'package:provider/provider.dart';
 import 'auth_provider.dart';
 import 'package:u_teen/providers/food_provider.dart';
 
-class LogoutService {
-  static Future<void> logout(BuildContext context) async {
+class LogoutService extends StatelessWidget {
+  static Future<bool> logout(BuildContext context) async {
     try {
-      // Close all open dialogs
+      // Close all dialogs
       Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
-      
+
       // Clear auth state
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final logoutSuccess = await authProvider.logout();
       if (!logoutSuccess) {
-        throw Exception('Failed to logout');
+        debugPrint('LogoutService: AuthProvider.logout returned false');
+        throw Exception('Failed to logout from authentication service');
       }
-      
+
       // Clear food products
       final foodProvider = Provider.of<FoodProvider>(context, listen: false);
       foodProvider.clearProducts();
-      
-      // Delay navigation slightly to ensure Firebase Auth state is cleared
-      await Future.delayed(const Duration(milliseconds: 500));
-      
-      // Navigate to login screen, removing all previous routes
-      await Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+
+      // Navigate to login screen
+      if (!context.mounted) {
+        debugPrint('LogoutService: Context is not mounted, skipping navigation');
+        return false;
+      }
+
+      await Navigator.pushAndRemoveUntil(context, 
         MaterialPageRoute(builder: (context) => const LoginScreen()),
         (Route<dynamic> route) => false,
       );
-    } catch (e) {
-      debugPrint('Logout error: $e');
-      // Fallback navigation on error
-      await Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-        (Route<dynamic> route) => false,
-      );
+
+      return true;
+    } catch (error) {
+      debugPrint('LogoutService error: $error');
+      if (context.mounted) {
+        // Fallback navigation
+        await Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          (Route<dynamic> route) => false,
+        );
+        return true; // Consider navigation as success to avoid UI error
+      }
+      return false;
     }
   }
 
-  static Future<void> showLogoutConfirmation(BuildContext context) async {
-    return showDialog(
+  static Future<bool> showLogoutConfirmation(BuildContext context) async {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
@@ -63,7 +74,7 @@ class LogoutService {
           actions: [
             TextButton(
               child: const Text("Cancel"),
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(dialogContext).pop(false),
             ),
             TextButton(
               child: const Text(
@@ -71,13 +82,20 @@ class LogoutService {
                 style: TextStyle(color: Colors.red),
               ),
               onPressed: () async {
-                Navigator.of(context).pop(); // Close dialog
+                Navigator.of(dialogContext).pop(true); // Close dialog
                 await logout(context); // Process logout
               },
             ),
           ],
         );
       },
-    );
+    ) ?? false;
+  }
+
+  const LogoutService({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(); // Placeholder if used as widget
   }
 }

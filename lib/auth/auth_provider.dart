@@ -17,7 +17,7 @@ class AuthProvider extends ChangeNotifier {
   String? _customerAngkatan;
   bool _isInitializing = false;
   bool _isLoggingOut = false;
-  bool _isInitialized = false; // New flag
+  bool _isInitialized = false;
   final AuthService _authService = AuthService();
   final fb.FirebaseAuth _firebaseAuth = fb.FirebaseAuth.instance;
 
@@ -32,7 +32,7 @@ class AuthProvider extends ChangeNotifier {
   String? get tenantName => _user?.tenantName ?? _user?.name;
   String? get sellerEmail => _user?.email;
   bool get isInitialized => _isInitialized;
-  fb.FirebaseAuth get firebaseAuth => _firebaseAuth; // Expose for SplashScreen
+  fb.FirebaseAuth get firebaseAuth => _firebaseAuth;
 
   AuthProvider() {
     debugPrint('AuthProvider: Constructor called');
@@ -153,8 +153,12 @@ class AuthProvider extends ChangeNotifier {
     _isLoggingOut = true;
     try {
       debugPrint('AuthProvider: Attempting logout');
-      await _firebaseAuth.signOut();
-      await _firebaseAuth.setPersistence(fb.Persistence.NONE);
+      await _firebaseAuth.signOut().catchError((e) {
+        debugPrint('AuthProvider: Sign out error: $e');
+      });
+      await _firebaseAuth.setPersistence(fb.Persistence.NONE).catchError((e) {
+        debugPrint('AuthProvider: Set persistence error: $e');
+      });
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
       _user = null;
@@ -169,6 +173,15 @@ class AuthProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       debugPrint('AuthProvider logout error: $e');
+      // Force state reset even on error
+      _user = null;
+      _isLoggedIn = false;
+      _isSeller = false;
+      _customerNim = null;
+      _sellerNim = null;
+      _customerProdi = null;
+      _customerAngkatan = null;
+      notifyListeners();
       return false;
     } finally {
       _isLoggingOut = false;
