@@ -13,7 +13,7 @@ class OrderProvider with ChangeNotifier {
   String? _lastError;
   final Map<String, Timer> _readyTimers = {};
   StreamSubscription? _subscription;
-  String? _customerName;
+  String? _customerEmail;
 
   OrderProvider(this._notificationProvider);
 
@@ -26,10 +26,10 @@ class OrderProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> initialize(String customerName) async {
-    if (_customerName == customerName) return;
-    _customerName = customerName;
-    debugPrint('OrderProvider: Initializing for customer $customerName');
+  Future<void> initialize(String customerEmail) async {
+    if (_customerEmail == customerEmail) return;
+    _customerEmail = customerEmail;
+    debugPrint('OrderProvider: Initializing for customer $customerEmail');
     await _initialize();
   }
 
@@ -39,23 +39,23 @@ class OrderProvider with ChangeNotifier {
   }
 
   Future<void> initializeOrders() async {
-    if (_customerName == null) {
-      debugPrint('OrderProvider: No customer name set, skipping initialization');
+    if (_customerEmail == null) {
+      debugPrint('OrderProvider: No customer email set, skipping initialization');
       return;
     }
     _isLoading = true;
     notifyListeners();
     try {
-      debugPrint('OrderProvider: Fetching orders for $_customerName');
+      debugPrint('OrderProvider: Fetching orders for $_customerEmail');
       final snapshot = await FirebaseFirestore.instance
           .collection('orders')
-          .where('customerName', isEqualTo: _customerName)
+          .where('customerName', isEqualTo: _customerEmail)
           .orderBy('createdAt', descending: true)
           .get();
       _orders.clear();
       _orders.addAll(snapshot.docs.map((doc) => order.Order.fromMap(doc.data())).toList());
       _lastError = null;
-      debugPrint('OrderProvider: Loaded ${_orders.length} orders for $_customerName');
+      debugPrint('OrderProvider: Loaded ${_orders.length} orders for $_customerEmail');
     } catch (e) {
       _lastError = 'Gagal memuat pesanan: $e';
       debugPrint('OrderProvider: Error loading orders: $e');
@@ -67,21 +67,21 @@ class OrderProvider with ChangeNotifier {
   }
 
   void _setupRealTimeListener() {
-    if (_customerName == null) {
-      debugPrint('OrderProvider: No customer name set, skipping real-time listener');
+    if (_customerEmail == null) {
+      debugPrint('OrderProvider: No customer email set, skipping real-time listener');
       return;
     }
     _subscription?.cancel();
     _subscription = FirebaseFirestore.instance
         .collection('orders')
-        .where('customerName', isEqualTo: _customerName)
+        .where('customerName', isEqualTo: _customerEmail)
         .orderBy('createdAt', descending: true)
         .snapshots()
         .listen((snapshot) {
           _orders.clear();
           _orders.addAll(snapshot.docs.map((doc) => order.Order.fromMap(doc.data())).toList());
           _lastError = null;
-          debugPrint('OrderProvider: Real-time update: Loaded ${_orders.length} orders for $_customerName');
+          debugPrint('OrderProvider: Real-time update: Loaded ${_orders.length} orders for $_customerEmail');
           notifyListeners();
         }, onError: (error) {
           _lastError = 'Error listener real-time: $error';
@@ -149,8 +149,8 @@ class OrderProvider with ChangeNotifier {
         .toList();
   }
 
-  List<Map<String, String>> getOrderAgainItemsForCustomer(String customerName) {
-    final completedOrders = getCompletedOrdersForCustomer(customerName);
+  List<Map<String, String>> getOrderAgainItemsForCustomer(String customerEmail) {
+    final completedOrders = getCompletedOrdersForCustomer(customerEmail);
     final Map<String, Map<String, String>> uniqueItems = {};
 
     for (var order in completedOrders) {
@@ -184,10 +184,10 @@ class OrderProvider with ChangeNotifier {
     }).toList();
   }
 
-  List<order.Order> getOngoingOrdersForCustomer(String customerName) {
+  List<order.Order> getOngoingOrdersForCustomer(String customerEmail) {
     final orders = _orders
         .where(
-          (o) => o.status != 'completed' && o.customerName == customerName,
+          (o) => o.status != 'completed' && o.customerName == customerEmail,
         )
         .toList();
     orders.sort((a, b) {
@@ -201,9 +201,9 @@ class OrderProvider with ChangeNotifier {
     return orders;
   }
 
-  List<order.Order> getCompletedOrdersForCustomer(String customerName) {
+  List<order.Order> getCompletedOrdersForCustomer(String customerEmail) {
     return _orders
-        .where((o) => o.status == 'completed' && o.customerName == customerName)
+        .where((o) => o.status == 'completed' && o.customerName == customerEmail)
         .toList();
   }
 
@@ -272,10 +272,10 @@ class OrderProvider with ChangeNotifier {
         _notificationProvider
             .addNotification(NotificationModel.fromOrder(_orders[index]))
             .catchError((e) {
-              debugPrint('OrderProvider: Gagal mengirim notifikasi untuk pesanan $orderId: $e');
-            });
+          debugPrint('OrderProvider: Gagal mengirim notifikasi untuk pesanan $orderId: $e');
+        });
       }
-      debugPrint('OrderProvider: Updated order $orderId to $newStatus');
+      debugPrint('OrderProvider: Successfully updated order $orderId to $newStatus');
     } catch (e) {
       debugPrint('OrderProvider: Error updating order $orderId to $newStatus: $e');
       _lastError = 'Gagal memperbarui status pesanan: $e';
@@ -312,8 +312,8 @@ class OrderProvider with ChangeNotifier {
       _notificationProvider
           .addNotification(NotificationModel.fromOrder(updatedOrder))
           .catchError((e) {
-            debugPrint('OrderProvider: Gagal mengirim notifikasi untuk pesanan $orderId: $e');
-          });
+        debugPrint('OrderProvider: Gagal mengirim notifikasi untuk pesanan $orderId: $e');
+      });
       debugPrint('OrderProvider: Successfully updated order $orderId with ratings');
     } catch (e) {
       debugPrint('OrderProvider: Error updating order with ratings: $e');
@@ -360,9 +360,9 @@ class OrderProvider with ChangeNotifier {
       _notificationProvider
           .addNotification(NotificationModel.fromOrder(_orders[index]))
           .catchError((e) {
-            debugPrint('OrderProvider: Gagal mengirim notifikasi untuk pesanan $orderId: $e');
-          });
-      debugPrint('OrderProvider: Successfully submitted rating for $orderId');
+        debugPrint('OrderProvider: Gagal mengirim notifikasi untuk pesanan $orderId: $e');
+      });
+      debugPrint('OrderProvider: Successfully submitted rating for order $orderId');
     } catch (e) {
       debugPrint('OrderProvider: Error submitting rating for order $orderId: $e');
       _lastError = 'Gagal mengirim rating: $e';
@@ -375,10 +375,7 @@ class OrderProvider with ChangeNotifier {
 
   Future<void> _autoCompleteOrder(String orderId) async {
     final index = _orders.indexWhere((o) => o.id == orderId);
-    if (index == -1 || _orders[index].status != 'ready') {
-      debugPrint('OrderProvider: Invalid orderId $orderId or status not ready');
-      return;
-    }
+    if (index == -1 || _orders[index].status != 'ready') return;
     _isLoading = true;
     notifyListeners();
     try {
@@ -399,8 +396,8 @@ class OrderProvider with ChangeNotifier {
       _notificationProvider
           .addNotification(NotificationModel.fromOrder(_orders[index]))
           .catchError((e) {
-            debugPrint('OrderProvider: Gagal mengirim notifikasi untuk pesanan $orderId: $e');
-          });
+        debugPrint('OrderProvider: Gagal mengirim notifikasi untuk pesanan $orderId: $e');
+      });
       debugPrint('OrderProvider: Successfully auto-completed order $orderId');
     } catch (e) {
       debugPrint('OrderProvider: Error auto-completing order $orderId: $e');
@@ -528,7 +525,7 @@ class OrderProvider with ChangeNotifier {
     return _orders
         .where((order) =>
             order.merchantEmail == merchantEmail && order.status == 'completed')
-        .fold(0, (sum, order) => sum + order.totalPrice.round());
+        .fold(0, (int sum, order) => sum + order.totalPrice.round());
   }
 
   Future<void> clearOrders() async {
