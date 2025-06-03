@@ -33,8 +33,9 @@ void main() async {
       home: Scaffold(
         body: Center(
           child: Text('Gagal menginisialisasi Firebase: $e'),
-        )
-    )));
+        ),
+      ),
+    ));
     return;
   }
 
@@ -116,7 +117,7 @@ class AuthWrapper extends StatelessWidget {
             await orderProvider.initialize(auth.user!.email!);
           }
         }).timeout(
-          const Duration(seconds: 10),
+          const Duration(seconds: 15), // Increased timeout
           onTimeout: () => throw Exception('Inisialisasi timeout'),
         ),
       ]),
@@ -507,54 +508,56 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       padding: const EdgeInsets.symmetric(horizontal: 40.0),
       child: Column(
         children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(30),
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.getBlue800(isDarkMode).withOpacity(0.3 * _buttonOpacity.value),
-                  blurRadius: 10,
-                  offset: const Offset(0, 5),
-                ),
-              ],
-            ),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.getBlue800(isDarkMode),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                minimumSize: const Size(double.infinity, 55),
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                elevation: 0,
-              ),
-              onPressed: () {
-                debugPrint('SplashScreen: Navigating to LoginScreen');
-                Navigator.pushReplacement(
-                  context,
-                  PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) =>
-                        const LoginScreen(),
-                    transitionsBuilder: (
-                      context,
-                      animation,
-                      secondaryAnimation,
-                      child,
-                    ) {
-                      return FadeTransition(opacity: animation, child: child);
-                    },
-                    transitionDuration: const Duration(milliseconds: 800),
-                    settings: const RouteSettings(name: '/login'),
+          MouseRegion(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.getBlue800(isDarkMode).withOpacity(0.3 * _buttonOpacity.value),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
                   ),
-                );
-              },
-              child: Text(
-                'Login',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.getAppBarText(isDarkMode),
+                ],
+              ),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.getBlue800(isDarkMode),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  minimumSize: const Size(double.infinity, 55),
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  elevation: 0,
+                ),
+                onPressed: () {
+                  debugPrint('SplashScreen: Navigating to LoginScreen');
+                  Navigator.pushReplacement(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          const LoginScreen(),
+                      transitionsBuilder: (
+                        context,
+                        animation,
+                        secondaryAnimation,
+                        child,
+                      ) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
+                      transitionDuration: const Duration(milliseconds: 800),
+                      settings: const RouteSettings(name: '/login'),
+                    ),
+                  );
+                },
+                child: Text(
+                  'Login',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.getAppBarText(isDarkMode),
+                  ),
                 ),
               ),
             ),
