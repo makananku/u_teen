@@ -3,9 +3,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../providers/cart_provider.dart'; // Tambahkan import untuk CartProvider
-import 'package:flutter/material.dart'; // Tambahkan import untuk BuildContext
-import 'package:provider/provider.dart'; // Import Provider for CartProvider access
+import '../../providers/cart_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class AuthProvider extends ChangeNotifier {
   User? _user;
@@ -15,7 +15,7 @@ class AuthProvider extends ChangeNotifier {
   String? _sellerNim;
   String? _customerProdi;
   String? _customerAngkatan;
-  bool _isInitializing = false; // Flag untuk mencegah logout saat inisialisasi
+  bool _isInitializing = false;
   final AuthService _authService = AuthService();
   final fb.FirebaseAuth _firebaseAuth = fb.FirebaseAuth.instance;
 
@@ -27,7 +27,7 @@ class AuthProvider extends ChangeNotifier {
   String? get sellerNim => _sellerNim;
   String? get customerProdi => _customerProdi;
   String? get customerAngkatan => _customerAngkatan;
-  String? get tenantName => _user?.tenantName ?? _user?.name; // Gunakan name jika tenantName null
+  String? get tenantName => _user?.tenantName ?? _user?.name;
   String? get sellerEmail => _user?.email;
 
   AuthProvider() {
@@ -65,30 +65,40 @@ class AuthProvider extends ChangeNotifier {
 
       debugPrint(
           'AuthProvider: Fetching data for UID: ${firebaseUser.uid}, email: ${firebaseUser.email}');
-      // Fetch from Firestore
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(firebaseUser.uid)
-          .get();
+      .get();
       if (userDoc.exists) {
         _user = User.fromFirestore(userDoc);
-        await _saveToPrefs(_user!);
-        _isLoggedIn = true;
-        _isSeller = _user!.userType == 'seller';
-        _customerNim = !_isSeller ? _user!.nim : null;
-        _sellerNim = _isSeller ? _user!.nim : null;
-        _customerProdi = !_isSeller ? _user!.prodi : null;
-        _customerAngkatan = !_isSeller ? _user!.angkatan : null;
-        debugPrint(
-            'AuthProvider: Loaded user from Firestore: ${_user!.email}, type: ${_user!.userType}, tenantName: ${_user!.tenantName ?? _user!.name}');
-        notifyListeners();
       } else {
         debugPrint(
-            'AuthProvider: No Firestore document for UID: ${firebaseUser.uid}. Keeping user logged in.');
-        // Tidak logout, biarkan pengguna tetap login
-        _isLoggedIn = true;
-        notifyListeners();
+            'AuthProvider: No Firestore document for UID: ${firebaseUser.uid}. Creating default user for demo.');
+        _user = User(
+          email: firebaseUser.email!,
+          name: 'Demo User',
+          userType: 'customer',
+        );
+        // Optionally create a user document
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(firebaseUser.uid)
+            .set({
+          'email': firebaseUser.email,
+          'name': 'Demo User',
+          'userType': 'customer',
+        });
       }
+      await _saveToPrefs(_user!);
+      _isLoggedIn = true;
+      _isSeller = _user!.userType == 'seller';
+      _customerNim = !_isSeller ? _user!.nim : null;
+      _sellerNim = _isSeller ? _user!.nim : null;
+      _customerProdi = !_isSeller ? _user!.prodi : null;
+      _customerAngkatan = !_isSeller ? _user!.angkatan : null;
+      debugPrint(
+          'AuthProvider: Loaded user: ${_user!.email}, type: ${_user!.userType}, tenantName: ${_user!.tenantName ?? _user!.name}');
+      notifyListeners();
     } catch (e) {
       debugPrint('AuthProvider initialize error: $e');
       if (!_isInitializing) await logout();
@@ -98,7 +108,7 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> login({
     required String email,
     required String password,
-    required BuildContext context, // Tambahkan parameter context
+    required BuildContext context,
   }) async {
     try {
       debugPrint('AuthProvider: Starting login for $email');
@@ -117,7 +127,6 @@ class AuthProvider extends ChangeNotifier {
       _sellerNim = _isSeller ? user.nim : null;
       _customerProdi = !_isSeller ? user.prodi : null;
       _customerAngkatan = !_isSeller ? user.angkatan : null;
-      // Inisialisasi CartProvider setelah login
       final cartProvider = Provider.of<CartProvider>(context, listen: false);
       await cartProvider.initialize(user.email);
       debugPrint(
