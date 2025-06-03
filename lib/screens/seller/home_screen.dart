@@ -29,7 +29,7 @@ class _SellerHomeScreenState extends State<SellerHomeScreen> {
   DateTime? _lastBackPressTime;
 
   void _confirmLogout(BuildContext context) {
-    LogoutService.showLogoutConfirmation(context);
+    LogoutService.showLogoutDialog(context);
   }
 
   Future<bool> _onWillPop() async {

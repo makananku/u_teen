@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:u_teen/auth/auth_provider.dart';
+import 'package:u_teen/auth/logout_service.dart'; // Added for logout service
 import 'package:u_teen/providers/order_provider.dart';
 import 'package:u_teen/providers/rating_provider.dart';
 import 'package:u_teen/providers/theme_notifier.dart';
@@ -601,150 +602,44 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
   }
 
   Widget _buildLogoutButton(BuildContext context, bool isDarkMode) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (context) => Dialog(
-              backgroundColor: AppTheme.getCard(isDarkMode),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: AppTheme.getErrorLightBackground(isDarkMode).withOpacity(isDarkMode ? 0.2 : 1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.logout,
-                        size: 40,
-                        color: AppTheme.getSnackBarError(isDarkMode),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      'Logout Confirmation',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.getPrimaryText(isDarkMode),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Are you sure you want to logout from your merchant account?',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppTheme.getSecondaryText(isDarkMode),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.pop(context),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              side: BorderSide(
-                                color: AppTheme.getBorder(isDarkMode),
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              foregroundColor: AppTheme.getSecondaryText(isDarkMode),
-                            ),
-                            child: Text(
-                              'Cancel',
-                              style: TextStyle(
-                                color: AppTheme.getSecondaryText(isDarkMode),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              final authProvider = Provider.of<AuthProvider>(
-                                context,
-                                listen: false,
-                              );
-                              bool success = await authProvider.logout();
-                              if (success) {
-                                print('Logout successful, navigating to LoginScreen');
-                                Navigator.pushAndRemoveUntil(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const LoginScreen()),
-                                  (route) => false,
-                                );
-                              } else {
-                                print('Logout failed');
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: const Text('Failed to logout. Please try again.'),
-                                    backgroundColor: AppTheme.getSnackBarError(isDarkMode),
-                                  ),
-                                );
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.getSnackBarError(isDarkMode),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              foregroundColor: AppTheme.getPrimaryText(!isDarkMode),
-                            ),
-                            child: const Text(
-                              'Logout',
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.getCard(isDarkMode),
-          foregroundColor: AppTheme.getSnackBarError(isDarkMode),
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(
-              color: AppTheme.getErrorLight(isDarkMode),
-              width: 1.5,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          icon: Icon(Icons.logout, size: 22, color: AppTheme.getSnackBarError(isDarkMode)),
+          label: Text(
+            "Logout",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: AppTheme.getSnackBarError(isDarkMode),
             ),
           ),
-          elevation: 0,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.logout, size: 20),
-            const SizedBox(width: 8),
-            Text(
-              'Logout',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: AppTheme.getSnackBarError(isDarkMode),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.getCard(isDarkMode),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: BorderSide(
+                color: AppTheme.getAccentRedLight(isDarkMode),
+                width: 1.5,
               ),
             ),
-          ],
+            padding: const EdgeInsets.symmetric(vertical: 18),
+            shadowColor: AppTheme.getSnackBarError(isDarkMode).withOpacity(0.1),
+          ),
+          onPressed: () async {
+            final success = await LogoutService.showLogoutDialog(context);
+            if (!success && context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('Failed to logout. Please try again.'),
+                  backgroundColor: AppTheme.getSnackBarError(isDarkMode),
+                ),
+              );
+            }
+          },
         ),
       ),
     );

@@ -437,7 +437,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildLogoutButton(BuildContext context, bool isDarkMode) {
+    Widget _buildLogoutButton(BuildContext context, bool isDarkMode) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: SizedBox(
@@ -466,7 +466,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             shadowColor: AppTheme.getSnackBarError(isDarkMode).withOpacity(0.1),
           ),
           onPressed: () async {
-            final success = await LogoutService.showLogoutConfirmation(context);
+            final success = await LogoutService.showLogoutDialog(context);
             if (!success && context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(

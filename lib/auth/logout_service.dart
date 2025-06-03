@@ -1,10 +1,121 @@
 import 'package:flutter/material.dart';
-import 'package:u_teen/screens/login_screen.dart';
 import 'package:provider/provider.dart';
-import 'auth_provider.dart';
+import 'package:u_teen/auth/auth_provider.dart';
 import 'package:u_teen/providers/food_provider.dart';
+import 'package:u_teen/screens/login_screen.dart';
+import 'package:u_teen/utils/app_theme.dart';
+import 'package:u_teen/providers/theme_notifier.dart';
 
-class LogoutService extends StatelessWidget {
+class LogoutService {
+  static Future<bool> showLogoutDialog(BuildContext context) async {
+    final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
+    final isDarkMode = themeNotifier.isDarkMode;
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: AppTheme.getCard(isDarkMode),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: AppTheme.getAccentRedLight(isDarkMode),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.logout,
+                  size: 40,
+                  color: AppTheme.getSnackBarError(isDarkMode),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                "Ready to Leave?",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.getPrimaryText(isDarkMode),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                "You'll be signed out of your account",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: AppTheme.getSecondaryText(isDarkMode),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 28),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        side: BorderSide(
+                          color: AppTheme.getSwitchInactive(isDarkMode),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        backgroundColor: AppTheme.getDetailBackground(isDarkMode),
+                      ),
+                      child: Text(
+                        "Cancel",
+                        style: TextStyle(
+                          color: AppTheme.getTextMedium(isDarkMode),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.getSnackBarError(isDarkMode),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        "Logout",
+                        style: TextStyle(
+                          color: AppTheme.getPrimaryText(!isDarkMode),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (result == true) {
+      return await logout(context);
+    }
+    return false;
+  }
+
   static Future<bool> logout(BuildContext context) async {
     try {
       // Close all dialogs
@@ -28,7 +139,8 @@ class LogoutService extends StatelessWidget {
         return false;
       }
 
-      await Navigator.pushAndRemoveUntil(context, 
+      await Navigator.pushAndRemoveUntil(
+        context, 
         MaterialPageRoute(builder: (context) => const LoginScreen()),
         (Route<dynamic> route) => false,
       );
@@ -46,56 +158,5 @@ class LogoutService extends StatelessWidget {
       }
       return false;
     }
-  }
-
-  static Future<bool> showLogoutConfirmation(BuildContext context) async {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-    return await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          title: const Text(
-            "Logout",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          content: const Text(
-            "Are you sure you want to logout?",
-            style: TextStyle(color: Colors.black),
-          ),
-          actions: [
-            TextButton(
-              child: const Text("Cancel"),
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-            ),
-            TextButton(
-              child: const Text(
-                "Logout",
-                style: TextStyle(color: Colors.red),
-              ),
-              onPressed: () async {
-                Navigator.of(dialogContext).pop(true); // Close dialog
-                await logout(context); // Process logout
-              },
-            ),
-          ],
-        );
-      },
-    ) ?? false;
-  }
-
-  const LogoutService({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const SizedBox(); // Placeholder if used as widget
   }
 }
