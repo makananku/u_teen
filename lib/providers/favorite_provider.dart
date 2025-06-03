@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import '../models/favorite_item.dart';
 import '../../auth/auth_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'dart:convert';
 
 class FavoriteProvider with ChangeNotifier {
   List<FavoriteItem> _favoriteItems = [];
@@ -12,6 +14,7 @@ class FavoriteProvider with ChangeNotifier {
 
   List<FavoriteItem> get favoriteItems => List.unmodifiable(_favoriteItems);
   bool get isLoading => _isLoading;
+  bool get isInitialized => _isInitialized;
 
   Future<void> initialize(BuildContext context) async {
     if (_isInitialized) {
@@ -76,10 +79,25 @@ class FavoriteProvider with ChangeNotifier {
     }
   }
 
+  bool isValidBase64(String str) {
+    try {
+      base64Decode(str.startsWith('data:image') ? str.split(',').last : str);
+      return true;
+    } catch (e) {
+      debugPrint('FavoriteProvider: Invalid Base64 string: $e');
+      return false;
+    }
+  }
+
   Future<void> _saveFavorites() async {
     if (_userEmail == null || _userEmail!.isEmpty) {
       debugPrint('FavoriteProvider: Cannot save favorites, no user email');
       throw Exception('User email not set');
+    }
+    final firebaseUser = fb.FirebaseAuth.instance.currentUser;
+    if (firebaseUser == null) {
+      debugPrint('FavoriteProvider: No authenticated user');
+      throw Exception('No authenticated user');
     }
     _isLoading = true;
     notifyListeners();
@@ -95,13 +113,14 @@ class FavoriteProvider with ChangeNotifier {
           .collection('favorites')
           .doc(_userEmail)
           .set(favoritesData, SetOptions(merge: true))
-          .timeout(const Duration(seconds: 5), onTimeout: () {
+          .timeout(const Duration(seconds: 10), onTimeout: () {
             debugPrint('FavoriteProvider: Firestore save timeout for $_userEmail');
             throw Exception('Firestore save timeout');
           });
       debugPrint('FavoriteProvider: Favorites saved for $_userEmail');
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('FavoriteProvider: Error saving favorites for $_userEmail: $e');
+      debugPrint('Stack trace: $stackTrace');
       throw Exception('Failed to save favorites: $e');
     } finally {
       _isLoading = false;
@@ -114,8 +133,8 @@ class FavoriteProvider with ChangeNotifier {
       debugPrint('FavoriteProvider: Cannot add favorite, no user logged in');
       throw Exception('No user logged in');
     }
-    if (item.name.isEmpty || item.imgBase64.isEmpty) {
-      debugPrint('FavoriteProvider: Invalid favorite item: name or imgBase64 is empty');
+    if (item.name.isEmpty || item.imgBase64.isEmpty || !isValidBase64(item.imgBase64)) {
+      debugPrint('FavoriteProvider: Invalid favorite item: name, imgBase64, or invalid Base64');
       throw Exception('Invalid favorite item');
     }
     if (!_favoriteItems.any((existingItem) =>

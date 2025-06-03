@@ -8,7 +8,7 @@ import '../../models/cart_item.dart';
 import '../../models/favorite_item.dart';
 import 'dart:convert';
 import 'dart:typed_data';
-import '../../auth/auth_provider.dart'; // Tambahkan import untuk AuthProvider
+import '../../auth/auth_provider.dart';
 
 class DetailBox extends StatefulWidget {
   final String selectedFoodItem;
@@ -231,7 +231,6 @@ class _DetailBoxState extends State<DetailBox> {
                                 _isAddingToCart = true;
                               });
                               try {
-                                // Inisialisasi CartProvider dengan email pengguna
                                 await cartProvider
                                     .initialize(authProvider.user!.email);
                                 final price = int.tryParse(cleanPrice) ?? 0;
@@ -254,7 +253,6 @@ class _DetailBoxState extends State<DetailBox> {
                                 ));
                                 debugPrint(
                                     'DetailBox: Added to cart: ${widget.selectedFoodItem}, imgBase64 length: ${widget.selectedFoodImgBase64.length}');
-                                // Tampilkan SnackBar untuk konfirmasi
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
@@ -269,7 +267,6 @@ class _DetailBoxState extends State<DetailBox> {
                                     ),
                                   );
                                 }
-                                // Panggil onClose untuk menutup DetailBox
                                 await Future.delayed(
                                     const Duration(milliseconds: 200));
                                 widget.onClose();
@@ -325,6 +322,16 @@ class _DetailBoxState extends State<DetailBox> {
                     Center(
                       child: InkWell(
                         onTap: () async {
+                          if (!favoriteProvider.isInitialized) {
+                            debugPrint('DetailBox: FavoriteProvider not initialized');
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Favorites not ready, please try again'),
+                                backgroundColor: AppTheme.getSnackBarError(isDarkMode),
+                              ),
+                            );
+                            return;
+                          }
                           final favoriteItem = FavoriteItem(
                             name: widget.selectedFoodItem,
                             price: cleanPrice,
@@ -370,12 +377,11 @@ class _DetailBoxState extends State<DetailBox> {
                                 ),
                               );
                             } catch (e) {
-                              debugPrint(
-                                  'DetailBox: Error adding to favorites: $e');
+                              debugPrint('DetailBox: Error adding to favorites: $e');
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    'Failed to add ${widget.selectedFoodItem} to favorites',
+                                    'Failed to add ${widget.selectedFoodItem} to favorites: $e',
                                     style: TextStyle(
                                       color: AppTheme.getPrimaryText(!isDarkMode),
                                     ),
@@ -460,7 +466,7 @@ class _DetailBoxState extends State<DetailBox> {
       return base64Decode(cleanedBase64);
     } catch (e) {
       debugPrint('DetailBox: Error decoding Base64 for ${widget.selectedFoodItem}: $e');
-      return Uint8List(0); // Trigger errorBuilder
+      return Uint8List(0);
     }
   }
 }
