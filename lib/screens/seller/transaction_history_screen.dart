@@ -30,7 +30,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final sellerEmail = authProvider.user?.email ?? '';
 
-    final allTransactions = orderProvider.getTransactionsForMerchant(sellerEmail);
+    final allTransactions = orderProvider.getOrdersForMerchant(sellerEmail);
 
     transactions = allTransactions.map((order) {
       final isWithdrawal = order.customerName == 'Withdrawal';
