@@ -114,6 +114,20 @@ class FoodProvider extends ChangeNotifier {
       notifyListeners();
       debugPrint('Adding new product: ${product.title}');
 
+      // Validate required fields
+      if (product.id.isEmpty) {
+        throw Exception('Product ID cannot be empty');
+      }
+      if (product.title.isEmpty) {
+        throw Exception('Product title cannot be empty');
+      }
+      if (product.sellerEmail.isEmpty) {
+        throw Exception('Seller email cannot be empty');
+      }
+      if (!['Food', 'Drink', 'Snack'].contains(product.category)) {
+        throw Exception('Invalid category: ${product.category}');
+      }
+
       await _firestore.collection('products').doc(product.id).set(product.toMap());
       _products.add(product);
       _isLoading = false;
