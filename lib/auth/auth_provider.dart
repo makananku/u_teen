@@ -20,6 +20,7 @@ class AuthProvider extends ChangeNotifier {
   bool _isInitialized = false;
   final AuthService _authService = AuthService();
   final fb.FirebaseAuth _firebaseAuth = fb.FirebaseAuth.instance;
+  late Future<void> _initializationFuture;
 
   User? get user => _user;
   bool get isLoggedIn => _isLoggedIn;
@@ -33,10 +34,11 @@ class AuthProvider extends ChangeNotifier {
   String? get sellerEmail => _user?.email;
   bool get isInitialized => _isInitialized;
   fb.FirebaseAuth get firebaseAuth => _firebaseAuth;
+  Future<void> get initializationFuture => _initializationFuture;
 
   AuthProvider() {
     debugPrint('AuthProvider: Constructor called');
-    initialize();
+    _initializationFuture = initialize();
   }
 
   Future<void> initialize() async {
@@ -46,10 +48,17 @@ class AuthProvider extends ChangeNotifier {
     }
     debugPrint('AuthProvider: Starting initialization');
     _isInitializing = true;
-    await _loadUserData();
-    _isInitializing = false;
-    _isInitialized = true;
-    debugPrint('AuthProvider: Initialization complete');
+    try {
+      await _loadUserData();
+      _isInitialized = true;
+      debugPrint('AuthProvider: Initialization complete');
+    } catch (e) {
+      debugPrint('AuthProvider: Initialization error: $e');
+      throw Exception('Gagal menginisialisasi AuthProvider: $e');
+    } finally {
+      _isInitializing = false;
+      notifyListeners();
+    }
     _firebaseAuth.authStateChanges().listen((fb.User? firebaseUser) async {
       debugPrint('AuthProvider: authStateChanges triggered, user: ${firebaseUser?.email}');
       if (firebaseUser == null) {
@@ -80,7 +89,7 @@ class AuthProvider extends ChangeNotifier {
         _user = User.fromFirestore(userDoc);
       } else {
         debugPrint('AuthProvider: No Firestore document for UID: ${firebaseUser.uid}');
-        throw Exception('User document not found for UID: ${firebaseUser.uid}');
+        throw Exception('Dokumen pengguna tidak ditemukan untuk UID: ${firebaseUser.uid}');
       }
       await _saveToPrefs(_user!);
       _isLoggedIn = true;
@@ -94,6 +103,7 @@ class AuthProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint('AuthProvider loadUserData error: $e');
       if (!_isInitializing && !_isLoggingOut) await logout();
+      throw e;
     }
   }
 

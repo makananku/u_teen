@@ -32,10 +32,9 @@ void main() async {
     runApp(MaterialApp(
       home: Scaffold(
         body: Center(
-          child: Text('Failed to initialize Firebase: $e'),
-        ),
-      ),
-    ));
+          child: Text('Gagal menginisialisasi Firebase: $e'),
+        )
+    )));
     return;
   }
 
@@ -111,17 +110,14 @@ class AuthWrapper extends StatelessWidget {
 
     return FutureBuilder(
       future: Future.wait([
-        Future(() async {
-          if (!auth.isInitialized) {
-            throw Exception('AuthProvider not initialized');
-          }
+        auth.initializationFuture.then((_) async {
           if (auth.isLoggedIn && auth.user != null) {
             await notificationProvider.initialize(auth.user!.email!);
             await orderProvider.initialize(auth.user!.email!);
           }
         }).timeout(
           const Duration(seconds: 10),
-          onTimeout: () => throw Exception('Initialization timed out'),
+          onTimeout: () => throw Exception('Inisialisasi timeout'),
         ),
       ]),
       builder: (context, snapshot) {
@@ -134,8 +130,9 @@ class AuthWrapper extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Error initializing app: ${snapshot.error}',
+                      'Gagal menginisialisasi aplikasi: ${snapshot.error}',
                       style: TextStyle(color: AppTheme.getError(isDarkMode)),
+                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton(
@@ -147,7 +144,7 @@ class AuthWrapper extends StatelessWidget {
                           ),
                         );
                       },
-                      child: const Text('Retry'),
+                      child: const Text('Coba Lagi'),
                     ),
                   ],
                 ),
@@ -168,7 +165,7 @@ class AuthWrapper extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Loading...',
+                  'Memuat...',
                   style: TextStyle(
                     color: AppTheme.getAppBarText(isDarkMode).withOpacity(0.8),
                   ),
@@ -182,6 +179,7 @@ class AuthWrapper extends StatelessWidget {
   }
 }
 
+// SplashScreen remains unchanged
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -509,56 +507,54 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       padding: const EdgeInsets.symmetric(horizontal: 40.0),
       child: Column(
         children: [
-          MouseRegion(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(30),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.getBlue800(isDarkMode).withOpacity(0.3 * _buttonOpacity.value),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.getBlue800(isDarkMode),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  minimumSize: const Size(double.infinity, 55),
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  elevation: 0,
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(30),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.getBlue800(isDarkMode).withOpacity(0.3 * _buttonOpacity.value),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
                 ),
-                onPressed: () {
-                  debugPrint('SplashScreen: Navigating to LoginScreen');
-                  Navigator.pushReplacement(
-                    context,
-                    PageRouteBuilder(
-                      pageBuilder: (context, animation, secondaryAnimation) =>
-                          const LoginScreen(),
-                      transitionsBuilder: (
-                        context,
-                        animation,
-                        secondaryAnimation,
-                        child,
-                      ) {
-                        return FadeTransition(opacity: animation, child: child);
-                      },
-                      transitionDuration: const Duration(milliseconds: 800),
-                      settings: const RouteSettings(name: '/login'),
-                    ),
-                  );
-                },
-                child: Text(
-                  'Login',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.getAppBarText(isDarkMode),
+              ],
+            ),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.getBlue800(isDarkMode),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                minimumSize: const Size(double.infinity, 55),
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                elevation: 0,
+              ),
+              onPressed: () {
+                debugPrint('SplashScreen: Navigating to LoginScreen');
+                Navigator.pushReplacement(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        const LoginScreen(),
+                    transitionsBuilder: (
+                      context,
+                      animation,
+                      secondaryAnimation,
+                      child,
+                    ) {
+                      return FadeTransition(opacity: animation, child: child);
+                    },
+                    transitionDuration: const Duration(milliseconds: 800),
+                    settings: const RouteSettings(name: '/login'),
                   ),
+                );
+              },
+              child: Text(
+                'Login',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.getAppBarText(isDarkMode),
                 ),
               ),
             ),
