@@ -13,16 +13,15 @@ class OrderProvider with ChangeNotifier {
   String? _lastError;
   final Map<String, Timer> _readyTimers = {};
   StreamSubscription? _subscription;
-  String? _customerEmail; // Added to store customer email
+  String? _customerEmail;
 
   OrderProvider(this._notificationProvider);
 
   bool get isLoading => _isLoading;
   String? get lastError => _lastError;
 
-  // Initialize with customer email
   Future<void> initialize(String customerEmail) async {
-    if (_customerEmail == customerEmail) return; // Prevent re-initialization
+    if (_customerEmail == customerEmail) return;
     _customerEmail = customerEmail;
     await _initialize();
   }
@@ -50,9 +49,8 @@ class OrderProvider with ChangeNotifier {
       _lastError = null;
       debugPrint('OrderProvider: Loaded ${_orders.length} orders for $_customerEmail');
     } catch (e) {
-      _lastError = e.toString();
+      _lastError = 'Failed to load orders: $e';
       debugPrint('OrderProvider: Error loading orders: $e');
-      // Don't throw, let MyOrdersScreen handle errors
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -77,7 +75,7 @@ class OrderProvider with ChangeNotifier {
           debugPrint('OrderProvider: Real-time update: Loaded ${_orders.length} orders for $_customerEmail');
           notifyListeners();
         }, onError: (error) {
-          _lastError = error.toString();
+          _lastError = 'Real-time listener error: $error';
           debugPrint('OrderProvider: Error in real-time listener: $error');
           notifyListeners();
         });
@@ -96,9 +94,9 @@ class OrderProvider with ChangeNotifier {
             debugPrint('OrderProvider: Firestore save timeout for order ${order.id}');
             throw Exception('Firestore save timeout');
           });
-      debugPrint('OrderProvider: Saved order ${order.id}');
+      debugPrint('OrderProvider: Successfully saved order ${order.id}');
     } catch (e) {
-      debugPrint('OrderProvider: Error saving order: $e');
+      debugPrint('OrderProvider: Error saving order ${order.id}: $e');
       throw Exception('Failed to save order: $e');
     }
   }
@@ -223,44 +221,50 @@ class OrderProvider with ChangeNotifier {
 
   Future<void> updateOrderStatus(String orderId, String newStatus, {String? reason}) async {
     final index = _orders.indexWhere((o) => o.id == orderId);
-    if (index != -1) {
-      _isLoading = true;
-      notifyListeners();
-      try {
-        final now = DateTime.now();
-        if (_orders[index].status == 'ready' && newStatus != 'ready') {
-          _readyTimers[orderId]?.cancel();
-          _readyTimers.remove(orderId);
-          debugPrint('OrderProvider: Cancelled timer for order $orderId');
-        }
-        _orders[index] = _orders[index].copyWith(
-          status: newStatus,
-          cancellationReason: reason,
-          completedTime: newStatus == 'completed' ? now : _orders[index].completedTime,
-          cancelledTime: newStatus == 'cancelled' ? now : _orders[index].cancelledTime,
-          readyAt: newStatus == 'ready' ? now : _orders[index].readyAt,
-          completedAt: newStatus == 'completed' ? now : _orders[index].completedAt,
-          cancelledAt: newStatus == 'cancelled' ? now : _orders[index].cancelledAt,
-        );
-        if (newStatus == 'ready') {
-          _readyTimers[orderId] = Timer(const Duration(minutes: 2), () {
-            _autoCompleteOrder(orderId);
-          });
-          debugPrint('OrderProvider: Started timer for order $orderId');
-        }
-        if (['ready', 'completed', 'cancelled'].contains(newStatus)) {
+    if (index == -1) {
+      debugPrint('OrderProvider: Order $orderId not found');
+      throw Exception('Order not found');
+    }
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final now = DateTime.now();
+      if (_orders[index].status == 'ready' && newStatus != 'ready') {
+        _readyTimers[orderId]?.cancel();
+        _readyTimers.remove(orderId);
+        debugPrint('OrderProvider: Cancelled timer for order $orderId');
+      }
+      _orders[index] = _orders[index].copyWith(
+        status: newStatus,
+        cancellationReason: reason,
+        completedTime: newStatus == 'completed' ? now : _orders[index].completedTime,
+        cancelledTime: newStatus == 'cancelled' ? now : _orders[index].cancelledTime,
+        readyAt: newStatus == 'ready' ? now : _orders[index].readyAt,
+        completedAt: newStatus == 'completed' ? now : _orders[index].completedAt,
+        cancelledAt: newStatus == 'cancelled' ? now : _orders[index].cancelledAt,
+      );
+      if (newStatus == 'ready') {
+        _readyTimers[orderId] = Timer(const Duration(minutes: 2), () {
+          _autoCompleteOrder(orderId);
+        });
+        debugPrint('OrderProvider: Started timer for order $orderId');
+      }
+      if (['ready', 'completed', 'cancelled'].contains(newStatus)) {
+        try {
           await _notificationProvider.addNotification(
               NotificationModel.fromOrder(_orders[index]));
           debugPrint('OrderProvider: Sent notification for order $orderId status $newStatus');
+        } catch (e) {
+          debugPrint('OrderProvider: Failed to send notification for order $orderId: $e');
         }
-        await _saveOrder(_orders[index]);
-      } catch (e) {
-        debugPrint('OrderProvider: Error updating order status: $e');
-        throw Exception('Failed to update order status: $e');
-      } finally {
-        _isLoading = false;
-        notifyListeners();
       }
+      await _saveOrder(_orders[index]);
+    } catch (e) {
+      debugPrint('OrderProvider: Error updating order $orderId status to $newStatus: $e');
+      throw Exception('Failed to update order status: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 

@@ -62,22 +62,13 @@ class OrderDialogUtils {
                     ),
                     onPressed: () async {
                       Navigator.pop(context); // Close confirmation dialog
-                      _showLoadingDialog(context, 'Marking order as ready...', isDarkMode);
-
-                      try {
-                        await Provider.of<OrderProvider>(context, listen: false)
-                            .updateOrderStatus(order.id, 'ready');
-
-                        if (context.mounted) {
-                          Navigator.pop(context); // Close loading dialog
-                          await showSuccessAnimation(context);
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          Navigator.pop(context); // Close loading dialog
-                          _showErrorDialog(context, 'Failed to mark order as ready: $e', isDarkMode);
-                        }
-                      }
+                      await _processOrderStatusUpdate(
+                        context: context,
+                        order: order,
+                        newStatus: 'ready',
+                        successMessage: 'Order marked as ready',
+                        isDarkMode: isDarkMode,
+                      );
                     },
                     child: Text(
                       'CONFIRM',
@@ -190,26 +181,14 @@ class OrderDialogUtils {
                         if (!formKey.currentState!.validate()) return;
 
                         Navigator.pop(context); // Close confirmation dialog
-                        _showLoadingDialog(context, 'Cancelling order...', isDarkMode);
-
-                        try {
-                          await Provider.of<OrderProvider>(context, listen: false)
-                              .updateOrderStatus(
-                            order.id,
-                            'cancelled',
-                            reason: reasonController.text,
-                          );
-
-                          if (context.mounted) {
-                            Navigator.pop(context); // Close loading dialog
-                            await showCancelledAnimation(context);
-                          }
-                        } catch (e) {
-                          if (context.mounted) {
-                            Navigator.pop(context); // Close loading dialog
-                            _showErrorDialog(context, 'Failed to cancel order: $e', isDarkMode);
-                          }
-                        }
+                        await _processOrderStatusUpdate(
+                          context: context,
+                          order: order,
+                          newStatus: 'cancelled',
+                          reason: reasonController.text,
+                          successMessage: 'The order has been cancelled',
+                          isDarkMode: isDarkMode,
+                        );
                       },
                       child: Text(
                         'CONFIRM',
@@ -226,10 +205,76 @@ class OrderDialogUtils {
     );
   }
 
-  static void _showLoadingDialog(BuildContext context, String message, bool isDarkMode) {
+  static Future<void> _processOrderStatusUpdate({
+    required BuildContext context,
+    required Order order,
+    required String newStatus,
+    String? reason,
+    required String successMessage,
+    required bool isDarkMode,
+  }) async {
+    // Show loading dialog
     showDialog(
       context: context,
       barrierDismissible: false,
+      builder: (context) => PopScope(
+        canPop: false, // Prevent back button during loading
+        child: Dialog(
+          backgroundColor: AppTheme.getCard(isDarkMode),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  height: 50,
+                  width: 50,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 6,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppTheme.getSnackBarSuccess(isDarkMode),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  newStatus == 'ready' ? 'Marking order as ready...' : 'Cancelling order...',
+                  style: TextStyle(
+                    color: AppTheme.getPrimaryText(isDarkMode),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Process the update with a timeout
+    try {
+      await Provider.of<OrderProvider>(context, listen: false)
+          .updateOrderStatus(order.id, newStatus, reason: reason)
+          .timeout(const Duration(seconds: 10), onTimeout: () {
+        throw Exception('Operation timed out');
+      });
+
+      if (context.mounted) {
+        Navigator.pop(context); // Close loading dialog
+        await _showSuccessDialog(context, newStatus, successMessage, isDarkMode);
+      }
+    } catch (e) {
+      debugPrint('OrderDialogUtils: Error updating order status: $e');
+      if (context.mounted) {
+        Navigator.pop(context); // Close loading dialog
+        await _showErrorDialog(context, 'Failed to update order: $e', isDarkMode);
+      }
+    }
+  }
+
+  static Future<void> _showSuccessDialog(
+      BuildContext context, String status, String message, bool isDarkMode) async {
+    await showDialog(
+      context: context,
       builder: (context) => Dialog(
         backgroundColor: AppTheme.getCard(isDarkMode),
         child: Padding(
@@ -237,22 +282,41 @@ class OrderDialogUtils {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(
-                height: 50,
-                width: 50,
-                child: CircularProgressIndicator(
-                  strokeWidth: 6,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    AppTheme.getSnackBarSuccess(isDarkMode),
-                  ),
+              Icon(
+                status == 'ready' ? Icons.check_circle : Icons.cancel,
+                color: status == 'ready'
+                    ? AppTheme.getSnackBarSuccess(isDarkMode)
+                    : AppTheme.getSnackBarError(isDarkMode),
+                size: 60,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                status == 'ready' ? 'Success!' : 'Order Cancelled',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.getPrimaryText(isDarkMode),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
               Text(
                 message,
                 style: TextStyle(
-                  color: AppTheme.getPrimaryText(isDarkMode),
+                  color: AppTheme.getSecondaryText(isDarkMode),
                 ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: status == 'ready'
+                      ? AppTheme.getSnackBarSuccess(isDarkMode)
+                      : AppTheme.getSnackBarError(isDarkMode),
+                  foregroundColor: AppTheme.getPrimaryText(!isDarkMode),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  elevation: isDarkMode ? 0 : 2,
+                ),
+                child: const Text('OK'),
               ),
             ],
           ),
@@ -261,8 +325,8 @@ class OrderDialogUtils {
     );
   }
 
-  static void _showErrorDialog(BuildContext context, String message, bool isDarkMode) {
-    showDialog(
+  static Future<void> _showErrorDialog(BuildContext context, String message, bool isDarkMode) async {
+    await showDialog(
       context: context,
       builder: (context) => Dialog(
         backgroundColor: AppTheme.getCard(isDarkMode),
@@ -284,99 +348,7 @@ class OrderDialogUtils {
               const SizedBox(height: 8),
               Text(
                 message,
-                style: TextStyle(
-                  color: AppTheme.getSecondaryText(isDarkMode),
-                ),
                 textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.getSnackBarError(isDarkMode),
-                  foregroundColor: AppTheme.getPrimaryText(!isDarkMode),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  elevation: isDarkMode ? 0 : 2,
-                ),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  static Future<void> showSuccessAnimation(BuildContext context) async {
-    final isDarkMode = Provider.of<ThemeNotifier>(context, listen: false).isDarkMode;
-    await showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: AppTheme.getCard(isDarkMode),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.check_circle, color: AppTheme.getSnackBarSuccess(isDarkMode), size: 60),
-              const SizedBox(height: 16),
-              Text(
-                'Success!',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.getPrimaryText(isDarkMode),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Order marked as ready',
-                style: TextStyle(
-                  color: AppTheme.getSecondaryText(isDarkMode),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.getSnackBarSuccess(isDarkMode),
-                  foregroundColor: AppTheme.getPrimaryText(!isDarkMode),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  elevation: isDarkMode ? 0 : 2,
-                ),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  static Future<void> showCancelledAnimation(BuildContext context) async {
-    final isDarkMode = Provider.of<ThemeNotifier>(context, listen: false).isDarkMode;
-    await showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: AppTheme.getCard(isDarkMode),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.cancel, color: AppTheme.getSnackBarError(isDarkMode), size: 60),
-              const SizedBox(height: 16),
-              Text(
-                'Order Cancelled',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.getPrimaryText(isDarkMode),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'The order has been cancelled',
                 style: TextStyle(
                   color: AppTheme.getSecondaryText(isDarkMode),
                 ),
