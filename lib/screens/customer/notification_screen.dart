@@ -15,8 +15,8 @@ class NotificationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final notificationProvider = Provider.of<NotificationProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
-    final customerName = authProvider.user?.name ?? '';
-    final notifications = notificationProvider.getNotificationsForCustomer(customerName);
+    final customerEmail = authProvider.user?.email ?? '';
+    final notifications = notificationProvider.getNotificationsForCustomer(customerEmail);
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
 
     return Scaffold(
@@ -38,7 +38,7 @@ class NotificationScreen extends StatelessWidget {
               padding: const EdgeInsets.only(right: 8.0),
               child: IconButton(
                 icon: Icon(Icons.done_all, size: 24, color: AppTheme.getPrimaryText(isDarkMode)),
-                onPressed: () => notificationProvider.markAllAsRead(customerName: customerName),
+                onPressed: () => notificationProvider.markAllAsRead(customerEmail: customerEmail),
                 tooltip: 'Mark all as read',
               ),
             ),
@@ -49,8 +49,8 @@ class NotificationScreen extends StatelessWidget {
           : RefreshIndicator(
               color: AppTheme.getButton(isDarkMode),
               onRefresh: () async {
-                await notificationProvider.initialize(); // Refresh data from Firestore
-                await Future.delayed(const Duration(seconds: 1)); // Delay for UI feedback
+                await notificationProvider.initialize(customerEmail);
+                await Future.delayed(const Duration(seconds: 1));
               },
               child: ListView.separated(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
@@ -70,7 +70,7 @@ class NotificationScreen extends StatelessWidget {
     final statusColor = notification.payload?['statusColor'] != null
         ? Color(int.parse(notification.payload!['statusColor'], radix: 16))
         : AppTheme.getButton(isDarkMode);
-    
+
     final isUnread = !notification.isRead;
 
     return InkWell(
@@ -98,7 +98,7 @@ class NotificationScreen extends StatelessWidget {
             ),
           ],
           border: Border.all(
-            color: isUnread 
+            color: isUnread
                 ? statusColor.withOpacity(0.3)
                 : AppTheme.getDivider(isDarkMode),
             width: isUnread ? 1.5 : 1,
