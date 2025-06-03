@@ -22,6 +22,14 @@ class FoodList extends StatefulWidget {
 }
 
 class _FoodListState extends State<FoodList> {
+  bool _hasError = false;
+
+  void _retryFetch() {
+    setState(() {
+      _hasError = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     debugPrint('FoodList: Building with category: ${widget.selectedCategory}');
@@ -41,9 +49,28 @@ class _FoodListState extends State<FoodList> {
 
         if (snapshot.hasError) {
           debugPrint('FoodList: Error fetching products: ${snapshot.error}');
-          return const SizedBox(
+          _hasError = true;
+          return SizedBox(
             height: 220,
-            child: Center(child: Text('Error loading products')),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Error loading products',
+                    style: TextStyle(
+                      color: AppTheme.getPrimaryText(
+                          Provider.of<ThemeNotifier>(context).isDarkMode),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: _retryFetch,
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
           );
         }
 
@@ -55,13 +82,15 @@ class _FoodListState extends State<FoodList> {
           );
         }
 
-        List<Product> products = snapshot.data!.docs.map((doc) => Product.fromFirestore(doc)).toList();
+        List<Product> products =
+            snapshot.data!.docs.map((doc) => Product.fromFirestore(doc)).toList();
 
         List<Product> foodItems = widget.selectedCategory == 'All'
             ? products
             : products.where((food) => food.category == widget.selectedCategory).toList();
 
-        debugPrint('FoodList: Filtered food items for category ${widget.selectedCategory}: ${foodItems.length}');
+        debugPrint(
+            'FoodList: Filtered food items for category ${widget.selectedCategory}: ${foodItems.length}');
 
         return SizedBox(
           height: 220,
@@ -121,6 +150,19 @@ class FoodCard extends StatelessWidget {
     required this.onTap,
   }) : super(key: key);
 
+  Uint8List _decodeBase64(String base64String) {
+    try {
+      final String cleanedBase64 = base64String.startsWith('data:image')
+          ? base64String.split(',').last
+          : base64String;
+      debugPrint('FoodCard: Decoding Base64 for $title, length: ${cleanedBase64.length}');
+      return base64Decode(cleanedBase64);
+    } catch (e) {
+      debugPrint('Error decoding Base64 for $title: $e');
+      return Uint8List(0); // Trigger errorBuilder
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     debugPrint('FoodCard: Building for $title');
@@ -160,16 +202,16 @@ class FoodCard extends StatelessWidget {
                           height: 120,
                           width: 180,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) {
-                            debugPrint('FoodCard: Error loading Base64 image for $title');
+                          errorBuilder: (context, _, __) {
+                            debugPrint('FoodCard: Error loading Base64 for $title');
                             return Container(
                               height: 120,
                               width: 180,
                               color: AppTheme.getDivider(isDarkMode),
                               child: Icon(
                                 Icons.fastfood,
-                                size: 40,
                                 color: AppTheme.getPrimaryText(isDarkMode),
+                                size: 40,
                               ),
                             );
                           },
@@ -180,21 +222,33 @@ class FoodCard extends StatelessWidget {
                           color: AppTheme.getDivider(isDarkMode),
                           child: Icon(
                             Icons.fastfood,
-                            size: 40,
                             color: AppTheme.getPrimaryText(isDarkMode),
+                            size: 40,
                           ),
                         ),
                 ),
-                Positioned(
-                  bottom: 10,
-                  left: 10,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
+                  Positioned(
+                    bottom: 10,
+                    left: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.getAccentPrimaryBlue(isDarkMode).withOpacity(0.8),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        'Rp $price',
+                        style: TextStyle(
+                          color: AppTheme.getPrimaryText(!isDarkMode),
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
             Padding(
@@ -249,18 +303,5 @@ class FoodCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Uint8List _decodeBase64(String base64String) {
-    try {
-      final String cleanedBase64 = base64String.startsWith('data:image')
-          ? base64String.split(',').last
-          : base64String;
-      debugPrint('FoodCard: Decoding Base64 for $title, length: ${cleanedBase64.length}');
-      return base64Decode(cleanedBase64);
-    } catch (e) {
-      debugPrint('FoodCard: Error decoding Base64 for $title: $e');
-      return Uint8List(0); // Trigger errorBuilder
-    }
   }
 }

@@ -11,6 +11,7 @@ class OrderProvider with ChangeNotifier {
   final NotificationProvider _notificationProvider;
   bool _isLoading = false;
   final Map<String, Timer> _readyTimers = {};
+  StreamSubscription? _subscription;
 
   OrderProvider(this._notificationProvider) {
     initialize();
@@ -18,6 +19,7 @@ class OrderProvider with ChangeNotifier {
 
   Future<void> initialize() async {
     await _loadOrders();
+    _setupRealTimeListener();
   }
 
   Future<void> _loadOrders() async {
@@ -25,7 +27,10 @@ class OrderProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final snapshot = await FirebaseFirestore.instance.collection('orders').get();
+      final snapshot = await FirebaseFirestore.instance
+          .collection('orders')
+          .orderBy('createdAt', descending: true)
+          .get();
       _orders.clear();
       _orders.addAll(snapshot.docs.map((doc) => order.Order.fromMap(doc.data())).toList());
       debugPrint('OrderProvider: Loaded ${_orders.length} orders');
@@ -37,12 +42,35 @@ class OrderProvider with ChangeNotifier {
     }
   }
 
+  void _setupRealTimeListener() {
+    _subscription?.cancel();
+    _subscription = FirebaseFirestore.instance
+        .collection('orders')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .listen((snapshot) {
+      _orders.clear();
+      _orders.addAll(snapshot.docs.map((doc) => order.Order.fromMap(doc.data())).toList());
+      debugPrint('OrderProvider: Real-time update: Loaded ${_orders.length} orders');
+      notifyListeners();
+    }, onError: (error) {
+      debugPrint('OrderProvider: Error in real-time listener: $error');
+    });
+  }
+
   Future<void> _saveOrder(order.Order order) async {
     try {
+      if (order.id.isEmpty || order.merchantEmail.isEmpty || order.customerName.isEmpty) {
+        throw Exception('Invalid order data: id, merchantEmail, or customerName is empty');
+      }
       await FirebaseFirestore.instance
           .collection('orders')
           .doc(order.id)
-          .set(order.toMap());
+          .set(order.toMap(), SetOptions(merge: true))
+          .timeout(const Duration(seconds: 5), onTimeout: () {
+            debugPrint('OrderProvider: Firestore save timeout for order ${order.id}');
+            throw Exception('Firestore save timeout');
+          });
       debugPrint('OrderProvider: Saved order ${order.id}');
     } catch (e) {
       debugPrint('OrderProvider: Error saving order: $e');
@@ -148,50 +176,66 @@ class OrderProvider with ChangeNotifier {
 
   Future<void> addOrder(order.Order order) async {
     try {
+      _isLoading = true;
+      notifyListeners();
+      if (order.id.isEmpty || order.merchantEmail.isEmpty || order.customerName.isEmpty) {
+        throw Exception('Invalid order data: id, merchantEmail, or customerName is empty');
+      }
       _orders.insert(0, order);
       await _saveOrder(order);
-      // Tambahkan notifikasi untuk pesanan baru
       final notification = NotificationModel.fromOrder(order);
       await _notificationProvider.addNotification(notification);
       debugPrint('OrderProvider: Added order ${order.id} with notification');
-      notifyListeners();
     } catch (e) {
       debugPrint('OrderProvider: Error adding order: $e');
+      _orders.removeWhere((o) => o.id == order.id); // Rollback local addition
       throw Exception('Failed to add order: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
   Future<void> updateOrderStatus(String orderId, String newStatus, {String? reason}) async {
     final index = _orders.indexWhere((o) => o.id == orderId);
     if (index != -1) {
-      final now = DateTime.now();
-      if (_orders[index].status == 'ready' && newStatus != 'ready') {
-        _readyTimers[orderId]?.cancel();
-        _readyTimers.remove(orderId);
-        debugPrint('OrderProvider: Cancelled timer for order $orderId');
-      }
-      _orders[index] = _orders[index].copyWith(
-        status: newStatus,
-        cancellationReason: reason,
-        completedTime: newStatus == 'completed' ? now : _orders[index].completedTime,
-        cancelledTime: newStatus == 'cancelled' ? now : _orders[index].cancelledTime,
-        readyAt: newStatus == 'ready' ? now : _orders[index].readyAt,
-        completedAt: newStatus == 'completed' ? now : _orders[index].completedAt,
-        cancelledAt: newStatus == 'cancelled' ? now : _orders[index].cancelledAt,
-      );
-      if (newStatus == 'ready') {
-        _readyTimers[orderId] = Timer(const Duration(minutes: 2), () {
-          _autoCompleteOrder(orderId);
-        });
-        debugPrint('OrderProvider: Started timer for order $orderId');
-      }
-      if (['ready', 'completed', 'cancelled'].contains(newStatus)) {
-        await _notificationProvider.addNotification(
-            NotificationModel.fromOrder(_orders[index]));
-        debugPrint('OrderProvider: Sent notification for order $orderId status $newStatus');
-      }
-      await _saveOrder(_orders[index]);
+      _isLoading = true;
       notifyListeners();
+      try {
+        final now = DateTime.now();
+        if (_orders[index].status == 'ready' && newStatus != 'ready') {
+          _readyTimers[orderId]?.cancel();
+          _readyTimers.remove(orderId);
+          debugPrint('OrderProvider: Cancelled timer for order $orderId');
+        }
+        _orders[index] = _orders[index].copyWith(
+          status: newStatus,
+          cancellationReason: reason,
+          completedTime: newStatus == 'completed' ? now : _orders[index].completedTime,
+          cancelledTime: newStatus == 'cancelled' ? now : _orders[index].cancelledTime,
+          readyAt: newStatus == 'ready' ? now : _orders[index].readyAt,
+          completedAt: newStatus == 'completed' ? now : _orders[index].completedAt,
+          cancelledAt: newStatus == 'cancelled' ? now : _orders[index].cancelledAt,
+        );
+        if (newStatus == 'ready') {
+          _readyTimers[orderId] = Timer(const Duration(minutes: 2), () {
+            _autoCompleteOrder(orderId);
+          });
+          debugPrint('OrderProvider: Started timer for order $orderId');
+        }
+        if (['ready', 'completed', 'cancelled'].contains(newStatus)) {
+          await _notificationProvider.addNotification(
+              NotificationModel.fromOrder(_orders[index]));
+          debugPrint('OrderProvider: Sent notification for order $orderId status $newStatus');
+        }
+        await _saveOrder(_orders[index]);
+      } catch (e) {
+        debugPrint('OrderProvider: Error updating order status: $e');
+        throw Exception('Failed to update order status: $e');
+      } finally {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -203,17 +247,26 @@ class OrderProvider with ChangeNotifier {
     if (index == -1) {
       throw Exception('Order with ID $orderId not found');
     }
-    if (_orders[index].status == 'ready') {
-      _readyTimers[orderId]?.cancel();
-      _readyTimers.remove(orderId);
-      debugPrint('OrderProvider: Cancelled timer for order $orderId');
-    }
-    _orders[index] = updatedOrder;
-    await _notificationProvider.addNotification(
-      NotificationModel.fromOrder(updatedOrder),
-    );
-    await _saveOrder(updatedOrder);
+    _isLoading = true;
     notifyListeners();
+    try {
+      if (_orders[index].status == 'ready') {
+        _readyTimers[orderId]?.cancel();
+        _readyTimers.remove(orderId);
+        debugPrint('OrderProvider: Cancelled timer for order $orderId');
+      }
+      _orders[index] = updatedOrder;
+      await _notificationProvider.addNotification(
+        NotificationModel.fromOrder(updatedOrder),
+      );
+      await _saveOrder(updatedOrder);
+    } catch (e) {
+      debugPrint('OrderProvider: Error updating order with ratings: $e');
+      throw Exception('Failed to update order with ratings: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> submitRatingAndCompleteOrder({
@@ -225,45 +278,62 @@ class OrderProvider with ChangeNotifier {
   }) async {
     final index = _orders.indexWhere((o) => o.id == orderId);
     if (index != -1) {
-      final now = DateTime.now();
-      _readyTimers[orderId]?.cancel();
-      _readyTimers.remove(orderId);
-      debugPrint('OrderProvider: Cancelled timer for order $orderId');
-      _orders[index] = _orders[index].copyWith(
-        status: 'completed',
-        completedTime: now,
-        completedAt: now,
-        foodRating: foodRating,
-        appRating: appRating,
-        foodNotes: foodNotes,
-        appNotes: appNotes,
-      );
-      await _notificationProvider.addNotification(
-          NotificationModel.fromOrder(_orders[index]));
-      await _saveOrder(_orders[index]);
+      _isLoading = true;
       notifyListeners();
+      try {
+        final now = DateTime.now();
+        _readyTimers[orderId]?.cancel();
+        _readyTimers.remove(orderId);
+        debugPrint('OrderProvider: Cancelled timer for order $orderId');
+        _orders[index] = _orders[index].copyWith(
+          status: 'completed',
+          completedTime: now,
+          completedAt: now,
+          foodRating: foodRating,
+          appRating: appRating,
+          foodNotes: foodNotes,
+          appNotes: appNotes,
+        );
+        await _notificationProvider.addNotification(
+            NotificationModel.fromOrder(_orders[index]));
+        await _saveOrder(_orders[index]);
+      } catch (e) {
+        debugPrint('OrderProvider: Error submitting rating: $e');
+        throw Exception('Failed to submit rating: $e');
+      } finally {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
   Future<void> _autoCompleteOrder(String orderId) async {
     final index = _orders.indexWhere((o) => o.id == orderId);
     if (index != -1 && _orders[index].status == 'ready') {
-      final now = DateTime.now();
-      _orders[index] = _orders[index].copyWith(
-        status: 'completed',
-        completedTime: now,
-        completedAt: now,
-        foodRating: null,
-        appRating: null,
-        foodNotes: null,
-        appNotes: null,
-      );
-      _readyTimers.remove(orderId);
-      await _notificationProvider.addNotification(
-          NotificationModel.fromOrder(_orders[index]));
-      await _saveOrder(_orders[index]);
-      debugPrint('OrderProvider: Auto-completed order $orderId');
+      _isLoading = true;
       notifyListeners();
+      try {
+        final now = DateTime.now();
+        _orders[index] = _orders[index].copyWith(
+          status: 'completed',
+          completedTime: now,
+          completedAt: now,
+          foodRating: null,
+          appRating: null,
+          foodNotes: null,
+          appNotes: null,
+        );
+        _readyTimers.remove(orderId);
+        await _notificationProvider.addNotification(
+            NotificationModel.fromOrder(_orders[index]));
+        await _saveOrder(_orders[index]);
+        debugPrint('OrderProvider: Auto-completed order $orderId');
+      } catch (e) {
+        debugPrint('OrderProvider: Error auto-completing order: $e');
+      } finally {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -276,6 +346,9 @@ class OrderProvider with ChangeNotifier {
     required String customerName,
     String? notes,
   }) {
+    if (items.isEmpty || merchantEmail.isEmpty || customerName.isEmpty) {
+      throw Exception('Invalid order data: items, merchantEmail, or customerName is empty');
+    }
     return order.Order(
       id: _generateOrderId(),
       orderTime: DateTime.now(),
@@ -303,36 +376,44 @@ class OrderProvider with ChangeNotifier {
     required double amount,
     required String method,
   }) async {
-    final withdrawal = order.Order(
-      id: _generateOrderId(),
-      orderTime: DateTime.now(),
-      pickupTime: DateTime.now(),
-      items: [
-        order.OrderItem(
-          name: 'Withdrawal',
-          imgBase64: 'assets/withdrawal.png',
-          subtitle: 'Withdrawal to $method',
-          price: amount.round(),
-          quantity: 1,
-          sellerEmail: merchantEmail,
-        )
-      ],
-      paymentMethod: method,
-      merchantName: 'System',
-      merchantEmail: merchantEmail,
-      customerName: 'Withdrawal',
-      status: 'processed',
-      notes: 'Withdrawal to $method',
-      readyAt: null,
-      completedAt: null,
-      cancelledAt: null,
-      createdAt: DateTime.now(),
-    );
-
-    _orders.insert(0, withdrawal);
-    await _saveOrder(withdrawal);
-    debugPrint('OrderProvider: Added withdrawal for $merchantEmail');
-    notifyListeners();
+    try {
+      _isLoading = true;
+      notifyListeners();
+      final withdrawal = order.Order(
+        id: _generateOrderId(),
+        orderTime: DateTime.now(),
+        pickupTime: DateTime.now(),
+        items: [
+          order.OrderItem(
+            name: 'Withdrawal',
+            imgBase64: 'assets/withdrawal.png',
+            subtitle: 'Withdrawal to $method',
+            price: amount.round(),
+            quantity: 1,
+            sellerEmail: merchantEmail,
+          )
+        ],
+        paymentMethod: method,
+        merchantName: 'System',
+        merchantEmail: merchantEmail,
+        customerName: 'Withdrawal',
+        status: 'processed',
+        notes: 'Withdrawal to $method',
+        readyAt: null,
+        completedAt: null,
+        cancelledAt: null,
+        createdAt: DateTime.now(),
+      );
+      _orders.insert(0, withdrawal);
+      await _saveOrder(withdrawal);
+      debugPrint('OrderProvider: Added withdrawal for $merchantEmail');
+    } catch (e) {
+      debugPrint('OrderProvider: Error adding withdrawal: $e');
+      throw Exception('Failed to add withdrawal: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   List<order.Order> getTransactionsForMerchant(String merchantEmail) {
@@ -375,19 +456,21 @@ class OrderProvider with ChangeNotifier {
 
   Future<void> clearOrders() async {
     try {
-      // Batalkan semua timer yang aktif
+      _isLoading = true;
+      notifyListeners();
       _readyTimers.forEach((orderId, timer) {
         timer.cancel();
         debugPrint('OrderProvider: Cancelled timer for order $orderId');
       });
       _readyTimers.clear();
-      // Kosongkan daftar pesanan lokal
       _orders.clear();
       debugPrint('OrderProvider: Cleared all local orders');
-      notifyListeners();
     } catch (e) {
       debugPrint('OrderProvider: Error clearing orders: $e');
       throw Exception('Failed to clear orders: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
@@ -395,6 +478,7 @@ class OrderProvider with ChangeNotifier {
   void dispose() {
     _readyTimers.forEach((_, timer) => timer.cancel());
     _readyTimers.clear();
+    _subscription?.cancel();
     debugPrint('OrderProvider: Disposed');
     super.dispose();
   }

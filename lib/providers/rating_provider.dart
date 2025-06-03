@@ -4,8 +4,11 @@ import './order_provider.dart';
 
 class RatingProvider with ChangeNotifier {
   final OrderProvider _orderProvider;
+  bool _isLoading = false;
 
   RatingProvider(this._orderProvider);
+
+  bool get isLoading => _isLoading;
 
   List<Order> _getCompletedOrdersWithRatings(String merchantEmail) {
     return _orderProvider.orders
@@ -45,24 +48,26 @@ class RatingProvider with ChangeNotifier {
   }) async {
     final index = _orderProvider.orders.indexWhere((o) => o.id == orderId);
     if (index == -1) {
+      debugPrint('RatingProvider: Order with ID $orderId not found');
       throw Exception('Order with ID $orderId not found');
     }
-
-    final now = DateTime.now();
-    final updatedOrder = _orderProvider.orders[index].copyWith(
-      status: 'completed',
-      completedTime: now,
-      completedAt: now,
-      foodRating: foodRating,
-      appRating: appRating,
-      foodNotes: foodNotes,
-      appNotes: appNotes,
-    );
-
-    await _orderProvider.updateOrderWithRatings(
-      orderId: orderId,
-      updatedOrder: updatedOrder,
-    );
+    _isLoading = true;
     notifyListeners();
+    try {
+      await _orderProvider.submitRatingAndCompleteOrder(
+        orderId: orderId,
+        foodRating: foodRating,
+        appRating: appRating,
+        foodNotes: foodNotes,
+        appNotes: appNotes,
+      );
+      debugPrint('RatingProvider: Successfully submitted rating for order $orderId');
+    } catch (e) {
+      debugPrint('RatingProvider: Error submitting rating: $e');
+      throw Exception('Failed to submit rating: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 }

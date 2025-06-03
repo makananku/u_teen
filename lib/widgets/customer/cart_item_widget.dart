@@ -7,8 +7,9 @@ import '../../providers/theme_notifier.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'dart:typed_data';
+import '../../auth/auth_provider.dart'; // Add AuthProvider import
 
-class CartItemWidget extends StatelessWidget {
+class CartItemWidget extends StatefulWidget {
   final CartItem item;
   final Function()? onRemove;
 
@@ -18,6 +19,13 @@ class CartItemWidget extends StatelessWidget {
     this.onRemove,
   });
 
+  @override
+  _CartItemWidgetState createState() => _CartItemWidgetState();
+}
+
+class _CartItemWidgetState extends State<CartItemWidget> {
+  bool _isLoading = false;
+
   Uint8List _decodeBase64(String base64String) {
     try {
       final String cleanedBase64 = base64String.startsWith('data:image')
@@ -25,16 +33,55 @@ class CartItemWidget extends StatelessWidget {
           : base64String;
       return base64Decode(cleanedBase64);
     } catch (e) {
-      debugPrint('Error decoding Base64 for ${item.name}: $e');
-      // Return a small placeholder image
+      debugPrint('Error decoding Base64 for ${widget.item.name}: $e');
       const placeholderBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAEAwFLLYL9WAAAAABJRU5ErkJggg==';
       return base64Decode(placeholderBase64);
+    }
+  }
+
+  Future<void> _performCartOperation(BuildContext context, Function operation) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    if (!authProvider.isLoggedIn || authProvider.user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please log in to modify cart'),
+          backgroundColor: AppTheme.getSnackBarError(
+              Provider.of<ThemeNotifier>(context, listen: false).isDarkMode),
+        ),
+      );
+      Navigator.pushNamed(context, '/login');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await operation();
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update cart: $e'),
+            backgroundColor: AppTheme.getSnackBarError(
+                Provider.of<ThemeNotifier>(context, listen: false).isDarkMode),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
     final currencyFormat = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp ',
@@ -44,7 +91,7 @@ class CartItemWidget extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Dismissible(
-        key: Key(item.hashCode.toString()),
+        key: Key(widget.item.hashCode.toString()),
         direction: DismissDirection.endToStart,
         background: Container(
           alignment: Alignment.centerRight,
@@ -64,7 +111,7 @@ class CartItemWidget extends StatelessWidget {
                 style: TextStyle(color: AppTheme.getPrimaryText(isDarkMode)),
               ),
               content: Text(
-                'Remove ${item.name} from cart?',
+                'Remove ${widget.item.name} from cart?',
                 style: TextStyle(color: AppTheme.getPrimaryText(isDarkMode)),
               ),
               actions: [
@@ -86,9 +133,11 @@ class CartItemWidget extends StatelessWidget {
             ),
           );
         },
-        onDismissed: (direction) {
-          Provider.of<CartProvider>(context, listen: false).removeFromCart(item);
-          onRemove?.call();
+        onDismissed: (direction) async {
+          await _performCartOperation(context, () async {
+            cartProvider.removeFromCart(widget.item);
+            widget.onRemove?.call();
+          });
         },
         child: Card(
           elevation: 2,
@@ -102,9 +151,9 @@ class CartItemWidget extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: item.imgBase64.isNotEmpty
+                  child: widget.item.imgBase64.isNotEmpty
                       ? Image.memory(
-                          _decodeBase64(item.imgBase64),
+                          _decodeBase64(widget.item.imgBase64),
                           width: 60,
                           height: 60,
                           fit: BoxFit.cover,
@@ -126,7 +175,7 @@ class CartItemWidget extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        item.name,
+                        widget.item.name,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -137,16 +186,16 @@ class CartItemWidget extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        currencyFormat.format(item.price),
+                        currencyFormat.format(widget.item.price),
                         style: TextStyle(
                           fontSize: 14,
                           color: AppTheme.getTextGrey(isDarkMode),
                         ),
                       ),
-                      if (item.subtitle.isNotEmpty) ...[
+                      if (widget.item.subtitle.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(
-                          item.subtitle,
+                          widget.item.subtitle,
                           style: TextStyle(
                             fontSize: 12,
                             color: AppTheme.getTextGrey(isDarkMode),
@@ -158,33 +207,47 @@ class CartItemWidget extends StatelessWidget {
                 ),
                 Column(
                   children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.remove_circle_outline,
-                        color: AppTheme.getAccentPrimaryBlue(isDarkMode),
-                      ),
-                      onPressed: () {
-                        Provider.of<CartProvider>(context, listen: false)
-                            .decreaseQuantity(item);
-                      },
-                    ),
+                    _isLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : IconButton(
+                            icon: Icon(
+                              Icons.remove_circle_outline,
+                              color: AppTheme.getAccentPrimaryBlue(isDarkMode),
+                            ),
+                            onPressed: () async {
+                              await _performCartOperation(context, () async {
+                                cartProvider.decreaseQuantity(widget.item);
+                              });
+                            },
+                          ),
                     Text(
-                      item.quantity.toString(),
+                      widget.item.quantity.toString(),
                       style: TextStyle(
                         fontSize: 16,
                         color: AppTheme.getPrimaryText(isDarkMode),
                       ),
                     ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.add_circle_outline,
-                        color: AppTheme.getAccentPrimaryBlue(isDarkMode),
-                      ),
-                      onPressed: () {
-                        Provider.of<CartProvider>(context, listen: false)
-                            .increaseQuantity(item);
-                      },
-                    ),
+                    _isLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : IconButton(
+                            icon: Icon(
+                              Icons.add_circle_outline,
+                              color: AppTheme.getAccentPrimaryBlue(isDarkMode),
+                            ),
+                            onPressed: () async {
+                              await _performCartOperation(context, () async {
+                                cartProvider.increaseQuantity(widget.item);
+                              });
+                            },
+                          ),
                   ],
                 ),
               ],

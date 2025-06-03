@@ -8,33 +8,40 @@ class FavoriteProvider with ChangeNotifier {
   List<FavoriteItem> _favoriteItems = [];
   String? _userEmail;
   bool _isInitialized = false;
+  bool _isLoading = false;
 
   List<FavoriteItem> get favoriteItems => List.unmodifiable(_favoriteItems);
+  bool get isLoading => _isLoading;
 
   Future<void> initialize(BuildContext context) async {
-  if (_isInitialized) {
-    debugPrint('FavoriteProvider: Already initialized');
-    return;
-  }
-  final authProvider = Provider.of<AuthProvider>(context, listen: false);
-  if (authProvider.user == null) {
-    debugPrint('FavoriteProvider: No user logged in, skipping initialization');
-    _favoriteItems = [];
-    notifyListeners();
-    return;
-  }
-  _userEmail = authProvider.user!.email;
-  debugPrint('FavoriteProvider: Initializing for user $_userEmail');
-  await _loadFavorites();
-  _isInitialized = true;
-  notifyListeners();
-}
-
-  Future<void> _loadFavorites() async {
-    if (_userEmail == null) {
-      debugPrint('FavoriteProvider: Cannot load favorites, no user email');
+    if (_isInitialized) {
+      debugPrint('FavoriteProvider: Already initialized');
       return;
     }
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    if (authProvider.user == null || authProvider.user!.email.isEmpty) {
+      debugPrint('FavoriteProvider: No user logged in or email is empty, skipping initialization');
+      _favoriteItems = [];
+      _isInitialized = true;
+      notifyListeners();
+      return;
+    }
+    _userEmail = authProvider.user!.email;
+    debugPrint('FavoriteProvider: Initializing for user $_userEmail');
+    await _loadFavorites();
+    _isInitialized = true;
+    notifyListeners();
+  }
+
+  Future<void> _loadFavorites() async {
+    if (_userEmail == null || _userEmail!.isEmpty) {
+      debugPrint('FavoriteProvider: Cannot load favorites, no user email');
+      _favoriteItems = [];
+      notifyListeners();
+      return;
+    }
+    _isLoading = true;
+    notifyListeners();
     try {
       final doc = await FirebaseFirestore.instance
           .collection('favorites')
@@ -46,33 +53,40 @@ class FavoriteProvider with ChangeNotifier {
           _favoriteItems = (data['items'] as List)
               .map((item) {
                 final favoriteItem = FavoriteItem.fromMap(item);
-                debugPrint('Loaded favorite: ${item['name']}, imgBase64 length: ${favoriteItem.imgBase64.length}');
+                if (favoriteItem.imgBase64.isEmpty) {
+                  debugPrint('FavoriteProvider: Warning: Empty imgBase64 for ${favoriteItem.name}');
+                }
                 return favoriteItem;
               })
               .toList();
+          debugPrint('FavoriteProvider: Loaded ${_favoriteItems.length} favorite items');
         } else {
           _favoriteItems = [];
-          debugPrint('No favorite items found for $_userEmail');
+          debugPrint('FavoriteProvider: No items found in favorites document');
         }
       } else {
         _favoriteItems = [];
-        debugPrint('No favorites document for $_userEmail');
+        debugPrint('FavoriteProvider: Favorites document does not exist for $_userEmail');
       }
-      notifyListeners();
     } catch (e) {
-      debugPrint('Error loading favorites for $_userEmail: $e');
+      debugPrint('FavoriteProvider: Error loading favorites for $_userEmail: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
   Future<void> _saveFavorites() async {
-    if (_userEmail == null) {
+    if (_userEmail == null || _userEmail!.isEmpty) {
       debugPrint('FavoriteProvider: Cannot save favorites, no user email');
-      return;
+      throw Exception('User email not set');
     }
+    _isLoading = true;
+    notifyListeners();
     try {
       final favoritesData = {
         'items': _favoriteItems.map((item) {
-          debugPrint('Saving favorite: ${item.name}, imgBase64 length: ${item.imgBase64.length}');
+          debugPrint('FavoriteProvider: Saving favorite: ${item.name}, imgBase64 length: ${item.imgBase64.length}');
           return item.toMap();
         }).toList(),
         'lastUpdated': FieldValue.serverTimestamp(),
@@ -80,36 +94,49 @@ class FavoriteProvider with ChangeNotifier {
       await FirebaseFirestore.instance
           .collection('favorites')
           .doc(_userEmail)
-          .set(favoritesData, SetOptions(merge: true));
-      debugPrint('Favorites saved for $_userEmail');
+          .set(favoritesData, SetOptions(merge: true))
+          .timeout(const Duration(seconds: 5), onTimeout: () {
+            debugPrint('FavoriteProvider: Firestore save timeout for $_userEmail');
+            throw Exception('Firestore save timeout');
+          });
+      debugPrint('FavoriteProvider: Favorites saved for $_userEmail');
     } catch (e) {
-      debugPrint('Error saving favorites for $_userEmail: $e');
+      debugPrint('FavoriteProvider: Error saving favorites for $_userEmail: $e');
       throw Exception('Failed to save favorites: $e');
-    }
-  }
-
-  Future<void> addToFavorites(FavoriteItem item) async {
-    if (_userEmail == null) {
-      debugPrint('FavoriteProvider: Cannot add favorite, no user logged in');
-      throw Exception('No user logged in');
-    }
-    if (!_favoriteItems.any((existingItem) =>
-        existingItem.name == item.name && existingItem.imgBase64 == item.imgBase64)) {
-      _favoriteItems.add(item);
-      debugPrint('Added to favorites: ${item.name}, imgBase64 length: ${item.imgBase64.length}');
-      await _saveFavorites();
+    } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }
 
+  Future<void> addToFavorites(FavoriteItem item) async {
+    if (_userEmail == null || _userEmail!.isEmpty) {
+      debugPrint('FavoriteProvider: Cannot add favorite, no user logged in');
+      throw Exception('No user logged in');
+    }
+    if (item.name.isEmpty || item.imgBase64.isEmpty) {
+      debugPrint('FavoriteProvider: Invalid favorite item: name or imgBase64 is empty');
+      throw Exception('Invalid favorite item');
+    }
+    if (!_favoriteItems.any((existingItem) =>
+        existingItem.name == item.name && existingItem.imgBase64 == item.imgBase64)) {
+      _favoriteItems.add(item);
+      debugPrint('FavoriteProvider: Added to favorites: ${item.name}, imgBase64 length: ${item.imgBase64.length}');
+      await _saveFavorites();
+      notifyListeners();
+    } else {
+      debugPrint('FavoriteProvider: Item ${item.name} already in favorites');
+    }
+  }
+
   Future<void> removeFromFavorites(FavoriteItem item) async {
-    if (_userEmail == null) {
+    if (_userEmail == null || _userEmail!.isEmpty) {
       debugPrint('FavoriteProvider: Cannot remove favorite, no user logged in');
       return;
     }
     _favoriteItems.removeWhere((existingItem) =>
         existingItem.name == item.name && existingItem.imgBase64 == item.imgBase64);
-    debugPrint('Removed from favorites: ${item.name}');
+    debugPrint('FavoriteProvider: Removed from favorites: ${item.name}');
     await _saveFavorites();
     notifyListeners();
   }
@@ -120,12 +147,12 @@ class FavoriteProvider with ChangeNotifier {
   }
 
   Future<void> clearFavorites() async {
-    if (_userEmail == null) {
+    if (_userEmail == null || _userEmail!.isEmpty) {
       debugPrint('FavoriteProvider: Cannot clear favorites, no user logged in');
       return;
     }
     _favoriteItems.clear();
-    debugPrint('Cleared all favorites for $_userEmail');
+    debugPrint('FavoriteProvider: Cleared all favorites for $_userEmail');
     await _saveFavorites();
     notifyListeners();
   }
