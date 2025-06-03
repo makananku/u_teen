@@ -105,14 +105,17 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context, listen: false);
+    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
 
     return FutureBuilder(
       future: Future.wait([
         Future(() async {
-          // Rely on AuthProvider's constructor initialization
           if (!auth.isInitialized) {
             throw Exception('AuthProvider not initialized');
+          }
+          if (auth.isLoggedIn && auth.user != null) {
+            await orderProvider.initialize(auth.user!.email!);
           }
         }).timeout(
           const Duration(seconds: 10),
@@ -343,7 +346,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
       debugPrint('SplashScreen: Checking authentication status');
       final auth = Provider.of<AuthProvider>(context, listen: false);
-      // Use FirebaseAuth.instance directly to get the current user
       final firebaseUser = auth.user;
       if (auth.isLoggedIn && firebaseUser != null) {
         debugPrint('SplashScreen: User is logged in, email: ${firebaseUser.email}');

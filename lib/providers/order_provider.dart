@@ -1,25 +1,31 @@
- import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:u_teen/models/order_model.dart' as order;
 import '../models/notification_model.dart';
 import './notification_provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class OrderProvider with ChangeNotifier {
   final List<order.Order> _orders = [];
   final NotificationProvider _notificationProvider;
   bool _isLoading = false;
-  String? _lastError; // Added to track last error
+  String? _lastError;
   final Map<String, Timer> _readyTimers = {};
   StreamSubscription? _subscription;
+  String? _customerEmail; // Added to store customer email
 
-  OrderProvider(this._notificationProvider) {
-    _initialize();
-  }
+  OrderProvider(this._notificationProvider);
 
   bool get isLoading => _isLoading;
-  String? get lastError => _lastError; // Getter for last error
+  String? get lastError => _lastError;
+
+  // Initialize with customer email
+  Future<void> initialize(String customerEmail) async {
+    if (_customerEmail == customerEmail) return; // Prevent re-initialization
+    _customerEmail = customerEmail;
+    await _initialize();
+  }
 
   Future<void> _initialize() async {
     await initializeOrders();
@@ -27,21 +33,26 @@ class OrderProvider with ChangeNotifier {
   }
 
   Future<void> initializeOrders() async {
+    if (_customerEmail == null) {
+      debugPrint('OrderProvider: No customer email set, skipping initialization');
+      return;
+    }
     _isLoading = true;
     notifyListeners();
     try {
       final snapshot = await FirebaseFirestore.instance
           .collection('orders')
-            .orderBy('createdAt', descending: true)
+          .where('customerName', isEqualTo: _customerEmail)
+          .orderBy('createdAt', descending: true)
           .get();
       _orders.clear();
       _orders.addAll(snapshot.docs.map((doc) => order.Order.fromMap(doc.data())).toList());
-      _lastError = null; // Clear error on success
-      debugPrint('OrderProvider: Loaded ${_orders.length} orders');
+      _lastError = null;
+      debugPrint('OrderProvider: Loaded ${_orders.length} orders for $_customerEmail');
     } catch (e) {
-      _lastError = e.toString(); // Store error
-      debugPrint('ErrorProvider: Error loading: $e');
-      throw e; // Rethrow for MyOrdersScreen
+      _lastError = e.toString();
+      debugPrint('OrderProvider: Error loading orders: $e');
+      // Don't throw, let MyOrdersScreen handle errors
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -49,21 +60,27 @@ class OrderProvider with ChangeNotifier {
   }
 
   void _setupRealTimeListener() {
+    if (_customerEmail == null) {
+      debugPrint('OrderProvider: No customer email set, skipping real-time listener');
+      return;
+    }
     _subscription?.cancel();
     _subscription = FirebaseFirestore.instance
         .collection('orders')
+        .where('customerName', isEqualTo: _customerEmail)
         .orderBy('createdAt', descending: true)
         .snapshots()
         .listen((snapshot) {
-      _orders.clear();
-      _orders.addAll(snapshot.docs.map((doc) => order.Order.fromMap(doc.data())).toList());
-      _lastError = null; // Clear error on success
-      debugPrint('OrderProvider: Real-time update: Loaded ${_orders.length} orders');
-      notifyListeners();
-    }, onError: (error) {
-      _lastError = error.toString(); // Store error
-      debugPrint('OrderProvider: Error in real-time listener: $error');
-    });
+          _orders.clear();
+          _orders.addAll(snapshot.docs.map((doc) => order.Order.fromMap(doc.data())).toList());
+          _lastError = null;
+          debugPrint('OrderProvider: Real-time update: Loaded ${_orders.length} orders for $_customerEmail');
+          notifyListeners();
+        }, onError: (error) {
+          _lastError = error.toString();
+          debugPrint('OrderProvider: Error in real-time listener: $error');
+          notifyListeners();
+        });
   }
 
   Future<void> _saveOrder(order.Order order) async {
@@ -196,7 +213,7 @@ class OrderProvider with ChangeNotifier {
       debugPrint('OrderProvider: Added order ${order.id} with notification');
     } catch (e) {
       debugPrint('OrderProvider: Error adding order: $e');
-      _orders.removeWhere((o) => o.id == order.id); // Rollback local addition
+      _orders.removeWhere((o) => o.id == order.id);
       throw Exception('Failed to add order: $e');
     } finally {
       _isLoading = false;

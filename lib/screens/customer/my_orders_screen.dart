@@ -35,13 +35,14 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     if (authProvider.user == null) {
       debugPrint('MyOrdersScreen: No user logged in, redirecting to login');
-      Navigator.pushReplacementNamed(context, '/login');
+      if (context.mounted) {
+        Navigator.pushReplacementNamed(context, '/login');
+      }
       return;
     }
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
     try {
-      // Wait for OrderProvider to load orders (handled in constructor)
-      await Future.delayed(Duration.zero); // Allow constructor to run
+      await orderProvider.initialize(authProvider.user!.email!);
       if (orderProvider.lastError != null) {
         throw Exception(orderProvider.lastError);
       }
@@ -50,12 +51,17 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
       });
     } catch (e) {
       debugPrint('MyOrdersScreen: Error initializing OrderProvider: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to load orders: $e'),
-          backgroundColor: AppTheme.getSnackBarError(false),
-        ),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load orders: $e'),
+            backgroundColor: AppTheme.getSnackBarError(false),
+          ),
+        );
+      }
+      setState(() {
+        _isInitialized = true; // Allow UI to render error state
+      });
     }
   }
 
@@ -67,95 +73,108 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
 
   @override
   Widget build(BuildContext context) {
-    final orderProvider = Provider.of<OrderProvider>(context);
-    final authProvider = Provider.of<AuthProvider>(context);
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
+    try {
+      final orderProvider = Provider.of<OrderProvider>(context);
+      final authProvider = Provider.of<AuthProvider>(context);
 
-    if (!_isInitialized || authProvider.user == null) {
+      if (!_isInitialized || authProvider.user == null) {
+        return Scaffold(
+          backgroundColor: AppTheme.getCard(isDarkMode),
+          body: Center(
+            child: CircularProgressIndicator(
+              color: AppTheme.getButton(isDarkMode),
+            ),
+          ),
+        );
+      }
+
+      debugPrint('MyOrdersScreen: User email: ${authProvider.user!.email}, name: ${authProvider.user!.name}');
+      final customerName = authProvider.user!.email!;
+      final ongoingOrders = orderProvider.orders
+          .where((order) =>
+              (order.status == 'pending' ||
+                  order.status == 'processing' ||
+                  order.status == 'ready') &&
+              order.customerName == customerName)
+          .toList()
+        ..sort((a, b) {
+          const statusPriority = {
+            'ready': 1,
+            'pending': 2,
+            'processing': 3,
+          };
+          return statusPriority[a.status]!.compareTo(statusPriority[b.status]!);
+        });
+
+      final historyOrders = orderProvider.orders
+          .where((order) =>
+              (order.status == 'completed' || order.status == 'cancelled') &&
+              order.customerName == customerName)
+          .toList();
+
+      return WillPopScope(
+        onWillPop: () async {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+          );
+          return false;
+        },
+        child: Scaffold(
+          backgroundColor: AppTheme.getCard(isDarkMode),
+          appBar: AppBar(
+            title: Text(
+              'My Orders',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.getPrimaryText(isDarkMode),
+              ),
+            ),
+            centerTitle: true,
+            backgroundColor: AppTheme.getCard(isDarkMode),
+            elevation: 0,
+            bottom: TabBar(
+              controller: _tabController,
+              labelColor: AppTheme.getButton(isDarkMode),
+              unselectedLabelColor: AppTheme.getPrimaryText(isDarkMode),
+              indicatorColor: AppTheme.getButton(isDarkMode),
+              tabs: const [Tab(text: 'Ongoing'), Tab(text: 'History')],
+            ),
+          ),
+          body: orderProvider.isLoading
+              ? Center(
+                  child: CircularProgressIndicator(
+                    color: AppTheme.getButton(isDarkMode),
+                  ),
+                )
+              : TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildOrderList(ongoingOrders, "Ongoing", isDarkMode, orderProvider),
+                    _buildOrderList(historyOrders, "History", isDarkMode, orderProvider),
+                  ],
+                ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+          floatingActionButton: CustomBottomNavigation(
+            selectedIndex: 1,
+            context: context,
+          ),
+        ),
+      );
+    } catch (e) {
+      debugPrint('MyOrdersScreen: Build error: $e');
       return Scaffold(
         backgroundColor: AppTheme.getCard(isDarkMode),
         body: Center(
-          child: CircularProgressIndicator(
-            color: AppTheme.getButton(isDarkMode),
+          child: Text(
+            'An error occurred: $e',
+            style: TextStyle(color: AppTheme.getPrimaryText(isDarkMode)),
           ),
         ),
       );
     }
-
-    debugPrint('MyOrdersScreen: User email: ${authProvider.user!.email}, name: ${authProvider.user!.name}');
-    final customerName = authProvider.user!.email!; // Use email to match Firestore
-    final ongoingOrders = orderProvider.orders
-        .where((order) =>
-            (order.status == 'pending' ||
-                order.status == 'processing' ||
-                order.status == 'ready') &&
-            order.customerName == customerName)
-        .toList()
-      ..sort((a, b) {
-        const statusPriority = {
-          'ready': 1,
-          'pending': 2,
-          'processing': 3,
-        };
-        return statusPriority[a.status]!.compareTo(statusPriority[b.status]!);
-      });
-
-    final historyOrders = orderProvider.orders
-        .where((order) =>
-            (order.status == 'completed' || order.status == 'cancelled') &&
-            order.customerName == customerName)
-        .toList();
-
-    return WillPopScope(
-      onWillPop: () async {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
-        return false;
-      },
-      child: Scaffold(
-        backgroundColor: AppTheme.getCard(isDarkMode),
-        appBar: AppBar(
-          title: Text(
-            'My Orders',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.getPrimaryText(isDarkMode),
-            ),
-          ),
-          centerTitle: true,
-          backgroundColor: AppTheme.getCard(isDarkMode),
-          elevation: 0,
-          bottom: TabBar(
-            controller: _tabController,
-            labelColor: AppTheme.getButton(isDarkMode),
-            unselectedLabelColor: AppTheme.getPrimaryText(isDarkMode),
-            indicatorColor: AppTheme.getButton(isDarkMode),
-            tabs: const [Tab(text: "Ongoing"), Tab(text: "History")],
-          ),
-        ),
-        body: orderProvider.isLoading
-            ? Center(
-                child: CircularProgressIndicator(
-                  color: AppTheme.getButton(isDarkMode),
-                ),
-              )
-            : TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildOrderList(ongoingOrders, "Ongoing", isDarkMode, orderProvider),
-                  _buildOrderList(historyOrders, "History", isDarkMode, orderProvider),
-                ],
-              ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        floatingActionButton: CustomBottomNavigation(
-          selectedIndex: 1,
-          context: context,
-        ),
-      ),
-    );
   }
 
   Widget _buildOrderList(List<Order> orders, String type, bool isDarkMode, OrderProvider orderProvider) {
@@ -166,9 +185,8 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
     return RefreshIndicator(
       onRefresh: () async {
         try {
-          // Since initialize isn't available, rely on orders being updated
-          // OrderProvider's real-time listener should handle updates
-          await Future.delayed(Duration.zero); // Allow listener to refresh
+          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+          await orderProvider.initialize(authProvider.user!.email!);
           if (orderProvider.lastError != null) {
             throw Exception(orderProvider.lastError);
           }
