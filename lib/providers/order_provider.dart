@@ -1,3 +1,4 @@
+
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -16,6 +17,8 @@ class OrderProvider with ChangeNotifier {
   OrderProvider(this._notificationProvider) {
     initialize();
   }
+
+  bool get isLoading => _isLoading; // Added getter for _isLoading
 
   Future<void> initialize() async {
     await _loadOrders();

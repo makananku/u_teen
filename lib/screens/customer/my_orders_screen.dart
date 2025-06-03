@@ -20,11 +20,39 @@ class MyOrdersScreen extends StatefulWidget {
 class _MyOrdersScreenState extends State<MyOrdersScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeProviders();
+    });
+  }
+
+  Future<void> _initializeProviders() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    if (authProvider.user == null) {
+      debugPrint('MyOrdersScreen: No user logged in, redirecting to login');
+      Navigator.pushReplacementNamed(context, '/login');
+      return;
+    }
+    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+    try {
+      await orderProvider.initialize();
+      setState(() {
+        _isInitialized = true;
+      });
+    } catch (e) {
+      debugPrint('MyOrdersScreen: Error initializing OrderProvider: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to load orders: $e'),
+          backgroundColor: AppTheme.getSnackBarError(false),
+        ),
+      );
+    }
   }
 
   @override
@@ -37,10 +65,20 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
   Widget build(BuildContext context) {
     final orderProvider = Provider.of<OrderProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
-    final customerName = authProvider.user?.name ?? '';
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
 
-    // Get orders for this customer
+    if (!_isInitialized || authProvider.user == null) {
+      return Scaffold(
+        backgroundColor: AppTheme.getCard(isDarkMode),
+        body: Center(
+          child: CircularProgressIndicator(
+            color: AppTheme.getButton(isDarkMode),
+          ),
+        ),
+      );
+    }
+
+    final customerName = authProvider.user!.name ?? '';
     final ongoingOrders = orderProvider.orders
         .where((order) =>
             (order.status == 'pending' ||
@@ -93,13 +131,19 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
             tabs: const [Tab(text: "Ongoing"), Tab(text: "History")],
           ),
         ),
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            _buildOrderList(ongoingOrders, "Ongoing", isDarkMode),
-            _buildOrderList(historyOrders, "History", isDarkMode),
-          ],
-        ),
+        body: orderProvider.isLoading
+            ? Center(
+                child: CircularProgressIndicator(
+                  color: AppTheme.getButton(isDarkMode),
+                ),
+              )
+            : TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildOrderList(ongoingOrders, "Ongoing", isDarkMode, orderProvider),
+                  _buildOrderList(historyOrders, "History", isDarkMode, orderProvider),
+                ],
+              ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         floatingActionButton: CustomBottomNavigation(
           selectedIndex: 1,
@@ -109,21 +153,33 @@ class _MyOrdersScreenState extends State<MyOrdersScreen>
     );
   }
 
-  Widget _buildOrderList(List<Order> orders, String type, bool isDarkMode) {
+  Widget _buildOrderList(List<Order> orders, String type, bool isDarkMode, OrderProvider orderProvider) {
     if (orders.isEmpty) {
       return _buildEmptyOrderView(type, isDarkMode);
     }
 
     return RefreshIndicator(
       onRefresh: () async {
-        await Future.delayed(const Duration(seconds: 1));
+        try {
+          await orderProvider.initialize();
+        } catch (e) {
+          debugPrint('MyOrdersScreen: Refresh error: $e');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to refresh orders: $e'),
+              backgroundColor: AppTheme.getSnackBarError(isDarkMode),
+            ),
+          );
+        }
       },
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: orders.length,
         itemBuilder: (context, index) => OrderCard(
           order: orders[index],
-          onTap: () {},
+          onTap: () {
+            // TODO: Navigate to order details
+          },
         ),
       ),
     );

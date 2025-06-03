@@ -37,12 +37,46 @@ class _PaymentScreenState extends State<PaymentScreen> {
   bool showPhoneInput = false;
   bool isTimeValid = true;
   String? timeErrorMessage;
+  bool _isInitialized = false;
   final NumberFormat currencyFormat = NumberFormat.currency(
     locale: 'id_ID',
     symbol: 'Rp ',
     decimalDigits: 0,
   );
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeProviders();
+    });
+  }
+
+  Future<void> _initializeProviders() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    if (authProvider.user == null) {
+      debugPrint('PaymentScreen: No user logged in, redirecting to login');
+      Navigator.pushReplacementNamed(context, '/login');
+      return;
+    }
+    try {
+      await cartProvider.initialize(authProvider.user!.email);
+      setState(() {
+        _isInitialized = true;
+      });
+    } catch (e) {
+      debugPrint('PaymentScreen: Error initializing CartProvider: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to initialize cart: $e'),
+          backgroundColor: AppTheme.getSnackBarError(false),
+        ),
+      );
+    }
+    _validateInitialTime();
+  }
 
   Color _getBorderColor(bool isDarkMode) {
     if (selectedPaymentMethod == null) return AppTheme.getTextGrey(isDarkMode);
@@ -57,14 +91,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
   String? _getSellerEmailFromItems() {
     if (widget.items.isEmpty) return null;
     return widget.items.first.sellerEmail;
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      _validateInitialTime();
-    });
   }
 
   void _validateInitialTime() {
@@ -85,6 +111,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
     final merchantName =
         widget.items.isNotEmpty ? widget.items.first.subtitle : 'Unknown Merchant';
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
+    final orderProvider = Provider.of<OrderProvider>(context);
+    final cartProvider = Provider.of<CartProvider>(context);
+
+    if (!_isInitialized) {
+      return Scaffold(
+        backgroundColor: AppTheme.getCard(isDarkMode),
+        body: Center(
+          child: CircularProgressIndicator(
+            color: AppTheme.getButton(isDarkMode),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppTheme.getCard(isDarkMode),
@@ -103,40 +142,46 @@ class _PaymentScreenState extends State<PaymentScreen> {
         centerTitle: true,
         iconTheme: IconThemeData(color: AppTheme.getPrimaryText(isDarkMode)),
       ),
-      body: SafeArea(
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildOrderSummary(merchantName, isDarkMode),
-                const SizedBox(height: 24),
-                TimePickerWidget(
-                  onTimeSelected: (time) => setState(() => pickupTime = time),
-                  onValidationChanged: (isValid, errorMessage) {
-                    SchedulerBinding.instance.addPostFrameCallback((_) {
-                      setState(() {
-                        isTimeValid = isValid;
-                        timeErrorMessage = errorMessage;
-                      });
-                    });
-                  },
+      body: orderProvider.isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                color: AppTheme.getButton(isDarkMode),
+              ),
+            )
+          : SafeArea(
+              child: Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildOrderSummary(merchantName, isDarkMode),
+                      const SizedBox(height: 24),
+                      TimePickerWidget(
+                        onTimeSelected: (time) => setState(() => pickupTime = time),
+                        onValidationChanged: (isValid, errorMessage) {
+                          SchedulerBinding.instance.addPostFrameCallback((_) {
+                            setState(() {
+                              isTimeValid = isValid;
+                              timeErrorMessage = errorMessage;
+                            });
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      _buildPaymentMethodSelector(isDarkMode),
+                      const SizedBox(height: 24),
+                      NotesField(
+                        onNotesChanged: (value) => setState(() => notes = value),
+                      ),
+                      const SizedBox(height: 32),
+                      _buildPlaceOrderButton(context, isDarkMode),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 24),
-                _buildPaymentMethodSelector(isDarkMode),
-                const SizedBox(height: 24),
-                NotesField(
-                  onNotesChanged: (value) => setState(() => notes = value),
-                ),
-                const SizedBox(height: 32),
-                _buildPlaceOrderButton(context, isDarkMode),
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -310,6 +355,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  String _generateOrderId(BuildContext context) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final random = Random();
+    return List.generate(6, (_) => chars[random.nextInt(chars.length)]).join();
+  }
+
   Future<void> _processPayment(BuildContext context) async {
     final isDarkMode = Provider.of<ThemeNotifier>(context, listen: false).isDarkMode;
     if (!_formKey.currentState!.validate()) return;
@@ -335,27 +386,23 @@ class _PaymentScreenState extends State<PaymentScreen> {
       return;
     }
 
+    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+
     setState(() => isProcessing = true);
 
     try {
-      final orderProvider = Provider.of<OrderProvider>(context, listen: false);
-      final cartProvider = Provider.of<CartProvider>(context, listen: false);
-
-      // Pastikan CartProvider sudah diinisialisasi
-      await cartProvider.initialize(authProvider.user!.email);
-
-      final sellerEmail = widget.items.isNotEmpty ? widget.items.first.sellerEmail : null;
-
-      if (sellerEmail == null) {
+      final sellerEmail = _getSellerEmailFromItems();
+      if (sellerEmail == null || sellerEmail.isEmpty) {
         throw Exception('Seller information not available');
       }
 
       final merchantName =
           widget.items.isNotEmpty ? widget.items.first.subtitle : 'Unknown Merchant';
-      final customerName = authProvider.user!.email; // Gunakan email sebagai customerName
+      final customerName = authProvider.user!.email!;
 
       final newOrder = Order(
-        id: _generateOrderId(),
+        id: _generateOrderId(context),
         orderTime: DateTime.now(),
         createdAt: DateTime.now(),
         pickupTime: pickupTime,
@@ -379,17 +426,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
         merchantName: merchantName,
         merchantEmail: sellerEmail,
         customerName: customerName,
-        notes: notes.isNotEmpty ? notes : null,
+        notes: notes.isEmpty ? null : notes,
       );
 
       await orderProvider.addOrder(newOrder);
 
-      // Hapus item dari keranjang satu per satu
+      // Clear cart items individually
       for (var item in widget.items) {
-        cartProvider.removeFromCart(item);
+          cartProvider.removeFromCart(item);
       }
 
-      debugPrint('Order sent to seller: $sellerEmail');
+      debugPrint('OrderProvider: Order placed successfully to seller: $sellerEmail');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -407,22 +454,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
         ),
       );
     } catch (e) {
+      debugPrint('PaymentScreen: Error processing payment: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
+            content: Text('Error: Failed to place order: $e'),
             backgroundColor: AppTheme.getSnackBarError(isDarkMode),
           ),
         );
       }
     } finally {
-      if (mounted) setState(() => isProcessing = false);
+      if (mounted) {
+        setState(() => isProcessing = false);
     }
   }
-
-  String _generateOrderId() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    final random = Random();
-    return List.generate(6, (_) => chars[random.nextInt(chars.length)]).join();
-  }
-}
+}}
