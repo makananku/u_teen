@@ -1,3 +1,4 @@
+// app_theme.dart
 import 'package:flutter/material.dart';
 
 class AppTheme {
@@ -53,6 +54,15 @@ class AppTheme {
   static const Color lightGrey500 = Color(0xFF9E9E9E);
   static const Color lightDarkBlue900 = Color(0xFF0D1B2A);
   static const Color lightDark2D = Color(0xFF2D2D2D);
+  static const Color orderAgainPrimaryLight = Color(0xFF667EEA);
+  static const Color orderAgainSecondaryLight = Color(0xFF764BA2);
+  static const Color orderAgainShadowLight = Color(0x33667EEA);
+  static const Color orderBadgeBackgroundLight = Color(0xFFFFFFFF);
+  static const Color orderBadgeTextLight = Color(0xFF667EEA);
+  static const Color orderPriceBackgroundLight = Color(0xFFFFFFFF);
+  static const Color orderPriceTextLight = Color(0xFF2C3E50);
+  static const Color orderButtonBackgroundLight = Color(0xFFFFFFFF);
+  static const Color orderButtonIconLight = Color(0xFF667EEA);
 
   static const Color darkBackground = Color(0xFF121212);
   static const Color darkCard = Color(0xFF1E1E1E);
@@ -104,59 +114,134 @@ class AppTheme {
   static const Color darkGrey400 = Color(0xFFBDBDBD);
   static const Color darkGrey600 = Color(0xFF757575);
   static const Color dark2D = Color(0xFF2D2D2D);
+  static const Color orderAgainPrimaryDark = Color(0xFF4A5FBA);
+  static const Color orderAgainSecondaryDark = Color(0xFF5A3C7A);
+  static const Color orderAgainShadowDark = Color(0x55667EEA);
+  static const Color orderBadgeBackgroundDark = Color(0xFF2C2C2C);
+  static const Color orderBadgeTextDark = Color(0xFF8B9DFF);
+  static const Color orderPriceBackgroundDark = Color(0xFF1E1E1E);
+  static const Color orderPriceTextDark = Color(0xFFFFFFFF);
+  static const Color orderButtonBackgroundDark = Color(0xFF2C2C2C);
+  static const Color orderButtonIconDark = Color(0xFF8B9DFF);
 
-  static Color getBackground(bool isDarkMode) => isDarkMode ? darkBackground : lightBackground;
+  static Color getBackground(bool isDarkMode) =>
+      isDarkMode ? darkBackground : lightBackground;
   static Color getCard(bool isDarkMode) => isDarkMode ? darkCard : lightCard;
-  static Color getSecondaryBackground(bool isDarkMode) => isDarkMode ? darkSecondaryBackground : lightBackground;
-  static Color getPrimaryText(bool isDarkMode) => isDarkMode ? darkPrimaryText : lightPrimaryText;
-  static Color getSecondaryText(bool isDarkMode) => isDarkMode ? darkSecondaryText : lightSecondaryText;
-  static Color getTertiaryText(bool isDarkMode) => isDarkMode ? darkTertiaryText : lightTertiaryText;
+  static Color getSecondaryBackground(bool isDarkMode) =>
+      isDarkMode ? darkSecondaryBackground : lightBackground;
+  static Color getPrimaryText(bool isDarkMode) =>
+      isDarkMode ? darkPrimaryText : lightPrimaryText;
+  static Color getSecondaryText(bool isDarkMode) =>
+      isDarkMode ? darkSecondaryText : lightSecondaryText;
+  static Color getTertiaryText(bool isDarkMode) =>
+      isDarkMode ? darkTertiaryText : lightTertiaryText;
   static Color getIcon(bool isDarkMode) => isDarkMode ? darkIcon : lightIcon;
-  static Color getBorder(bool isDarkMode) => isDarkMode ? darkBorder : lightBorder;
-  static Color getButton(bool isDarkMode) => isDarkMode ? darkButton : lightButton;
-  static Color getRating(bool isDarkMode) => isDarkMode ? darkRating : lightRating;
-  static Color getProgressBackground(bool isDarkMode) => isDarkMode ? darkProgressBackground : lightProgressBackground;
-  static Color getProgressValue(bool isDarkMode) => isDarkMode ? darkProgressValue : lightProgressValue;
-  static Color getSnackBarError(bool isDarkMode) => isDarkMode ? darkSnackBarError : lightSnackBarError;
-  static Color getSnackBarSuccess(bool isDarkMode) => isDarkMode ? darkSnackBarSuccess : lightSnackBarSuccess;
-  static Color getDisabled(bool isDarkMode) => isDarkMode ? darkDisabled : lightDisabled;
-  static Color getDetailBackground(bool isDarkMode) => isDarkMode ? darkDetailBackground : lightDetailBackground;
-  static Color getInfoBackground(bool isDarkMode) => isDarkMode ? darkInfoBackground : lightBorder;
-  static Color getAccentPurple(bool isDarkMode) => isDarkMode ? darkAccentPurple : lightAccentPurple;
-  static Color getAccentPurpleVariant(bool isDarkMode) => isDarkMode ? darkAccentPurpleVariant : lightAccentPurpleVariant;
-  static Color getAccentCyan(bool isDarkMode) => isDarkMode ? darkAccentCyan : lightAccentCyan;
-  static Color getAccentPink(bool isDarkMode) => isDarkMode ? darkAccentPink : lightAccentPink;
-  static Color getErrorLight(bool isDarkMode) => isDarkMode ? darkErrorLight : lightErrorLight;
-  static Color getErrorLightBackground(bool isDarkMode) => isDarkMode ? darkErrorLightBackground : lightErrorLightBackground;
-  static Color getDivider(bool isDarkMode) => isDarkMode ? darkDivider : lightDivider;
-  static Color getSwitchInactive(bool isDarkMode) => isDarkMode ? darkSwitchInactive : lightSwitchInactive;
-  static Color getTextDark(bool isDarkMode) => isDarkMode ? darkTextDark : lightTextDark;
-  static Color getTextMedium(bool isDarkMode) => isDarkMode ? darkTextMedium : lightTextMedium;
-  static Color getTextGrey(bool isDarkMode) => isDarkMode ? darkTextGrey : lightTextGrey;
-  static Color getAccentBlue(bool isDarkMode) => isDarkMode ? darkAccentBlue : lightAccentBlue;
-  static Color getAccentBlueLight(bool isDarkMode) => isDarkMode ? darkAccentBlueLight : lightAccentBlueLight;
-  static Color getAccentBlueDark(bool isDarkMode) => isDarkMode ? darkAccentBlueDark : lightAccentBlueDark;
-  static Color getAccentPurpleDark(bool isDarkMode) => isDarkMode ? darkAccentPurpleDark : lightAccentPurpleDark;
-  static Color getAccentPurpleLight(bool isDarkMode) => isDarkMode ? darkAccentPurpleLight : lightAccentPurpleLight;
-  static Color getAccentTeal(bool isDarkMode) => isDarkMode ? darkAccentTeal : lightAccentTeal;
-  static Color getAccentRedLight(bool isDarkMode) => isDarkMode ? darkAccentRedLight : lightAccentRedLight;
-  static Color getAccentRedDark(bool isDarkMode) => isDarkMode ? darkAccentRedDark : lightAccentRedDark;
-  static Color getShadow(bool isDarkMode) => isDarkMode ? darkShadow : lightShadow;
-  static Color getInactive(bool isDarkMode) => isDarkMode ? darkInactive : lightInactive;
+  static Color getBorder(bool isDarkMode) =>
+      isDarkMode ? darkBorder : lightBorder;
+  static Color getButton(bool isDarkMode) =>
+      isDarkMode ? darkButton : lightButton;
+  static Color getRating(bool isDarkMode) =>
+      isDarkMode ? darkRating : lightRating;
+  static Color getProgressBackground(bool isDarkMode) =>
+      isDarkMode ? darkProgressBackground : lightProgressBackground;
+  static Color getProgressValue(bool isDarkMode) =>
+      isDarkMode ? darkProgressValue : lightProgressValue;
+  static Color getSnackBarError(bool isDarkMode) =>
+      isDarkMode ? darkSnackBarError : lightSnackBarError;
+  static Color getSnackBarSuccess(bool isDarkMode) =>
+      isDarkMode ? darkSnackBarSuccess : lightSnackBarSuccess;
+  static Color getDisabled(bool isDarkMode) =>
+      isDarkMode ? darkDisabled : lightDisabled;
+  static Color getDetailBackground(bool isDarkMode) =>
+      isDarkMode ? darkDetailBackground : lightDetailBackground;
+  static Color getInfoBackground(bool isDarkMode) =>
+      isDarkMode ? darkInfoBackground : lightBorder;
+  static Color getAccentPurple(bool isDarkMode) =>
+      isDarkMode ? darkAccentPurple : lightAccentPurple;
+  static Color getAccentPurpleVariant(bool isDarkMode) =>
+      isDarkMode ? darkAccentPurpleVariant : lightAccentPurpleVariant;
+  static Color getAccentCyan(bool isDarkMode) =>
+      isDarkMode ? darkAccentCyan : lightAccentCyan;
+  static Color getAccentPink(bool isDarkMode) =>
+      isDarkMode ? darkAccentPink : lightAccentPink;
+  static Color getErrorLight(bool isDarkMode) =>
+      isDarkMode ? darkErrorLight : lightErrorLight;
+  static Color getErrorLightBackground(bool isDarkMode) =>
+      isDarkMode ? darkErrorLightBackground : lightErrorLightBackground;
+  static Color getDivider(bool isDarkMode) =>
+      isDarkMode ? darkDivider : lightDivider;
+  static Color getSwitchInactive(bool isDarkMode) =>
+      isDarkMode ? darkSwitchInactive : lightSwitchInactive;
+  static Color getTextDark(bool isDarkMode) =>
+      isDarkMode ? darkTextDark : lightTextDark;
+  static Color getTextMedium(bool isDarkMode) =>
+      isDarkMode ? darkTextMedium : lightTextMedium;
+  static Color getTextGrey(bool isDarkMode) =>
+      isDarkMode ? darkTextGrey : lightTextGrey;
+  static Color getAccentBlue(bool isDarkMode) =>
+      isDarkMode ? darkAccentBlue : lightAccentBlue;
+  static Color getAccentBlueLight(bool isDarkMode) =>
+      isDarkMode ? darkAccentBlueLight : lightAccentBlueLight;
+  static Color getAccentBlueDark(bool isDarkMode) =>
+      isDarkMode ? darkAccentBlueDark : lightAccentBlueDark;
+  static Color getAccentPurpleDark(bool isDarkMode) =>
+      isDarkMode ? darkAccentPurpleDark : lightAccentPurpleDark;
+  static Color getAccentPurpleLight(bool isDarkMode) =>
+      isDarkMode ? darkAccentPurpleLight : lightAccentPurpleLight;
+  static Color getAccentTeal(bool isDarkMode) =>
+      isDarkMode ? darkAccentTeal : lightAccentTeal;
+  static Color getAccentRedLight(bool isDarkMode) =>
+      isDarkMode ? darkAccentRedLight : lightAccentRedLight;
+  static Color getAccentRedDark(bool isDarkMode) =>
+      isDarkMode ? darkAccentRedDark : lightAccentRedDark;
+  static Color getShadow(bool isDarkMode) =>
+      isDarkMode ? darkShadow : lightShadow;
+  static Color getInactive(bool isDarkMode) =>
+      isDarkMode ? darkInactive : lightInactive;
   static Color getBadge(bool isDarkMode) => isDarkMode ? darkBadge : lightBadge;
-  static Color getSnackBarInfo(bool isDarkMode) => isDarkMode ? darkSnackBarInfo : lightSnackBarInfo;
-  static Color getAccentGreen(bool isDarkMode) => isDarkMode ? darkAccentGreen : lightAccentGreen;
-  static Color getAccentBlueInfo(bool isDarkMode) => isDarkMode ? darkAccentBlueInfo : lightAccentBlueInfo;
-  static Color getAccentPrimaryBlue(bool isDarkMode) => isDarkMode ? darkAccentPrimaryBlue : lightAccentPrimaryBlue;
+  static Color getSnackBarInfo(bool isDarkMode) =>
+      isDarkMode ? darkSnackBarInfo : lightSnackBarInfo;
+  static Color getAccentGreen(bool isDarkMode) =>
+      isDarkMode ? darkAccentGreen : lightAccentGreen;
+  static Color getAccentBlueInfo(bool isDarkMode) =>
+      isDarkMode ? darkAccentBlueInfo : lightAccentBlueInfo;
+  static Color getAccentPrimaryBlue(bool isDarkMode) =>
+      isDarkMode ? darkAccentPrimaryBlue : lightAccentPrimaryBlue;
   static Color getError(bool isDarkMode) => isDarkMode ? darkError : lightError;
-  static Color getShadowLight(bool isDarkMode) => isDarkMode ? darkShadowLight : lightShadowLight;
+  static Color getShadowLight(bool isDarkMode) =>
+      isDarkMode ? darkShadowLight : lightShadowLight;
   static Color getAppBarText(bool isDarkMode) => Colors.white;
-  static Color getBlue800(bool isDarkMode) => isDarkMode ? darkBlue400 : lightBlue800;
-  static Color getBlue100(bool isDarkMode) => isDarkMode ? darkAccentBlueLight : lightBlue100;
-  static Color getBlue900(bool isDarkMode) => isDarkMode ? darkBlue900 : lightBlue900;
-  static Color getGrey50(bool isDarkMode) => isDarkMode ? darkBackground : lightGrey50;
-  static Color getGrey400(bool isDarkMode) => isDarkMode ? darkGrey400 : lightGrey400;
-  static Color getGrey600(bool isDarkMode) => isDarkMode ? darkGrey600 : lightGrey600;
-  static Color getGrey500(bool isDarkMode) => isDarkMode ? darkGrey600 : lightGrey500;
+  static Color getBlue800(bool isDarkMode) =>
+      isDarkMode ? darkBlue400 : lightBlue800;
+  static Color getBlue100(bool isDarkMode) =>
+      isDarkMode ? darkAccentBlueLight : lightBlue100;
+  static Color getBlue900(bool isDarkMode) =>
+      isDarkMode ? darkBlue900 : lightBlue900;
+  static Color getGrey50(bool isDarkMode) =>
+      isDarkMode ? darkBackground : lightGrey50;
+  static Color getGrey400(bool isDarkMode) =>
+      isDarkMode ? darkGrey400 : lightGrey400;
+  static Color getGrey600(bool isDarkMode) =>
+      isDarkMode ? darkGrey600 : lightGrey600;
+  static Color getGrey500(bool isDarkMode) =>
+      isDarkMode ? darkGrey600 : lightGrey500;
   static Color getDark2D(bool isDarkMode) => isDarkMode ? dark2D : lightDark2D;
+  static Color getOrderAgainPrimary(bool isDarkMode) =>
+      isDarkMode ? orderAgainPrimaryDark : orderAgainPrimaryLight;
+  static Color getOrderAgainSecondary(bool isDarkMode) =>
+      isDarkMode ? orderAgainSecondaryDark : orderAgainSecondaryLight;
+  static Color getOrderAgainShadow(bool isDarkMode) =>
+      isDarkMode ? orderAgainShadowDark : orderAgainShadowLight;
+  static Color getOrderBadgeBackground(bool isDarkMode) =>
+      isDarkMode ? orderBadgeBackgroundDark : orderBadgeBackgroundLight;
+  static Color getOrderBadgeText(bool isDarkMode) =>
+      isDarkMode ? orderBadgeTextDark : orderBadgeTextLight;
+  static Color getOrderPriceBackground(bool isDarkMode) =>
+      isDarkMode ? orderPriceBackgroundDark : orderPriceBackgroundLight;
+  static Color getOrderPriceText(bool isDarkMode) =>
+      isDarkMode ? orderPriceTextDark : orderPriceTextLight;
+  static Color getOrderButtonBackground(bool isDarkMode) =>
+      isDarkMode ? orderButtonBackgroundDark : orderButtonBackgroundLight;
+  static Color getOrderButtonIcon(bool isDarkMode) =>
+      isDarkMode ? orderButtonIconDark : orderButtonIconLight;
 }

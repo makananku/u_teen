@@ -1,6 +1,8 @@
+// home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:provider/provider.dart';
+import 'dart:convert';
 import '../../auth/auth_provider.dart';
 import '../../providers/favorite_provider.dart';
 import '../../providers/notification_provider.dart';
@@ -15,6 +17,8 @@ import '../../widgets/customer/search_widget.dart';
 import '../../widgets/customer/category_selector.dart';
 import '../../widgets/customer/food_list.dart';
 import '../../widgets/customer/detail_box.dart';
+import '../../widgets/customer/tenant_list.dart';
+import 'tenant_menu_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String? initialFoodItem;
@@ -98,7 +102,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           isDetailVisible = true;
           _boxController.forward();
           _navController.reverse();
-          debugPrint('HomeScreen: Initialized with imgBase64 length: ${selectedFoodImgBase64.length}');
+          debugPrint(
+            'HomeScreen: Initialized with imgBase64 length: ${selectedFoodImgBase64.length}',
+          );
         });
       }
     });
@@ -140,7 +146,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       _lastBackPressTime = currentTime;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Press back again to exit', style: TextStyle(color: AppTheme.getPrimaryText(true))),
+          content: Text(
+            'Press back again to exit',
+            style: TextStyle(color: AppTheme.getPrimaryText(true)),
+          ),
           duration: const Duration(seconds: 2),
           backgroundColor: AppTheme.getSnackBarInfo(false),
         ),
@@ -208,24 +217,36 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     String subtitle,
     String sellerEmail,
   ) {
-    setState(() {
-      selectedFoodItem = title;
-      selectedFoodPrice = price;
-      selectedFoodImgBase64 = imgBase64;
-      selectedFoodSubtitle = subtitle;
-      selectedSellerEmail = sellerEmail;
-      isDetailVisible = true;
-      _boxController.forward();
-      _navController.reverse();
-      debugPrint('HomeScreen: Food item tapped, imgBase64 length: ${imgBase64.length}, sellerEmail: $sellerEmail');
-    });
+    if (price.isEmpty && subtitle.isEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TenantMenuScreen(
+            tenantName: title,
+            sellerEmail: sellerEmail,
+          ),
+        ),
+      );
+    } else {
+      setState(() {
+        selectedFoodItem = title;
+        selectedFoodPrice = price;
+        selectedFoodImgBase64 = imgBase64;
+        selectedFoodSubtitle = subtitle;
+        selectedSellerEmail = sellerEmail;
+        isDetailVisible = true;
+        _boxController.forward();
+        _navController.reverse();
+        debugPrint(
+          'HomeScreen: Food item tapped, imgBase64 length: ${selectedFoodImgBase64.length}, sellerEmail: $sellerEmail',
+        );
+      });
+    }
   }
 
   Widget _buildMainContent(ThemeData theme, bool isDarkMode) {
-    final orderProvider = Provider.of<OrderProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
     final customerEmail = authProvider.user?.email ?? '';
-    final orderAgainItems = orderProvider.getOrderAgainItemsForCustomer(customerEmail);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -262,63 +283,51 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           },
         ),
         const SizedBox(height: 24),
-        if (orderAgainItems.isNotEmpty) ...[
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Order Again",
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.getPrimaryText(isDarkMode),
-                    fontSize: 20,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  "Your favorite meals",
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.getSecondaryText(isDarkMode),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 240,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: orderAgainItems.length,
-              itemBuilder: (context, index) {
-                final food = orderAgainItems[index];
-                return Padding(
-                  padding: const EdgeInsets.only(right: 16),
-                  child: FoodCard(
-                    title: food["title"]!,
-                    subtitle: food["subtitle"]!,
-                    time: food["time"]!,
-                    imgBase64: food["imgBase64"]!,
-                    price: food["price"]!,
-                    sellerEmail: food["sellerEmail"] ?? '',
-                    onTap: () => _handleFoodItemTap(
-                      food["title"]!,
-                      food["price"]!,
-                      food["imgBase64"]!,
-                      food["subtitle"]!,
-                      food["sellerEmail"] ?? '',
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Explore Tenants",
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.getPrimaryText(isDarkMode),
+                      fontSize: 20,
                     ),
                   ),
-                );
-              },
-            ),
+                  GestureDetector(
+                    onTap: () {
+                      // Add view all functionality here if needed
+                    },
+                    child: Text(
+                      "See all",
+                      style: TextStyle(
+                        color: AppTheme.getAccentBlueInfo(isDarkMode),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                "Discover our food vendors",
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppTheme.getSecondaryText(isDarkMode),
+                ),
+              ),
+            ],
           ),
-        ],
-        const SizedBox(height: 100),
+        ),
+        const SizedBox(height: 16),
+        TenantList(
+          onItemTap: _handleFoodItemTap,
+        ),
+        const SizedBox(height: 120), // Added padding to accommodate floating nav bar
       ],
     );
   }
@@ -332,8 +341,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final unreadNotificationCount =
         notificationProvider.getUnreadCountForCustomer(customerEmail);
     final theme = Theme.of(context);
-    final orderProvider = Provider.of<OrderProvider>(context);
-    final orderAgainItems = orderProvider.getOrderAgainItemsForCustomer(customerEmail);
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
 
     return WillPopScope(
@@ -354,7 +361,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             leading: IconButton(
               icon: Stack(
                 children: [
-                  Icon(Icons.favorite_border, color: AppTheme.getPrimaryText(isDarkMode)),
+                  Icon(
+                    Icons.favorite_border,
+                    color: AppTheme.getPrimaryText(isDarkMode),
+                  ),
                   if (favoriteProvider.favoriteItems.isNotEmpty)
                     Positioned(
                       right: 0,
@@ -393,7 +403,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               IconButton(
                 icon: Stack(
                   children: [
-                    Icon(Icons.notifications_outlined, color: AppTheme.getPrimaryText(isDarkMode)),
+                    Icon(
+                      Icons.notifications_outlined,
+                      color: AppTheme.getPrimaryText(isDarkMode),
+                    ),
                     if (unreadNotificationCount > 0)
                       Positioned(
                         right: 0,
@@ -491,7 +504,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       onCategorySelected: _onCategorySelected,
                                     ),
                                     showFoodLists: isSearchActive,
-                                    orderAgainItems: orderAgainItems,
+                                    orderAgainItems: [],
                                   ),
                                 ),
                                 if (!isSearchActive && !isKeyboardVisible)
@@ -505,7 +518,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             child: GestureDetector(
                               onTap: _closeDetailBox,
                               child: Container(
-                                color: AppTheme.getPrimaryText(isDarkMode).withOpacity(0.4),
+                                color: AppTheme.getPrimaryText(
+                                  isDarkMode,
+                                ).withOpacity(0.4),
                               ),
                             ),
                           ),
@@ -529,8 +544,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               FloatingActionButtonLocation.centerDocked,
           floatingActionButton: AnimatedPositioned(
             duration: const Duration(milliseconds: 300),
-            bottom:
-                isKeyboardVisible ? MediaQuery.of(context).viewInsets.bottom + 16 : 0,
+            bottom: isKeyboardVisible
+                ? MediaQuery.of(context).viewInsets.bottom + 16
+                : 0,
             left: 0,
             right: 0,
             child: AnimatedOpacity(
