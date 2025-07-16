@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../providers/cart_provider.dart';
 import '../../utils/app_theme.dart';
 import '../../providers/theme_notifier.dart';
@@ -45,6 +46,11 @@ class _CartSummaryWidgetState extends State<CartSummaryWidget> {
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
+    final currencyFormat = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -64,7 +70,7 @@ class _CartSummaryWidgetState extends State<CartSummaryWidget> {
                 ),
               ),
               Text(
-                "Rp ${cartProvider.totalPrice}",
+                currencyFormat.format(cartProvider.totalPrice),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,

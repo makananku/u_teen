@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import 'package:u_teen/models/product_model.dart';
 import 'package:u_teen/providers/theme_notifier.dart';
 import 'package:u_teen/utils/app_theme.dart';
-import 'dart:convert'; // Tambahkan untuk base64Decode
-import 'dart:typed_data'; // Tambahkan untuk Uint8List
+import 'dart:convert';
+import 'dart:typed_data';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -23,6 +24,14 @@ class ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
+    final currencyFormat = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
+    final cleanPrice = product.price.replaceAll(RegExp(r'[^0-9]'), '');
+    final formattedPrice = currencyFormat.format(int.tryParse(cleanPrice) ?? 0);
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 0,
@@ -122,7 +131,7 @@ class ProductCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            'Rp${product.price}',
+                            formattedPrice,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
@@ -203,19 +212,19 @@ class ProductCard extends StatelessWidget {
   }
 
   Widget _buildImage() {
-    print('Building image for product: ${product.title}');
-    print('imgBase64 length: ${product.imgBase64.length}');
+    debugPrint('Building image for product: ${product.title}');
+    debugPrint('imgBase64 length: ${product.imgBase64.length}');
     
     if (product.imgBase64.isNotEmpty) {
       try {
-        print('Decoding Base64 for ${product.title}...');
+        debugPrint('Decoding Base64 for ${product.title}...');
         final imageBytes = base64Decode(product.imgBase64);
-        print('Base64 decoded successfully, bytes length: ${imageBytes.length}');
+        debugPrint('Base64 decoded successfully, bytes length: ${imageBytes.length}');
         return Image.memory(
           imageBytes,
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
-            print('Error displaying image for ${product.title}: $error');
+            debugPrint('Error displaying image for ${product.title}: $error');
             return Container(
               color: Colors.grey[200],
               child: const Icon(
@@ -227,7 +236,7 @@ class ProductCard extends StatelessWidget {
           },
         );
       } catch (e) {
-        print('Error decoding Base64 for ${product.title}: $e');
+        debugPrint('Error decoding Base64 for ${product.title}: $e');
         return Container(
           color: Colors.grey[200],
           child: const Icon(
@@ -239,7 +248,7 @@ class ProductCard extends StatelessWidget {
       }
     }
 
-    print('imgBase64 is empty for ${product.title}, showing placeholder');
+    debugPrint('imgBase64 is empty for ${product.title}, showing placeholder');
     return Container(
       color: Colors.grey[200],
       child: const Icon(

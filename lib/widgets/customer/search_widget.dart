@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../data/search_data.dart';
 import '../../utils/app_theme.dart';
 import '../../providers/theme_notifier.dart';
@@ -249,6 +250,11 @@ class _SearchWidgetState extends State<SearchWidget> {
   }
 
   Widget _buildSearchResults(bool isDarkMode) {
+    final currencyFormat = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
     debugPrint('Building search results for query: $searchQuery');
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
@@ -362,6 +368,8 @@ class _SearchWidgetState extends State<SearchWidget> {
                 ),
                 itemBuilder: (context, index) {
                   final food = searchResults[index];
+                  final cleanPrice = food.price.replaceAll(RegExp(r'[^0-9]'), '');
+                  final formattedPrice = currencyFormat.format(int.tryParse(cleanPrice) ?? 0);
                   return ListTile(
                     leading: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
@@ -389,7 +397,7 @@ class _SearchWidgetState extends State<SearchWidget> {
                       style: TextStyle(color: AppTheme.getSecondaryText(isDarkMode)),
                     ),
                     trailing: Text(
-                      "Rp${food.price}",
+                      formattedPrice,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: AppTheme.getAccentBlueInfo(isDarkMode),
@@ -527,6 +535,11 @@ class _SearchWidgetState extends State<SearchWidget> {
   }
 
   Widget _buildOrderAgainSection(BuildContext context, bool isDarkMode) {
+    final currencyFormat = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
     debugPrint('Building order again section with ${widget.orderAgainItems.length} items');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -564,19 +577,21 @@ class _SearchWidgetState extends State<SearchWidget> {
             itemCount: widget.orderAgainItems.length,
             itemBuilder: (context, index) {
               final food = widget.orderAgainItems[index];
+              final cleanPrice = food["price"]!.replaceAll(RegExp(r'[^0-9]'), '');
+              final formattedPrice = currencyFormat.format(int.tryParse(cleanPrice) ?? 0);
               return Padding(
                 padding: const EdgeInsets.only(right: 16),
                 child: FoodCard(
                   title: food["title"]!,
                   subtitle: food["subtitle"]!,
                   time: food["time"]!,
-                  imgBase64: food["imgBase64"]!, // Fixed from imgUrl
-                  price: food["price"]!,
+                  imgBase64: food["imgBase64"]!,
+                  price: formattedPrice,
                   sellerEmail: food["sellerEmail"] ?? '',
                   onTap: () => widget.onFoodItemTap(
                     food["title"]!,
                     food["price"]!,
-                    food["imgBase64"]!, // Fixed from imgUrl
+                    food["imgBase64"]!,
                     food["subtitle"]!,
                     food["sellerEmail"] ?? '',
                   ),

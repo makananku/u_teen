@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:provider/provider.dart';
 import 'package:lottie/lottie.dart';
+import 'package:intl/intl.dart';
 import '../../providers/cart_provider.dart';
 import '../../models/cart_item.dart';
 import '../../utils/app_theme.dart';
@@ -115,6 +116,11 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
   }
 
   Widget _buildSummaryCard(CartProvider cartProvider, bool isDarkMode) {
+    final currencyFormat = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       margin: const EdgeInsets.all(16),
@@ -157,7 +163,7 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
                 style: TextStyle(fontSize: 14, color: AppTheme.getSecondaryText(isDarkMode)),
               ),
               Text(
-                'Rp${cartProvider.totalPrice}',
+                currencyFormat.format(cartProvider.totalPrice),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -301,6 +307,11 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
   }
 
   Widget _buildCartItemCard(CartItem item, bool isDarkMode) {
+    final currencyFormat = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -377,7 +388,7 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
             ),
           ),
           subtitle: Text(
-            'Rp${item.price}',
+            currencyFormat.format(item.price),
             style: TextStyle(color: AppTheme.getSecondaryText(isDarkMode)),
           ),
           trailing: _buildQuantityControls(item, isDarkMode),
@@ -480,6 +491,11 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
   }
 
   Widget _buildCheckoutButton(List<CartItem> items, int totalPrice, bool isDarkMode) {
+    final currencyFormat = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ElevatedButton(
@@ -511,7 +527,7 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen>
             ),
             const Spacer(),
             Text(
-              'Rp$totalPrice',
+              currencyFormat.format(totalPrice),
               style: TextStyle(
                 fontSize: 16,
                 color: AppTheme.getPrimaryText(!isDarkMode),

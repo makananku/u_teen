@@ -7,7 +7,7 @@ import '../../providers/theme_notifier.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'dart:typed_data';
-import '../../auth/auth_provider.dart'; // Add AuthProvider import
+import '../../auth/auth_provider.dart';
 
 class CartItemWidget extends StatefulWidget {
   final CartItem item;

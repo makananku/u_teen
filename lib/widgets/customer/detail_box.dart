@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../providers/favorite_provider.dart';
 import '../../utils/app_theme.dart';
 import '../../providers/theme_notifier.dart';
@@ -42,6 +43,12 @@ class _DetailBoxState extends State<DetailBox> {
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     final cleanPrice = widget.selectedFoodPrice.replaceAll(RegExp(r'[^0-9]'), '');
+    final currencyFormat = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
+    final formattedPrice = currencyFormat.format(int.tryParse(cleanPrice) ?? 0);
     final favoriteItem = FavoriteItem(
       name: widget.selectedFoodItem,
       price: cleanPrice,
@@ -175,7 +182,7 @@ class _DetailBoxState extends State<DetailBox> {
                           bottom: 16,
                           right: 16,
                           child: Text(
-                            widget.selectedFoodPrice,
+                            formattedPrice,
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
@@ -326,7 +333,7 @@ class _DetailBoxState extends State<DetailBox> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content:
-                                    Text('Please log in to add items to favorites'),
+                                    Text('請登錄以將商品加入收藏'),
                                 backgroundColor:
                                     AppTheme.getSnackBarError(isDarkMode),
                               ),

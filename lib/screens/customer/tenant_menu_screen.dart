@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import '../../utils/app_theme.dart';
 import '../../providers/theme_notifier.dart';
 import '../../models/product_model.dart';
@@ -22,7 +23,8 @@ class TenantMenuScreen extends StatefulWidget {
   _TenantMenuScreenState createState() => _TenantMenuScreenState();
 }
 
-class _TenantMenuScreenState extends State<TenantMenuScreen> with TickerProviderStateMixin {
+class _TenantMenuScreenState extends State<TenantMenuScreen>
+    with TickerProviderStateMixin {
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
   bool isDetailVisible = false;
@@ -39,13 +41,9 @@ class _TenantMenuScreenState extends State<TenantMenuScreen> with TickerProvider
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeOutQuart,
-    ));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeOutQuart),
+    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -67,9 +65,16 @@ class _TenantMenuScreenState extends State<TenantMenuScreen> with TickerProvider
     String subtitle,
     String sellerEmail,
   ) {
+    final currencyFormat = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
+    final cleanPrice = price.replaceAll(RegExp(r'[^0-9]'), '');
+    final formattedPrice = currencyFormat.format(int.tryParse(cleanPrice) ?? 0);
     setState(() {
       selectedFoodItem = title;
-      selectedFoodPrice = price;
+      selectedFoodPrice = formattedPrice;
       selectedFoodImgBase64 = imgBase64;
       selectedFoodSubtitle = subtitle;
       selectedSellerEmail = sellerEmail;
@@ -85,12 +90,15 @@ class _TenantMenuScreenState extends State<TenantMenuScreen> with TickerProvider
 
   Uint8List _decodeBase64(String base64String) {
     try {
-      final String cleanedBase64 = base64String.startsWith('data:image')
-          ? base64String.split(',').last
-          : base64String;
+      final String cleanedBase64 =
+          base64String.startsWith('data:image')
+              ? base64String.split(',').last
+              : base64String;
       return base64Decode(cleanedBase64);
     } catch (e) {
-      debugPrint('TenantMenuScreen: Error decoding Base64 for $base64String: $e');
+      debugPrint(
+        'TenantMenuScreen: Error decoding Base64 for $base64String: $e',
+      );
       return Uint8List(0);
     }
   }
@@ -129,11 +137,12 @@ class _TenantMenuScreenState extends State<TenantMenuScreen> with TickerProvider
           FadeTransition(
             opacity: _fadeAnimation,
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('products')
-                  .where('isActive', isEqualTo: true)
-                  .where('tenantName', isEqualTo: widget.tenantName)
-                  .snapshots(),
+              stream:
+                  FirebaseFirestore.instance
+                      .collection('products')
+                      .where('isActive', isEqualTo: true)
+                      .where('tenantName', isEqualTo: widget.tenantName)
+                      .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(
@@ -176,31 +185,34 @@ class _TenantMenuScreenState extends State<TenantMenuScreen> with TickerProvider
                   );
                 }
 
-                final products = snapshot.data!.docs
-                    .map((doc) => Product.fromFirestore(doc))
-                    .toList();
+                final products =
+                    snapshot.data!.docs
+                        .map((doc) => Product.fromFirestore(doc))
+                        .toList();
 
                 return Padding(
                   padding: const EdgeInsets.all(16),
                   child: GridView.builder(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.8, // Slightly taller cards
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.8, // Slightly taller cards
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                        ),
                     itemCount: products.length,
                     itemBuilder: (context, index) {
                       final product = products[index];
                       return MenuItemCard(
                         product: product,
-                        onTap: () => _handleFoodItemTap(
-                          product.title,
-                          product.price,
-                          product.imgBase64,
-                          product.subtitle,
-                          product.sellerEmail,
-                        ),
+                        onTap:
+                            () => _handleFoodItemTap(
+                              product.title,
+                              product.price,
+                              product.imgBase64,
+                              product.subtitle,
+                              product.sellerEmail,
+                            ),
                       );
                     },
                   ),
@@ -236,17 +248,15 @@ class MenuItemCard extends StatefulWidget {
   final Product product;
   final VoidCallback onTap;
 
-  const MenuItemCard({
-    Key? key,
-    required this.product,
-    required this.onTap,
-  }) : super(key: key);
+  const MenuItemCard({Key? key, required this.product, required this.onTap})
+    : super(key: key);
 
   @override
   _MenuItemCardState createState() => _MenuItemCardState();
 }
 
-class _MenuItemCardState extends State<MenuItemCard> with TickerProviderStateMixin {
+class _MenuItemCardState extends State<MenuItemCard>
+    with TickerProviderStateMixin {
   late AnimationController _hoverController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _elevationAnimation;
@@ -259,20 +269,12 @@ class _MenuItemCardState extends State<MenuItemCard> with TickerProviderStateMix
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.03,
-    ).animate(CurvedAnimation(
-      parent: _hoverController,
-      curve: Curves.easeOutQuad,
-    ));
-    _elevationAnimation = Tween<double>(
-      begin: 2.0,
-      end: 6.0,
-    ).animate(CurvedAnimation(
-      parent: _hoverController,
-      curve: Curves.easeOutQuad,
-    ));
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.03).animate(
+      CurvedAnimation(parent: _hoverController, curve: Curves.easeOutQuad),
+    );
+    _elevationAnimation = Tween<double>(begin: 2.0, end: 6.0).animate(
+      CurvedAnimation(parent: _hoverController, curve: Curves.easeOutQuad),
+    );
   }
 
   @override
@@ -299,12 +301,15 @@ class _MenuItemCardState extends State<MenuItemCard> with TickerProviderStateMix
 
   Uint8List _decodeBase64(String base64String) {
     try {
-      final String cleanedBase64 = base64String.startsWith('data:image')
-          ? base64String.split(',').last
-          : base64String;
+      final String cleanedBase64 =
+          base64String.startsWith('data:image')
+              ? base64String.split(',').last
+              : base64String;
       return base64Decode(cleanedBase64);
     } catch (e) {
-      debugPrint('MenuItemCard: Error decoding Base64 for ${widget.product.title}: $e');
+      debugPrint(
+        'MenuItemCard: Error decoding Base64 for ${widget.product.title}: $e',
+      );
       return Uint8List(0);
     }
   }
@@ -313,6 +318,13 @@ class _MenuItemCardState extends State<MenuItemCard> with TickerProviderStateMix
   Widget build(BuildContext context) {
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     final theme = Theme.of(context);
+    final currencyFormat = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
+    final cleanPrice = widget.product.price.replaceAll(RegExp(r'[^0-9]'), '');
+    final formattedPrice = currencyFormat.format(int.tryParse(cleanPrice) ?? 0);
 
     return AnimatedBuilder(
       animation: Listenable.merge([_scaleAnimation, _elevationAnimation]),
@@ -329,10 +341,12 @@ class _MenuItemCardState extends State<MenuItemCard> with TickerProviderStateMix
                 color: AppTheme.getCard(isDarkMode),
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.getShadow(isDarkMode).withOpacity(0.2 * _elevationAnimation.value/6),
-                    blurRadius: 8 * _elevationAnimation.value/2,
-                    spreadRadius: 1 * _elevationAnimation.value/3,
-                    offset: Offset(0, 3 * _elevationAnimation.value/3),
+                    color: AppTheme.getShadow(
+                      isDarkMode,
+                    ).withOpacity(0.2 * _elevationAnimation.value / 6),
+                    blurRadius: 8 * _elevationAnimation.value / 2,
+                    spreadRadius: 1 * _elevationAnimation.value / 3,
+                    offset: Offset(0, 3 * _elevationAnimation.value / 3),
                   ),
                 ],
               ),
@@ -341,17 +355,19 @@ class _MenuItemCardState extends State<MenuItemCard> with TickerProviderStateMix
                 children: [
                   // Food image
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
                     child: Stack(
                       children: [
                         widget.product.imgBase64.isNotEmpty
                             ? Image.memory(
-                                _decodeBase64(widget.product.imgBase64),
-                                height: 120,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => _buildPlaceholder(),
-                              )
+                              _decodeBase64(widget.product.imgBase64),
+                              height: 120,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                            )
                             : _buildPlaceholder(),
                         Positioned(
                           top: 8,
@@ -359,7 +375,9 @@ class _MenuItemCardState extends State<MenuItemCard> with TickerProviderStateMix
                           child: Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: AppTheme.getOrderButtonBackground(isDarkMode),
+                              color: AppTheme.getOrderButtonBackground(
+                                isDarkMode,
+                              ),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(
@@ -372,7 +390,7 @@ class _MenuItemCardState extends State<MenuItemCard> with TickerProviderStateMix
                       ],
                     ),
                   ),
-                  
+
                   // Food details
                   Padding(
                     padding: const EdgeInsets.all(12),
@@ -402,7 +420,7 @@ class _MenuItemCardState extends State<MenuItemCard> with TickerProviderStateMix
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Rp ${widget.product.price}',
+                              formattedPrice,
                               style: theme.textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.w600,
                                 color: AppTheme.getAccentPurple(isDarkMode),

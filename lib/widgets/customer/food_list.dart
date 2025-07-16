@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import '../../utils/app_theme.dart';
 import '../../providers/theme_notifier.dart';
 import 'package:provider/provider.dart';
@@ -125,6 +126,13 @@ class FoodCard extends StatelessWidget {
   Widget build(BuildContext context) {
     debugPrint('FoodCard: Building for $title');
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
+    final currencyFormat = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
+    final cleanPrice = price.replaceAll(RegExp(r'[^0-9]'), '');
+    final formattedPrice = currencyFormat.format(int.tryParse(cleanPrice) ?? 0);
 
     return GestureDetector(
       onTap: () {
@@ -240,6 +248,14 @@ class FoodCard extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
+                      Text(
+                        formattedPrice,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: AppTheme.getAccentBlueInfo(isDarkMode),
+                        ),
+                      ),
                     ],
                   ),
                 ],
